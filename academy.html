@@ -58,6 +58,7 @@
                             '50%': { height: '100%' },
                         },
                         blink: {
+
                             'to': { visibility: 'hidden' }
                         },
                         rgbWave: {
@@ -66,8 +67,10 @@
                         },
                         fadeIn: {
                             'from': { opacity: '0', transform: 'scale(0.95)' },
+
                             'to': { opacity: '1', transform: 'scale(1)' }
                         }
+
                     }
                 }
             }
@@ -82,6 +85,7 @@
             --term-bg: #0b0c15;
             --overlay-bg: rgba(21, 22, 40, 0.85);
             --accent-color: #6366f1;
+            --vignette-color: rgba(0, 0, 0, 0.75);
         }
 
         body { background-color: var(--bg-color); color: #f8fafc; overflow: hidden; transition: background-color 0.5s ease; }
@@ -95,6 +99,8 @@
             transition: background-color 0.3s ease; 
             will-change: background-position;
         }
+        
+        
 
         /* Modern Glassmorphism UI */
         .glass {
@@ -142,6 +148,7 @@
 
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .toast-enter { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         /* Custom Scrollbar */
@@ -163,16 +170,118 @@
         body.theme-wii { color: #444; }
         body.theme-wii .glass { background: rgba(255,255,255,0.9); border-color: #ccc; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         body.theme-wii .text-white, body.theme-wii .text-slate-100, body.theme-wii .text-slate-200, body.theme-wii .text-slate-300 { color: #222 !important; }
-        body.theme-wii .text-slate-400, body.theme-wii .text-slate-500 { color: #666 !important; }
+        body.theme-wii .text-slate-400, body.theme-wii .text-slate-500 { color: #555 !important; }
         body.theme-wii .bg-space-950, body.theme-wii .bg-space-900, body.theme-wii .bg-space-800 { background-color: #fff !important; border-color: #ddd !important; }
         body.theme-wii #canvas-wrapper, body.theme-wii .bg-\\[\\#0b0c15\\] { background-color: #f4f4f4 !important; }
+        body.theme-wii .seek-bar { background: linear-gradient(to right, #0055cc calc(var(--val, 0) * 1%), rgba(0, 0, 0, 0.15) calc(var(--val, 0) * 1%)) !important; }
+        body.theme-wii .seek-bar::-webkit-slider-thumb { background: #0055cc !important; }
+
+        /* Wii Theme Accent & Readability Fixes */
+        /* Wii Theme Accent & Readability Fixes */
+        body.theme-wii .modal-tab.active { color: #0055cc !important; border-bottom-color: #0055cc !important; background-color: transparent !important; }
+        body.theme-wii .text-brand-400, body.theme-wii .text-brand-500 { color: #0055cc !important; }
+        body.theme-wii .bg-brand-600 { background-color: #0055cc !important; color: #fff !important; }
+        body.theme-wii .bg-brand-600 *, body.theme-wii .bg-brand-600 .text-white { color: #fff !important; }
+        body.theme-wii .border-brand-500 { border-color: #0055cc !important; }
+        body.theme-wii .bg-brand-500\/10, body.theme-wii .bg-brand-500\/20, body.theme-wii .bg-brand-500\/30 { background-color: rgba(0, 85, 204, 0.1) !important; }
+        body.theme-wii .text-accent-lime { color: #16a34a !important; } 
+        body.theme-wii .bg-accent-lime { background-color: #16a34a !important; color: #fff !important; }
+        body.theme-wii .bg-accent-lime *, body.theme-wii .bg-accent-lime .text-white { color: #fff !important; }
+        body.theme-wii .text-accent-cyan { color: #0284c7 !important; } 
+        body.theme-wii .text-accent-pink { color: #db2777 !important; } 
+        body.theme-wii .bg-accent-pink, body.theme-wii .bg-accent-pink\/10, body.theme-wii .bg-accent-pink\/20 { background-color: rgba(219, 39, 119, 0.15) !important; color: #db2777 !important; }
+        body.theme-wii .bg-accent-pink:hover { background-color: #db2777 !important; color: #fff !important; }
+        body.theme-wii .bg-accent-pink:hover * { color: #fff !important; }
+        body.theme-wii .border-space-700, body.theme-wii .border-space-800 { border-color: #ddd !important; }
+        body.theme-wii input:not(.bg-transparent), body.theme-wii select, body.theme-wii textarea { background-color: #f9f9f9 !important; color: #222 !important; border-color: #ccc !important; }
+        body.theme-wii input::placeholder, body.theme-wii textarea::placeholder { color: #888 !important; }
+        body.theme-wii .shadow-inner { box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05) !important; }
+        body.theme-wii .text-gemini { color: #7e22ce !important; }
+        body.theme-wii .bg-gemini { background-color: #7e22ce !important; color: #fff !important; }
+        body.theme-wii .bg-gemini *, body.theme-wii .bg-gemini .text-white { color: #fff !important; }
+        body.theme-wii .border-gemini, body.theme-wii .border-gemini\/50 { border-color: #7e22ce !important; }
+        body.theme-wii .ring-1 { --tw-ring-color: rgba(0,0,0,0.1) !important; }
+        body.theme-wii .nav-btn:hover { background-color: rgba(0,0,0,0.05) !important; border-color: #ccc !important; }
+        
+        /* Modal & UI Deep Fixes for Wii Theme */
+        body.theme-wii [class*="bg-space-900\/"], body.theme-wii [class*="bg-space-800\/"] { background-color: #f4f4f4 !important; }
+        body.theme-wii .hover\:bg-space-700:hover, body.theme-wii .hover\:bg-space-800:hover { background-color: #e5e5e5 !important; color: #222 !important; }
+        body.theme-wii .hover\:text-white:hover { color: #0055cc !important; }
+        body.theme-wii .hover\:bg-white\/5:hover { background-color: rgba(0,0,0,0.05) !important; }
+        body.theme-wii .modal-tab.active { background-color: transparent !important; color: #0055cc !important; border-bottom-color: #0055cc !important; }
+        body.theme-wii .iface-item { background-color: transparent !important; border-color: transparent !important; padding: 5px 0 !important; transition: transform 0.2s ease; }
+        body.theme-wii .iface-item:hover { background-color: transparent !important; opacity: 1; transform: translateX(4px); }
+        body.theme-wii .iface-item .font-bold { color: #0055cc !important; transition: all 0.2s ease; }
+        body.theme-wii .iface-item:hover .font-bold { color: #0033aa !important; text-shadow: 0 0 8px rgba(0, 85, 204, 0.4); }
+        body.theme-wii #view-physical .from-space-800 { background: #ffffff !important; }
+        body.theme-wii .module-item { background-color: transparent !important; border-color: transparent !important; box-shadow: none !important; padding: 5px 0 !important; transition: transform 0.2s ease; }
+        body.theme-wii .module-item:hover { background-color: transparent !important; border-color: transparent !important; box-shadow: none !important; opacity: 1; transform: translateX(4px); }
+        body.theme-wii .module-item .text-white { color: #0055cc !important; transition: all 0.2s ease; }
+        body.theme-wii .module-item:hover .text-white { color: #0033aa !important; text-shadow: 0 0 8px rgba(0, 85, 204, 0.4); }
+        body.theme-wii .module-item:hover .text-slate-400 { color: #222 !important; }
+        body.theme-wii .module-item:hover { background-color: transparent !important; border-color: transparent !important; box-shadow: none !important; opacity: 0.6; }
+        body.theme-wii .module-item .text-white { color: #0055cc !important; }
+        body.theme-wii table thead { background-color: #eee !important; color: #444 !important; }
+        body.theme-wii table tbody tr { border-bottom-color: #ddd !important; }
+        body.theme-wii table tbody tr:hover { background-color: #f9f9f9 !important; }
+        body.theme-wii #view-cli { background-color: #fff !important; color: #222 !important; }
+        body.theme-wii #cli-output { color: #444 !important; }
+        body.theme-wii #cli-input { color: #0055cc !important; }
+        body.theme-wii .draggable-window { background: #fff !important; border-color: #ccc !important; box-shadow: 0 8px 30px rgba(0,0,0,0.15) !important; }
+        body.theme-wii .window-header { background: #f0f0f0 !important; border-bottom: 1px solid #ccc !important; }
+        body.theme-wii #term-title { color: #222 !important; }
+        body.theme-wii #term-body { background: #fff !important; color: #222 !important; }
+        body.theme-wii #term-input { color: #0055cc !important; }
+        body.theme-wii #term-output { color: #444 !important; }
+        
+        /* Deep Device Config UI Fixes for Wii Theme */
+        body.theme-wii #device-modal .bg-\\[\\#0b0c15\\] { background-color: #fff !important; }
+        body.theme-wii #config-detail-area { background-color: #fff !important; color: #222 !important; }
+        body.theme-wii #config-detail-area h3.text-white { color: #222 !important; border-bottom-color: #ccc !important; }
+        body.theme-wii #config-detail-area .bg-space-800 { background-color: #f9f9f9 !important; border-color: #ddd !important; }
+        body.theme-wii #config-detail-area .bg-space-900 { background-color: #f0f0f0 !important; border-color: #ccc !important; }
+        body.theme-wii input:disabled, body.theme-wii select:disabled { background-color: #eaeaea !important; color: #555 !important; border-color: #ccc !important; opacity: 1 !important; }
+        body.theme-wii input[type="checkbox"] { background-color: #fff !important; border-color: #ccc !important; }
+        body.theme-wii .bg-space-900\/95 { background-color: #f4f4f4 !important; border-bottom-color: #ccc !important; }
         
         body.theme-retro { font-family: 'JetBrains Mono', monospace; }
         body.theme-retro * { border-color: #00ff00 !important; color: #00ff00 !important; }
+        body.theme-retro .modal-tab { color: #006600 !important; border-bottom-color: transparent !important; }
+        body.theme-retro .modal-tab:hover { color: #00aa00 !important; }
+        body.theme-retro .modal-tab.active { color: #00ff00 !important; border-bottom-color: #00ff00 !important; text-shadow: 0 0 8px #00ff00; }
+        body.theme-retro .seek-bar { background: linear-gradient(to right, #00ff00 calc(var(--val, 0) * 1%), rgba(0, 255, 0, 0.2) calc(var(--val, 0) * 1%)) !important; }
+        body.theme-retro .seek-bar::-webkit-slider-thumb { background: #00ff00 !important; box-shadow: 0 0 5px #00ff00 !important; border-color: #000 !important; }
         body.theme-retro .glass, body.theme-retro .bg-space-950, body.theme-retro .bg-space-900, body.theme-retro .bg-space-800 { background-color: #000 !important; }
         body.theme-retro #canvas-wrapper, body.theme-retro .bg-\\[\\#0b0c15\\] { background-color: #000 !important; }
 
-        body.theme-cyberpunk #canvas-wrapper, body.theme-cyberpunk .bg-\\[\\#0b0c15\\] { background-color: #090014 !important; }
+        /* --- CYBERPUNK & CUSTOM THEME AKZENTE --- */
+        body.theme-cyberpunk { --accent: #ff00ff; --green: #00ffff; --bg: #1a0b1a; }
+        
+        body.theme-cyberpunk #canvas-wrapper, body.theme-cyberpunk .bg-\\[\\#0b0c15\\],
+        body[class*="custom-"] #canvas-wrapper, body[class*="custom-"] .bg-\\[\\#0b0c15\\] { 
+            background-color: var(--bg) !important; 
+            background-image: linear-gradient(color-mix(in srgb, var(--accent) 20%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--accent) 20%, transparent) 1px, transparent 1px) !important;
+        }
+        body.theme-cyberpunk .glass, body.theme-cyberpunk .bg-space-950, body.theme-cyberpunk .bg-space-900, body.theme-cyberpunk .bg-space-800 { background-color: #1a0b1a !important; border-color: rgba(255,0,255,0.3) !important; }
+
+        /* Zwingt die Tailwind-UI, die Live-Farben aus dem Editor zu nutzen */
+        body.theme-cyberpunk .bg-brand-600, body[class*="custom-"] .bg-brand-600 { background-color: var(--accent) !important; }
+        body.theme-cyberpunk .text-brand-400, body[class*="custom-"] .text-brand-400 { color: var(--accent) !important; }
+        body.theme-cyberpunk .border-brand-500, body[class*="custom-"] .border-brand-500 { border-color: var(--accent) !important; }
+        body.theme-cyberpunk .bg-brand-500\/10, body[class*="custom-"] .bg-brand-500\/10 { background-color: color-mix(in srgb, var(--accent) 15%, transparent) !important; }
+        body.theme-cyberpunk .bg-brand-500\/20, body[class*="custom-"] .bg-brand-500\/20 { background-color: color-mix(in srgb, var(--accent) 25%, transparent) !important; }
+        
+        body.theme-cyberpunk .text-accent-lime, body[class*="custom-"] .text-accent-lime { color: var(--green) !important; }
+        body.theme-cyberpunk .bg-accent-lime, body[class*="custom-"] .bg-accent-lime { background-color: var(--green) !important; }
+        body.theme-cyberpunk .shadow-\\[0_0_8px_\\#84cc16\\], body[class*="custom-"] .shadow-\\[0_0_8px_\\#84cc16\\] { box-shadow: 0 0 8px var(--green) !important; }
+
+        /* Custom Theme spezifische Hintergründe anpassen */
+        body[class*="custom-"] .text-white { color: var(--text) !important; }
+        body[class*="custom-"] .glass { background: var(--overlay-bg) !important; border-color: color-mix(in srgb, var(--accent) 30%, transparent) !important; }
+        body[class*="custom-"] .bg-space-950 { background-color: color-mix(in srgb, var(--bg) 95%, black) !important; }
+        body[class*="custom-"] .bg-space-900 { background-color: color-mix(in srgb, var(--bg) 85%, black) !important; }
+        body[class*="custom-"] .bg-space-800 { background-color: color-mix(in srgb, var(--bg) 75%, black) !important; }
+        body[class*="custom-"] .border-space-700 { border-color: color-mix(in srgb, var(--bg) 60%, white) !important; }
         /* --- REALISTIC MODULE STYLES (High Contrast) --- */
         .rack-module {
             background: linear-gradient(180deg, #2d2f55 0%, #151628 100%);
@@ -217,7 +326,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .port-serial::after {
-            content: '::::::::::'; font-size: 8px; color: #ec4899; letter-spacing: 1px;
+            content: '::::::::::'; font-size: 4px; color: #ec4899; letter-spacing: 1px;
         }
         
         .sfp-metal-cage {
@@ -292,7 +401,7 @@
             width: 100%;
             height: 6px;
             border-radius: 5px;
-            background: #1e1f3a;
+            background: linear-gradient(to right, var(--thumb-color, #ef4444) calc(var(--val, 30) * 1%), #1e1f3a calc(var(--val, 30) * 1%));
             outline: none;
         }
         .range-slider::-webkit-slider-thumb {
@@ -312,12 +421,13 @@
         /* Fixed & Refined Seek Bar */
         .seek-bar {
             -webkit-appearance: none;
-            width: 100%; height: 4px; border-radius: 2px;
-            background: rgba(255,255,255,0.1); outline: none; margin-top: 4px;
+            width: 100%; height: 6px; border-radius: 3px;
+            background: linear-gradient(to right, var(--accent, #6366f1) calc(var(--val, 0) * 1%), rgba(255,255,255,0.15) calc(var(--val, 0) * 1%));
+            outline: none; margin-top: 4px;
             cursor: pointer;
         }
         .seek-bar::-webkit-slider-thumb {
-             -webkit-appearance: none; width: 8px; height: 8px; border-radius: 50%; background: #fff; cursor: pointer; transition: transform 0.1s;
+             -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #fff; cursor: pointer; transition: transform 0.1s;
         }
         .seek-bar::-webkit-slider-thumb:hover { transform: scale(1.5); }
 
@@ -374,14 +484,136 @@
         .cat-btn.active { @apply bg-brand-600 text-white shadow-lg shadow-brand-500/40 border-brand-500; }
         .tool-btn { @apply w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-space-700 hover:text-white transition-all; }
         .tool-btn.active { @apply bg-brand-600 text-white ring-2 ring-brand-500 ring-offset-2 ring-offset-space-900; }
-        .modal-tab { @apply px-6 py-3 text-sm font-medium text-slate-400 border-b-2 border-transparent hover:text-white hover:bg-white/5 transition-all flex items-center gap-2; }
-        .modal-tab.active { @apply text-brand-400 border-brand-500 bg-brand-500/10; }
-        .iface-item { @apply w-full text-left px-3 py-2.5 rounded-lg text-xs text-slate-300 hover:bg-space-800 flex justify-between items-center transition border border-transparent hover:border-space-700; }
-        .module-item { @apply p-2.5 bg-space-800 border border-space-700 rounded-lg hover:bg-space-700 cursor-pointer text-xs flex flex-col gap-1 transition-all hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/10; }
+        .modal-tab { @apply px-6 py-3 text-lg font-bold text-slate-400 border-b-4 border-transparent hover:text-white transition-all flex gap-1 bg-transparent; cursor: pointer; text-align: center; }
+        .modal-tab.active { @apply bg-transparent; color: #818cf8 !important; border-bottom-color: #6366f1 !important; }
+        .iface-item { @apply w-full text-left px-3 py-2.5 rounded-lg text-xs text-slate-300 flex justify-between items-center transition-all border border-transparent bg-transparent; cursor: pointer; }
+        .iface-item:hover { transform: translateX(4px); text-shadow: 0 0 8px currentColor; opacity: 1; cursor: pointer; }
+        .module-item { @apply p-2.5 bg-transparent border border-transparent rounded-lg text-xs flex flex-col gap-1 transition-all; cursor: pointer; }
+        .module-item:hover { transform: translateX(4px); text-shadow: 0 0 8px currentColor; opacity: 1; cursor: pointer; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #2d2f55; border-radius: 3px; }
         .shortcut-item { @apply flex items-center justify-between p-2 bg-space-800 rounded border border-space-700 hover:border-brand-500/50 transition cursor-pointer; }
         .shortcut-key { @apply font-mono text-xs bg-brand-600 text-white px-2 py-1 rounded min-w-[30px] text-center; }
+        /* Erzwingt, dass Custom Themes die Farben für Rahmen und Flächen übernehmen */
+body.theme-custom .glass, 
+body[class*="custom-"] .glass {
+    background: var(--overlay-bg) !important;
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent) !important;
+}
+
+body.theme-custom .draggable-window,
+body[class*="custom-"] .draggable-window {
+    border-color: var(--accent) !important;
+}
+
+/* Fix für alle Standard-Rahmen im Simulator */
+body.theme-custom .border-space-700,
+body[class*="custom-"] .border-space-700 {
+    border-color: color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+
+/* CLI & Desktop Terminal Accent Colors für Cyberpunk & Custom */
+body.theme-cyberpunk #term-output, body.theme-cyberpunk #term-prompt, body.theme-cyberpunk #term-input, body.theme-cyberpunk #terminal-header i,
+body.theme-cyberpunk #cli-output, body.theme-cyberpunk #cli-prompt, body.theme-cyberpunk #cli-input, body.theme-cyberpunk #ai-config-output {
+    color: var(--accent) !important;
+}
+body.theme-cyberpunk #term-body, body.theme-cyberpunk #view-cli {
+    background-color: var(--bg) !important;
+}
+body.theme-cyberpunk .window-header {
+    background: color-mix(in srgb, var(--accent) 20%, var(--bg)) !important;
+}
+
+/* Modal Config & Physical Backgrounds für Cyberpunk & Custom */
+body.theme-cyberpunk #device-modal .glass,
+body.theme-cyberpunk #device-modal .bg-space-900\/95,
+body.theme-cyberpunk #device-modal .bg-space-800\/40,
+body.theme-cyberpunk #device-modal .bg-\\[\\#0b0c15\\], 
+body.theme-cyberpunk #device-modal [class*="bg-[#0b0c15]"],
+body.theme-cyberpunk #view-config,
+body.theme-cyberpunk #config-detail-area {
+    background-color: #1a0b1a !important; background-image: none !important;
+}
+
+body[class*="custom-"] #device-modal .glass,
+body[class*="custom-"] #device-modal .bg-space-900\/95,
+body[class*="custom-"] #device-modal .bg-space-800\/40,
+body[class*="custom-"] #device-modal .bg-\\[\\#0b0c15\\], 
+body[class*="custom-"] #device-modal [class*="bg-[#0b0c15]"],
+body[class*="custom-"] #view-config,
+body[class*="custom-"] #config-detail-area {
+    background-color: var(--bg) !important; background-image: none !important;
+}
+
+/* Die linke Seitenleiste im Modal subtil abheben (wie bei Wii) */
+body.theme-cyberpunk #device-modal .bg-space-900\/50 {
+    background-color: #2b112c !important; /* Echtes, sattes Cyberpunk-Lila als Kontrast */
+}
+body[class*="custom-"] #device-modal .bg-space-900\/50 {
+    background-color: color-mix(in srgb, var(--text) 4%, var(--bg)) !important;
+}
+
+/* Hard-Override für den rechten Konfigurations-Bereich (Haupt-Hintergrund) */
+body.theme-cyberpunk #config-detail-area, body.theme-cyberpunk #view-config {
+    background-color: #1a0b1a !important;
+}
+body[class*="custom-"] #config-detail-area, body[class*="custom-"] #view-config {
+    background-color: var(--bg) !important;
+}
+
+/* Hard-Override für den Modal-Header (Leiste oben subtil abheben) */
+body.theme-cyberpunk #device-modal .bg-space-900\/95,
+body.theme-cyberpunk #device-modal .glass > div:first-child {
+    background-color: #2b112c !important; /* Echtes, sattes Cyberpunk-Lila als Kontrast */
+}
+body[class*="custom-"] #device-modal .bg-space-900\/95,
+body[class*="custom-"] #device-modal .glass > div:first-child {
+    background-color: color-mix(in srgb, var(--text) 4%, var(--bg)) !important;
+}
+
+/* Inputs und Panels farbig an das Theme anpassen (ohne Grauschleier) */
+body.theme-cyberpunk input:not([type="checkbox"]), body.theme-cyberpunk select, body.theme-cyberpunk textarea, body.theme-cyberpunk .bg-space-800, body.theme-cyberpunk .bg-space-900, body.theme-cyberpunk .bg-space-950,
+body[class*="custom-"] input:not([type="checkbox"]), body[class*="custom-"] select, body[class*="custom-"] textarea, body[class*="custom-"] .bg-space-800, body[class*="custom-"] .bg-space-900, body[class*="custom-"] .bg-space-950 {
+    background-color: color-mix(in srgb, var(--accent) 15%, var(--bg)) !important;
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent) !important;
+    color: var(--text) !important;
+}
+
+/* FIX: Eingabefelder in Terminals/CLIs strikt transparent halten */
+body.theme-cyberpunk #term-input, body.theme-cyberpunk #cli-input,
+body[class*="custom-"] #term-input, body[class*="custom-"] #cli-input {
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+/* Das harte Schwarz (#0b0c15) restlos durch die Custom/Cyberpunk Theme-Farbe ersetzen */
+body.theme-cyberpunk .bg-space-950, body.theme-cyberpunk .bg-\\[\\#0b0c15\\], body.theme-cyberpunk [class*="bg-[#0b0c15]"] {
+    background-color: #1a0b1a !important;
+}
+body[class*="custom-"] .bg-space-950, body[class*="custom-"] .bg-\\[\\#0b0c15\\], body[class*="custom-"] [class*="bg-[#0b0c15]"] {
+    background-color: var(--bg) !important;
+}
+/* Den ekligen Gradienten beim physischen Rack entfernen */
+body.theme-cyberpunk #view-physical .from-space-800, body[class*="custom-"] #view-physical .from-space-800 {
+    background-color: var(--bg) !important; background-image: none !important;
+}
+
+body[class*="custom-"] #term-output, body[class*="custom-"] #term-prompt, body[class*="custom-"] #term-input, body[class*="custom-"] #terminal-header i,
+body[class*="custom-"] #cli-output, body[class*="custom-"] #cli-prompt, body[class*="custom-"] #cli-input, body[class*="custom-"] #ai-config-output {
+    color: var(--accent) !important;
+}
+body[class*="custom-"] #term-body, body[class*="custom-"] #view-cli {
+    background-color: var(--bg) !important;
+}
+body[class*="custom-"] .window-header {
+    background: color-mix(in srgb, var(--accent) 15%, var(--bg)) !important;
+}
+
+/* Modal Tab Accent Colors für Cyberpunk & Custom */
+body.theme-cyberpunk .modal-tab.active, body[class*="custom-"] .modal-tab.active {
+    color: var(--accent) !important;
+    border-bottom-color: var(--accent) !important;
+}
     </style>
 </head>
 <body class="flex flex-col h-screen select-none text-sm antialiased text-slate-100">
@@ -471,7 +703,7 @@
                         <span class="text-[9px] text-white font-bold truncate pr-2" id="music-status-text">Ready</span>
                         <span class="text-[8px] font-mono text-brand-400" id="music-timer">0:00</span>
                     </div>
-                    <input type="range" id="music-seek" class="seek-bar m-0 h-1 w-full" min="0" max="100" value="0" oninput="app.audio.seek(this.value)">
+                    <input type="range" id="music-seek" class="seek-bar h-1 w-full" min="0" max="100" value="0" oninput="app.audio.seek(this.value); this.style.setProperty('--val', this.value);">
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0 ml-1">
                      <button onclick="app.audio.skipTrack()" class="text-slate-400 hover:text-white transition" title="Nächster Track">
@@ -662,7 +894,7 @@
                 <button onclick="app.setSettingsTab('controls')" id="set-tab-controls" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 border-b-2 border-transparent hover:text-white hover:bg-white/5 transition">Steuerung</button>
             </div>
 
-            <div class="p-6 space-y-6 overflow-y-auto custom-scroll">
+            <div class="p-6 space-y-6 overflow-y-auto custom-scroll flex-1 relative">
                 
                 <div id="set-content-general" class="space-y-6">
                     <div class="bg-space-800/50 p-4 rounded-lg border border-space-700">
@@ -683,13 +915,16 @@
                     <div class="bg-space-800/50 p-4 rounded-lg border border-space-700">
                         <h4 class="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2"><i data-lucide="palette" class="w-3 h-3"></i> Theme Engine v10.5</h4>
                         
-<div class="grid grid-cols-2 gap-2 mb-4">
-                            <button onclick="app.setGlobalTheme('')" class="p-2 bg-slate-800 border border-slate-600 rounded text-[10px] text-white hover:bg-slate-700">Cyber (Default)</button>
-                            <button onclick="app.setGlobalTheme('theme-wii')" class="p-2 bg-white border border-gray-300 rounded text-[10px] text-black hover:bg-gray-100">Wii Style</button>
-                            <button onclick="app.setGlobalTheme('theme-retro')" class="p-2 bg-green-900/20 border border-green-500/50 rounded text-[10px] text-green-400 hover:bg-green-900/40">Retro</button>
-                            <button onclick="app.setGlobalTheme('theme-cyberpunk')" class="p-2 bg-pink-900/20 border border-pink-500/50 rounded text-[10px] text-pink-400 hover:bg-pink-900/40">Cyberpunk</button>
+                        <div class="mb-4">
+                            <!-- Nutzt wieder direkt changeTheme() aus deiner theme.js -->
+                            <select class="theme-select w-full bg-space-950 border border-space-700 rounded p-3 text-white text-sm outline-none focus:border-brand-500 transition shadow-inner" onchange="changeTheme(this.value)">
+                                <option value="">Cyber (Default)</option>
+                                <option value="theme-wii">Wii Style</option>
+                                <option value="theme-retro">Retro</option>
+                                <option value="theme-cyberpunk">Cyberpunk</option>
+                            </select>
                         </div>
-                        <div class="space-y-3">
+                        <div class="space-y-3 hidden">
                             <div class="flex items-center justify-between">
                                 <span class="text-sm text-slate-300">Hintergrund-Raster</span>
                                 <input type="color" id="set-color-grid" oninput="app.updateThemeColor('--grid-color', this.value)" class="bg-transparent border-none w-6 h-6 p-0 cursor-pointer">
@@ -726,14 +961,13 @@
                         </select>
                     </div>
                 </div>
-
                 <div id="set-content-audio" class="space-y-6 hidden">
                     <div>
                         <div class="flex justify-between mb-2">
                             <label class="text-xs font-bold text-slate-400 uppercase">Master Volume</label>
                             <span id="vol-display" class="text-xs font-mono font-bold" style="color: rgb(239, 68, 68);">100%</span>
                         </div>
-                        <input type="range" id="set-volume" min="0" max="100" value="30" oninput="app.audio.setVolume(this.value); app.updateVolumeUI(this.value);" class="range-slider" style="--thumb-color: #ef4444;">
+                        <input type="range" id="set-volume" min="0" max="100" value="30" oninput="app.updateSetting('volume', this.value); app.updateVolumeUI(this.value);" class="range-slider" style="--thumb-color: #ef4444; --val: 30;">
                         <div class="flex justify-between text-[9px] text-slate-600 mt-1 font-mono">
                             <span>MUTE</span><span>BOOST</span>
                         </div>
@@ -756,13 +990,65 @@
                     </div>
                 </div>
 
+<div id="set-content-theme" class="space-y-6 hidden">
+    <div class="bg-space-800/50 p-4 rounded-lg border border-space-700">
+        <h4 class="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2"><i data-lucide="palette" class="w-3 h-3"></i> Globales Theme</h4>
+        
+        <div class="mb-4">
+                            <!-- Eigene ID ohne die alte "theme-select" Klasse, damit theme.js keine "Bearbeiten"-Optionen mehr reinpfuscht! -->
+                            <select id="sim-theme-select" class="w-full bg-space-950 border border-space-700 rounded p-3 text-white text-sm outline-none focus:border-brand-500 transition shadow-inner" onchange="app.handleThemeSelection(this.value)">
+                                <!-- Wird live von der App gefüllt -->
+                            </select>
+                        </div>
+
+                        <!-- LIVE EDITOR FÜR CUSTOM THEMES -->
+                        <div id="custom-theme-editor" class="hidden mt-4 pt-4 border-t border-space-700">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-xs font-bold text-brand-400 uppercase">Live Farb-Editor</h4>
+                                <button onclick="app.deleteLiveCustomTheme()" class="text-accent-pink hover:text-white transition flex items-center gap-1 text-[10px] font-bold" title="Theme löschen">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                                    Löschen
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 mb-1">Hintergrund</label>
+                                    <input type="color" id="ct-edit-bg" oninput="app.previewCustomColor('--bg', this.value)" class="w-full h-8 cursor-pointer bg-transparent border-none rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 mb-1">Textfarbe</label>
+                                    <input type="color" id="ct-edit-text" oninput="app.previewCustomColor('--text', this.value)" class="w-full h-8 cursor-pointer bg-transparent border-none rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 mb-1">Akzent (UI)</label>
+                                    <input type="color" id="ct-edit-accent" oninput="app.previewCustomColor('--accent', this.value)" class="w-full h-8 cursor-pointer bg-transparent border-none rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 mb-1">Grün (Status/On)</label>
+                                    <input type="color" id="ct-edit-green" oninput="app.previewCustomColor('--green', this.value)" class="w-full h-8 cursor-pointer bg-transparent border-none rounded">
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="app.saveLiveCustomTheme()" class="mt-4 w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-brand-500/20">
+                            Änderungen global speichern
+                        </button>
+                    </div>
+                    
+                    <button onclick="app.createNewCustomTheme()" class="mt-4 w-full py-2 bg-space-900 border border-brand-500 text-brand-400 text-xs font-bold rounded transition hover:bg-brand-500/20">
+                        + Neues Custom Theme erstellen
+                    </button>
+                </div>
+            </div> <!-- Ende der scrollbaren Settings -->
+            
+            <!-- Fußzeile mit zentriertem, kleinerem Speichern-Button -->
+            <div class="p-4 border-t border-space-700 bg-space-900/50 flex justify-center shrink-0">
+                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="px-8 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold transition shadow-lg shadow-brand-500/20">
+                    Einstellungen Speichern
+                </button>
             </div>
             
-            <div class="p-6 border-t border-space-700 bg-space-900/80 text-center">
-                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="w-full py-2.5 rounded bg-brand-600 hover:bg-brand-500 text-white font-bold transition shadow-lg shadow-brand-500/20">Einstellungen Speichern</button>
-            </div>
-        </div>
-    </div>
+        </div> <!-- Ende des Modal-Containers -->
+    </div> <!-- Ende des Full-Screen Overlays -->
 
     <div id="port-selector-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
         <div class="glass w-full max-w-sm rounded-xl shadow-2xl p-6 ring-1 ring-brand-500/30 border border-brand-500/20">
@@ -787,25 +1073,35 @@
 
     <div id="device-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in hidden">
         <div class="glass w-full max-w-5xl h-[85vh] rounded-xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-brand-500/20 border border-space-700">
-            <div class="bg-space-900/95 px-6 py-6 border-b border-space-700 flex justify-between items-center">
-                <div class="flex items-center gap-3">
+            <div class="bg-space-900/95 px-6 pt-3 border-b border-space-700 flex justify-between items-end relative">
+                <div class="flex items-center gap-3 pb-3 w-1/4">
                     <div class="p-1.5 bg-space-800 rounded border border-space-700 text-brand-400"><i data-lucide="server" class="w-4 h-4"></i></div>
                     <div>
-                        <h2 id="modal-title" class="font-bold text-white tracking-wide"></h2>
+                        <h2 id="modal-title" class="font-bold text-white tracking-wide text-xl"></h2>
                     </div>
                 </div>
-                <div class="flex gap-2 items-center">
+                
+                <div class="flex justify-center flex-1 gap-16">
+                    <button onclick="app.setModalTab('physical')" id="tab-physical" class="modal-tab active !flex-col !items-center !justify-center">
+                        <i data-lucide="box" class="w-7 h-7 mb-1 mx-auto"></i>
+                        <span class="block text-center w-full">PHYSISCH</span>
+                    </button>
+                    <button onclick="app.setModalTab('config')" id="tab-config" class="modal-tab !flex-col !items-center !justify-center">
+                        <i data-lucide="settings" class="w-7 h-7 mb-1 mx-auto"></i>
+                        <span class="block text-center w-full">KONFIGURATION</span>
+                    </button>
+                    <button onclick="app.setModalTab('cli')" id="tab-cli" class="modal-tab !flex-col !items-center !justify-center">
+                        <i data-lucide="terminal-square" class="w-7 h-7 mb-1 mx-auto"></i>
+                        <span class="block text-center w-full">CLI</span>
+                    </button>
+                </div>
+
+                <div class="flex gap-2 items-center justify-end pb-3 w-1/4">
                     <button id="btn-open-terminal" onclick="app.openPCTerminal()" class="px-3 py-1.5 bg-space-800 hover:bg-space-700 text-accent-cyan text-xs font-bold rounded border border-space-700 flex items-center gap-2 hover:border-accent-cyan/50 transition hidden">
                         <i data-lucide="terminal" class="w-3 h-3"></i> Desktop Terminal
                     </button>
-                    <button onclick="app.closeModal()" class="p-1.5 hover:bg-accent-pink/20 text-slate-400 hover:text-accent-pink rounded transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    <button onclick="app.closeModal()" class="p-1.5 hover:bg-accent-pink/20 text-slate-400 hover:text-accent-pink rounded transition"><i data-lucide="x" class="w-6 h-6"></i></button>
                 </div>
-            </div>
-
-            <div class="flex gap-x-3 px-1 border-b border-space-700 bg-space-800/40">
-                <button onclick="app.setModalTab('physical')" id="tab-physical" class="modal-tab active"><i data-lucide="box" class="w-4 h-4"></i> Physisch</button>
-                <button onclick="app.setModalTab('config')" id="tab-config" class="modal-tab"><i data-lucide="settings" class="w-4 h-4"></i> Konfiguration</button>
-                <button onclick="app.setModalTab('cli')" id="tab-cli" class="modal-tab"><i data-lucide="terminal-square" class="w-4 h-4"></i> CLI (Direct)</button>
             </div>
 
             <div class="flex-1 bg-[#0b0c15] relative overflow-hidden">
@@ -1019,10 +1315,16 @@ class SoundSystem {
             '':                [{ name: "Cyber 1", url: "/cyber-1.mp3" }, { name: "Cyber 2", url: "/cyber-2.mp3" }],
             'theme-wii':       [{ name: "Wii 1", url: "/wii-1.mp3" }, { name: "Wii 2", url: "/wii-2.mp3" }],
             'theme-retro':     [{ name: "Retro 1", url: "/retro-1.mp3" }, { name: "Retro 2", url: "/retro-2.mp3" }],
+
             'theme-cyberpunk': [{ name: "Neon 1", url: "/cyberpunk-1.mp3" }, { name: "Neon 2", url: "/cyberpunk-2.mp3" }]
         };
         const activeTheme = localStorage.getItem('mustno-theme') || '';
-        this.tracks = this.bgmMap[activeTheme] || this.bgmMap[''];
+        if (activeTheme.startsWith('custom-')) {
+            this.tracks = Object.values(this.bgmMap).flat();
+        } else {
+            this.tracks = this.bgmMap[activeTheme] || this.bgmMap[''];
+        }
+
         this.currentTrackIndex = parseInt(localStorage.getItem('mustno-track-idx')) || 0; 
         
         this.bgm.addEventListener('timeupdate', () => { 
@@ -1030,6 +1332,7 @@ class SoundSystem {
             if(seek) { 
                 const pct = (this.bgm.currentTime / this.bgm.duration) * 100; 
                 seek.value = pct || 0; 
+                seek.style.setProperty('--val', pct || 0);
                 const mins = Math.floor(this.bgm.currentTime / 60); 
                 const secs = Math.floor(this.bgm.currentTime % 60); 
                 document.getElementById('music-timer').innerText = `${mins}:${secs.toString().padStart(2, '0')}`; 
@@ -1042,6 +1345,53 @@ class SoundSystem {
         const track = this.tracks[this.currentTrackIndex % this.tracks.length];
         this.bgm.src = track.url;
         this.bgm.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
+
+        setTimeout(() => {
+            if (this.musicEnabled) {
+                this.playMusic();
+                
+                // Fallback for strict browser autoplay policies
+                const resumeAutoplay = () => {
+                    if (this.musicEnabled && this.bgm.paused) {
+                        this.bgm.play().then(() => {
+                            ['click','keydown','mousemove','scroll','touchstart'].forEach(e => document.removeEventListener(e, resumeAutoplay));
+                        }).catch(e => {});
+                    }
+                };
+                ['click','keydown','mousemove','scroll','touchstart'].forEach(evt => {
+                    document.addEventListener(evt, resumeAutoplay, { once: true, passive: true });
+                });
+            } else {
+                const uiText = document.getElementById('music-status-text');
+                if(uiText) uiText.innerText = track.name + " (Paused)";
+                const cover = document.getElementById('music-cover');
+                if (cover) cover.classList.remove('animate-spin-slow');
+                const btn = document.getElementById('btn-music-toggle');
+                if (btn) btn.innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>';
+                if(typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }, 100);
+    }
+    updateThemeTracks(themeName) {
+        let newTracks = (themeName && themeName.startsWith('custom-')) 
+            ? Object.values(this.bgmMap).flat() 
+            : (this.bgmMap[themeName] || this.bgmMap['']);
+        
+        // Verhindert, dass der Song neu startet, wenn du nur Farben im Editor anpasst
+        if (JSON.stringify(this.tracks) === JSON.stringify(newTracks)) return;
+        
+        this.tracks = newTracks;
+        this.currentTrackIndex = 0;
+        localStorage.setItem('mustno-track-idx', '0');
+        localStorage.setItem('mustno-bgm-time', '0');
+        
+        if (this.musicEnabled) {
+            this.playMusic();
+        } else {
+            this.bgm.src = this.tracks[0].url;
+            const uiText = document.getElementById('music-status-text');
+            if(uiText) uiText.innerText = "Ready";
+        }
     }
 
     init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); this.masterGain = this.ctx.createGain(); this.masterGain.gain.value = this.volume / 100; this.masterGain.connect(this.ctx.destination); } if(this.ctx.state === 'suspended') { this.ctx.resume(); } }
@@ -1050,8 +1400,11 @@ class SoundSystem {
     
     playSFX(type) { if (this.sfxEnabled === false || !this.ctx) return; this.init(); const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); osc.connect(gain); gain.connect(this.masterGain); const now = this.ctx.currentTime; switch(type) { case 'click': osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05); osc.start(now); osc.stop(now + 0.05); break; case 'connect': osc.type = 'sine'; osc.frequency.setValueAtTime(440, now); osc.frequency.linearRampToValueAtTime(880, now + 0.1); gain.gain.setValueAtTime(0.5, now); gain.gain.linearRampToValueAtTime(0, now + 0.2); osc.start(now); osc.stop(now + 0.2); break; case 'delete': osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.2); gain.gain.setValueAtTime(0.5, now); gain.gain.linearRampToValueAtTime(0, now + 0.2); osc.start(now); osc.stop(now + 0.2); break; case 'success': [523.25, 659.25, 783.99].forEach((freq, i) => { const o = this.ctx.createOscillator(); const g = this.ctx.createGain(); o.type = 'sine'; o.frequency.value = freq; o.connect(g); g.connect(this.masterGain); g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.3, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.4); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.4); }); break; case 'error': osc.type = 'square'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.3); osc.start(now); osc.stop(now + 0.3); break; } }
 
+
+
     seek(val) { 
         if(this.bgm.duration) { 
+
             this.bgm.currentTime = (val / 100) * this.bgm.duration; 
             localStorage.setItem('mustno-bgm-time', this.bgm.currentTime); 
         } 
@@ -1061,7 +1414,15 @@ class SoundSystem {
         this.currentTrackIndex = (this.currentTrackIndex + 1) % this.tracks.length; 
         localStorage.setItem('mustno-track-idx', this.currentTrackIndex); 
         localStorage.setItem('mustno-bgm-time', '0'); 
-        this.playMusic(); 
+        if (this.musicEnabled) {
+            this.playMusic(); 
+        } else {
+            const track = this.tracks[this.currentTrackIndex % this.tracks.length];
+            this.bgm.src = track.url;
+            this.bgm.currentTime = 0;
+            const statusText = document.getElementById('music-status-text');
+            if (statusText) statusText.innerText = track.name + " (Paused)";
+        }
     }
     
     toggleMusic() { 
@@ -1088,6 +1449,7 @@ class SoundSystem {
             this.bgm.src = track.url;
             this.bgm.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
         }
+
         this.bgm.play().catch(e => console.log("Audio Autoplay prevented", e)); 
         document.getElementById('music-status-text').innerText = track.name; 
         const cover = document.getElementById('music-cover'); 
@@ -1114,7 +1476,10 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
         async function getLLMResponse(systemPrompt, userQuery, config = {}) { const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } }; if (Object.keys(config).length > 0) payload.generationConfig = config; try { const response = await fetchWithExponentialBackoff(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); const result = await response.json(); return result.candidates?.[0]?.content?.parts?.[0]?.text || "FEHLER: KI Antwort leer."; } catch (error) { console.error("Gemini API Error:", error); return `[FEHLER] ${error.message}`; } }
 
         class CiscoIOS { constructor(hostname) { this.hostname = hostname; this.state = 'USER'; this.context = null; this.config = { interfaces: {} }; } getPrompt() { switch(this.state) { case 'USER': return `${this.hostname}>`; case 'PRIV': return `${this.hostname}#`; case 'CONF': return `${this.hostname}(config)#`; case 'IF': return `${this.hostname}(config-if)#`; default: return `${this.hostname}>`; } } process(cmd, device) { const parts = cmd.trim().split(' '); const baseCmd = parts[0].toLowerCase(); if (baseCmd === 'exit') { if (this.state === 'IF') { this.state = 'CONF'; this.context = null; } else if (this.state === 'CONF') { this.state = 'PRIV'; } else if (this.state === 'PRIV') { this.state = 'USER'; } return ''; } if (baseCmd === 'end') { this.state = 'PRIV'; this.context = null; return ''; } if (baseCmd === '?') { return this.getContextHelp(parts, device); } if (cmd.endsWith('\t')) { return this.tabComplete(cmd.replace('\t', ''), device); } if (this.state === 'USER') { if (['en', 'enable'].includes(baseCmd)) { this.state = 'PRIV'; return ''; } } if (this.state === 'PRIV') { if (['conf', 'configure'].includes(baseCmd)) { if (parts[1] && parts[1].startsWith('t')) { this.state = 'CONF'; return 'Enter configuration commands, one per line.  End with CNTL/Z.'; } } if (baseCmd === 'disable') { this.state = 'USER'; return ''; } if (baseCmd === 'show') { if (parts[1] === 'run' || parts[1] === 'running-config') return this.getRunningConfig(device); if (parts[1] === 'ip' && parts[2] === 'int' && parts[3] === 'brief') return this.getIpIntBrief(device); if (parts[1] === 'arp') return this.getARPTable(device); if (parts[1] === 'mac-address-table' || parts[1] === 'mac') return this.getMACTable(device); if (parts[1] === 'ip' && parts[2] === 'route') return this.getRoutingTable(device); if (parts[1] === 'version') return this.getVersion(device); } } if (this.state === 'CONF') { if (['int', 'interface'].includes(baseCmd)) { const iface = parts[1]; if (device.interfaces[iface]) { this.state = 'IF'; this.context = iface; return ''; } else { return '% Invalid interface type and number'; } } if (baseCmd === 'hostname') { if (parts[1]) { this.hostname = parts[1]; device.name = parts[1]; app.updateInfoPanel(device); return ''; } } } if (this.state === 'IF') { if (baseCmd === 'ip' && parts[1] === 'address') { const ip = parts[2]; const mask = parts[3]; if (ip && mask) { device.interfaces[this.context].ip = ip; device.interfaces[this.context].mask = mask; return ''; } return '% Incomplete command'; } if (baseCmd === 'no' && parts[1] === 'shutdown') { device.interfaces[this.context].up = true; return `%LINK-3-UPDOWN: Interface ${this.context}, changed state to up`; } if (baseCmd === 'shutdown') { device.interfaces[this.context].up = false; return `%LINK-5-CHANGED: Interface ${this.context}, changed state to administratively down`; } } return '% Unknown command'; } getRunningConfig(device) { let out = `Building configuration...\n\nCurrent configuration : 1024 bytes\n!\nversion 15.1\nhostname ${this.hostname}\n!\n`; Object.keys(device.interfaces).forEach(k => { const i = device.interfaces[k]; out += `interface ${k}\n`; if (i.ip) out += ` ip address ${i.ip} ${i.mask}\n`; else out += ` no ip address\n`; if (!i.up) out += ` shutdown\n`; out += `!\n`; }); out += `end`; return out; } getIpIntBrief(device) { let res = 'Interface                IP-Address      OK? Method Status                Protocol\n'; Object.keys(device.interfaces).forEach(k => { const i = device.interfaces[k]; const protoStatus = i.up ? 'up' : 'down'; res += `${k.padEnd(22)} ${i.ip ? i.ip.padEnd(15) : 'unassigned'.padEnd(15)} YES manual ${i.up?'up'.padEnd(20):'administratively down'.padEnd(20)} ${protoStatus}\n`; }); return res; } getARPTable(device) { let res = 'Protocol  Address          Age (min)  Hardware Addr      Type   Interface\n'; Object.keys(device.interfaces).forEach(k => { const i = device.interfaces[k]; if (i.ip && i.up) { const mac = this.generateMAC(device.id || 1); res += `Internet  ${i.ip.padEnd(15)}  -            ${mac}  ARPA   ${k}\n`; } }); return res || 'No ARP entries found'; } generateMAC(deviceId) { const hex = ((deviceId || 1) * 12345 + 0xAABBCC).toString(16).toUpperCase().padStart(6, '0'); return `00:1A:2B:${hex.slice(0,2)}:${hex.slice(2,4)}:${hex.slice(4,6)}`; } getMACTable(device) { if (device.type !== 'switch') return '% This command is not available for this device type'; return '          Mac Address Table\n-------------------------------------------\nVlan    Mac Address       Type        Ports\n----    -----------       --------    -----\n'; } getRoutingTable(device) { if (device.type !== 'router') return '% This command requires a router'; let res = 'Codes: C - connected, S - static, R - RIP, O - OSPF\n\nGateway of last resort is not set\n\n'; Object.keys(device.interfaces).forEach(k => { const i = device.interfaces[k]; if (i.ip && i.up) { const parts = i.ip.split('.'); const net = `${parts[0]}.${parts[1]}.${parts[2]}.0`; res += `C    ${net}/24 is directly connected, ${k}\n`; } }); return res || 'No routes configured'; } getVersion(device) { return `Cisco IOS Software, Version 15.1(4)M\n${this.hostname} uptime is 0 minutes`; } getContextHelp(parts, device) { return 'Help not fully implemented in mini-sim'; } tabComplete(partial, device) { return partial; } }
+
+
         class SimulationEngine { constructor(app) { this.app = app; this.packetQueue = []; this.eventLog = []; } generateMAC(deviceId) { const hex = ((deviceId || 1) * 12345 + 0xAABBCC).toString(16).toUpperCase().padStart(6, '0'); return `00:1A:2B:${hex.slice(0,2)}:${hex.slice(2,4)}:${hex.slice(4,6)}`; } getDeviceMAC(dev, ifaceName) { if (!dev.macTable) dev.macTable = {}; if (!dev.macTable[ifaceName]) { dev.macTable[ifaceName] = this.generateMAC(dev.id * 10 + Object.keys(dev.macTable).length); } return dev.macTable[ifaceName]; } initDeviceTables(dev) { if (!dev.arpCache) dev.arpCache = []; if (!dev.macAddressTable) dev.macAddressTable = []; if (!dev.routingTable) dev.routingTable = []; if (dev.type === 'router') { Object.entries(dev.interfaces).forEach(([name, iface]) => { if (iface.ip && iface.up) { const netParts = iface.ip.split('.'); const network = `${netParts[0]}.${netParts[1]}.${netParts[2]}.0`; if (!dev.routingTable.find(r => r.network === network)) { dev.routingTable.push({network, mask:'255.255.255.0', nextHop:null, iface:name, metric:0, type:'C'}); } } }); } } sameSubnet(ip1, ip2, mask = '255.255.255.0') { const ip1Parts = ip1.split('.').map(Number); const ip2Parts = ip2.split('.').map(Number); const maskParts = mask.split('.').map(Number); for (let i = 0; i < 4; i++) { if ((ip1Parts[i] & maskParts[i]) !== (ip2Parts[i] & maskParts[i])) return false; } return true; } arpLookup(dev, targetIP) { this.initDeviceTables(dev); return dev.arpCache.find(e => e.ip === targetIP); } logEvent(dev, type, message) { this.eventLog.push({ time: new Date().toLocaleTimeString(), device: dev.name, type, message }); if (this.eventLog.length > 100) this.eventLog.shift(); } }
+
 
         class App {
             constructor() {
@@ -1128,6 +1493,7 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                 this.scale = 1;
                 this.offset = {x: 0, y: 0};
                 this.isDragging = false;
+
                 this.dragStart = {x:0, y:0};
                 this.hoveredDevice = null;
                 this.selectedDevice = null;
@@ -1160,6 +1526,7 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                 this.pduList = [];
                 this.pduPanelCollapsed = false;
                 
+
                 this.simMode = 'realtime'; 
                 this.simSpeed = 5;
                 this.simPaused = false;
@@ -1172,6 +1539,7 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                 this.noteColor = '#facc15';
                 
                 this.simEngine = new SimulationEngine(this);
+
                 this.arpPackets = []; 
                 this.linkStates = {}; 
                 
@@ -1190,16 +1558,51 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                 this.notify('NextGen Sim v13.2 Flow Update - Ready', 'success');
 
 
-// ===== NEU: Globale Themes mappen und übernehmen =====
+// ===== THEME OBSERVER & WÄCHTER =====
                 const savedTheme = localStorage.getItem('mustno-theme') || '';
-                document.body.className = `flex flex-col h-screen select-none text-sm antialiased text-slate-100 ${savedTheme}`;
                 
-                if (savedTheme === 'theme-retro') this.applyTheme('matrix');
-                else if (savedTheme === 'theme-wii') this.applyTheme('corporate');
-                else if (savedTheme === 'theme-cyberpunk') this.applyTheme('cyberpunk');
-                else this.applyTheme('default');
+                // Setze Layout-Klassen PLUS das Theme
+                const requiredClasses = ['flex', 'flex-col', 'h-screen', 'select-none', 'text-sm', 'antialiased', 'text-slate-100'];
+                document.body.className = requiredClasses.join(' ') + ' ' + savedTheme;
 
-                // ===== NEU: Musik nahtlos weiterspielen, wenn sie aktiv war =====
+                // Der Wächter: Beschützt das Layout und fixt den leeren Boden!
+                const themeObserver = new MutationObserver((mutations) => {
+                    let needsUpdate = false;
+                    mutations.forEach((mu) => { if (mu.attributeName === 'class') needsUpdate = true; });
+                    
+                    if (needsUpdate) {
+                        // 1. Zwingt die Layout-Klassen zurück, falls theme.js sie gelöscht hat
+                        requiredClasses.forEach(cls => {
+                            if (!document.body.classList.contains(cls)) document.body.classList.add(cls);
+                        });
+                        
+                        // 2. Holt den reinen, sauberen Theme-Namen (Fixt den Grid-Farben Bug)
+                        const currentTheme = localStorage.getItem('mustno-theme') || '';
+                        
+                        // WICHTIG: Beschützt die Custom-Theme-Klasse davor, von theme.js gelöscht zu werden!
+                        if (currentTheme && !document.body.classList.contains(currentTheme)) {
+                            document.body.classList.add(currentTheme);
+                        }
+                        
+                        this.applyTheme(currentTheme);
+                    }
+                });
+                
+                themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+                themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+                // Synchronisiert Tabs
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'mustno-custom-themes' || e.key === 'mustno-theme') {
+                        this.applyTheme(localStorage.getItem('mustno-theme') || '');
+                    }
+                });
+
+                // Initiales Theme laden
+                this.applyTheme(savedTheme);
+
+                // ===== Musik nahtlos weiterspielen =====
                 if (this.audio.musicEnabled) {
                     document.getElementById('btn-music-toggle').innerHTML = '<i data-lucide="pause" class="w-3.5 h-3.5 fill-current"></i>';
                     document.getElementById('music-cover').classList.add('animate-spin-slow');
@@ -1215,12 +1618,12 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                     });
                 }
             }
-
             isValidIPv4(ip) {
                 if (!ip || ip.trim() === '') return true;
                 const regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
                 return regex.test(ip);
             }
+
 
             handleIPInputBlur(input, callback) {
                 const val = input.value.trim();
@@ -1230,6 +1633,7 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                     this.notify('Ungültige IPv4 Adresse', 'error');
                     this.audio.playSFX('error');
                 } else {
+
                     input.classList.remove('border-red-500', 'text-red-500', 'focus:border-red-500');
                     input.classList.add('border-space-700', 'focus:border-brand-500');
                     callback(val);
@@ -1261,6 +1665,7 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
             }
 
             initDraggableSimControls() {
+
                 const el = document.getElementById('sim-controls');
                 let isDragging = false;
                 let startX, startY, initialLeft, initialTop;
@@ -1290,6 +1695,7 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
             }
 
             initSettingsUI() {
+
                 document.documentElement.style.setProperty('--grid-color', this.settings.gridColor || 'rgba(99, 102, 241, 0.1)');
                 this.refreshSettingsUI();
             }
@@ -1312,11 +1718,12 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                     bezierBtn.classList.replace('border-brand-500', 'border-space-700');
                     bezierBtn.classList.replace('bg-brand-500/20', 'bg-space-800');
                     bezierBtn.classList.replace('text-white', 'text-slate-400');
+
                 }
 
                 document.getElementById('set-port-labels').value = this.settings.portLabels;
                 document.getElementById('set-volume').value = this.settings.volume;
-                document.getElementById('vol-display').innerText = this.settings.volume + '%';
+                this.updateVolumeUI(this.settings.volume);
                 document.getElementById('set-auto-reset').checked = this.settings.autoReset;
                 
                 document.getElementById('set-color-grid').value = this.rgbaToHex(this.settings.gridColor) || '#6366f1';
@@ -1329,8 +1736,10 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                     document.getElementById('set-content-'+t).classList.add('hidden');
                     const btn = document.getElementById('set-tab-'+t);
                     btn.classList.remove('text-brand-400', 'border-brand-500', 'bg-brand-500/10');
+
                     btn.classList.add('text-slate-400', 'border-transparent');
                 });
+
                 document.getElementById('set-content-'+tab).classList.remove('hidden');
                 const activeBtn = document.getElementById('set-tab-'+tab);
                 activeBtn.classList.add('text-brand-400', 'border-brand-500', 'bg-brand-500/10');
@@ -1343,16 +1752,169 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                 this.audio.playSFX('click');
             }
 
+
             openSettingsModal() {
                 this.audio.playSFX('click');
+                this.updateSimThemeDropdown(); // Baut das Dropdown SAUBER und OHNE Bearbeiten-Felder auf!
                 this.refreshSettingsUI();
-                this.setSettingsTab('general');
+                this.setSettingsTab('graphics'); // Springt immer in den Design-Tab
+                this.updateThemeEditorVisibility(localStorage.getItem('mustno-theme') || '');
                 document.getElementById('settings-modal').classList.remove('hidden');
+            }
+
+            updateSimThemeDropdown() {
+                const select = document.getElementById('sim-theme-select');
+                if (!select) return;
+                
+                let html = `
+                    <option value="">Cyber (Default)</option>
+                    <option value="theme-wii">Wii Style</option>
+                    <option value="theme-retro">Retro</option>
+                    <option value="theme-cyberpunk">Cyberpunk</option>
+                `;
+                
+                const customThemes = JSON.parse(localStorage.getItem('mustno-custom-themes')) || [];
+                customThemes.forEach(ct => {
+                    html += `<option value="${ct.id}">${ct.name}</option>`;
+                });
+                html += `<option value="new-custom">+ Neues Custom Theme...</option>`;
+                
+                select.innerHTML = html;
+                select.value = localStorage.getItem('mustno-theme') || '';
+            }
+
+            handleThemeSelection(val) {
+                if (val === 'new-custom') {
+                    this.createNewCustomTheme();
+                    return;
+                }
+                
+                // Altes Theme restlos vom Body entfernen und das Neue setzen
+                const oldTheme = localStorage.getItem('mustno-theme');
+                if (oldTheme) document.body.classList.remove(oldTheme);
+                if (val) document.body.classList.add(val);
+                
+                localStorage.setItem('mustno-theme', val);
+                this.applyTheme(val);
+                this.updateThemeEditorVisibility(val);
+                this.audio.playSFX('click');
+                window.dispatchEvent(new Event('storage'));
+            }
+
+            updateThemeEditorVisibility(val) {
+                const editor = document.getElementById('custom-theme-editor');
+                if (!editor) return;
+                
+                // Editor NUR einblenden, wenn das Theme mit "custom-" anfängt!
+                if (val && val.startsWith('custom-')) {
+                    editor.classList.remove('hidden');
+                    const customThemes = JSON.parse(localStorage.getItem('mustno-custom-themes')) || [];
+                    const ct = customThemes.find(t => t.id === val);
+                    if (ct && ct.colors) {
+                        document.getElementById('ct-edit-bg').value = ct.colors.bg || '#050b16';
+                        document.getElementById('ct-edit-text').value = ct.colors.text || '#ffffff';
+                        document.getElementById('ct-edit-accent').value = ct.colors.accent || '#6366f1';
+                        document.getElementById('ct-edit-green').value = ct.colors.green || '#84cc16';
+                    }
+                } else {
+                    editor.classList.add('hidden');
+                }
+            }
+
+            previewCustomColor(varName, val) {
+                // Live Visualisierung
+                document.documentElement.style.setProperty(varName, val, 'important');
+                
+                const currentBg = document.getElementById('ct-edit-bg').value;
+                const currentAccent = document.getElementById('ct-edit-accent').value;
+                
+                let r = 99, g = 102, b = 241;
+                if (currentAccent.length === 7) {
+                    r = parseInt(currentAccent.substr(1, 2), 16);
+                    g = parseInt(currentAccent.substr(3, 2), 16);
+                    b = parseInt(currentAccent.substr(5, 2), 16);
+                }
+                const newGrid = `rgba(${r}, ${g}, ${b}, 0.2)`;
+
+                if (varName === '--bg') {
+                    document.documentElement.style.setProperty('background-color', val, 'important');
+                    document.body.style.setProperty('background-color', val, 'important');
+                    this.updateThemeColor('--term-bg', val);
+                    this.updateThemeColor('--bg-color', val);
+                    this.updateThemeColor('--overlay-bg', `color-mix(in srgb, ${val} 85%, transparent)`);
+                }
+                
+                if (varName === '--accent') {
+                    this.updateThemeColor('--grid-color', newGrid);
+                    document.documentElement.style.setProperty('--grid-color', newGrid, 'important');
+                }
+                
+                // (Der Canvas Wrapper holt sich Background und Grid jetzt zu 100% live aus dem CSS via var(--bg) und var(--accent))
+
+                // Live speichern während man zieht (wie gewünscht!)
+                const activeId = localStorage.getItem('mustno-theme');
+                if (activeId && activeId.startsWith('custom-')) {
+                    let customThemes = JSON.parse(localStorage.getItem('mustno-custom-themes')) || [];
+                    const idx = customThemes.findIndex(t => t.id === activeId);
+                    if (idx !== -1) {
+                        customThemes[idx].colors = {
+                            bg: document.getElementById('ct-edit-bg').value,
+                            text: document.getElementById('ct-edit-text').value,
+                            accent: document.getElementById('ct-edit-accent').value,
+                            green: document.getElementById('ct-edit-green').value
+                        };
+                        localStorage.setItem('mustno-custom-themes', JSON.stringify(customThemes));
+                        window.dispatchEvent(new Event('storage'));
+                    }
+                }
+            }
+
+            saveLiveCustomTheme() {
+                this.notify('Theme gespeichert!', 'success');
+                this.audio.playSFX('success');
+            }
+
+            deleteLiveCustomTheme() {
+                const activeId = localStorage.getItem('mustno-theme');
+                if (!activeId || !activeId.startsWith('custom-')) return;
+                
+                if (confirm('Möchtest du dieses Custom Theme wirklich löschen?')) {
+                    let customThemes = JSON.parse(localStorage.getItem('mustno-custom-themes')) || [];
+                    customThemes = customThemes.filter(t => t.id !== activeId);
+                    localStorage.setItem('mustno-custom-themes', JSON.stringify(customThemes));
+                    
+                    this.updateSimThemeDropdown();
+                    this.handleThemeSelection(''); // Zurück auf Cyber
+                    this.notify('Theme gelöscht', 'info');
+                    this.audio.playSFX('delete');
+                }
+            }
+
+            createNewCustomTheme() {
+                const name = prompt('Wie soll dein neues Theme heißen?', 'Mein Custom Theme');
+                if (!name) {
+                    this.updateSimThemeDropdown();
+                    return;
+                }
+                
+                let customThemes = JSON.parse(localStorage.getItem('mustno-custom-themes')) || [];
+                const newId = 'custom-' + Date.now();
+                customThemes.push({
+                    id: newId,
+                    name: name.substring(0, 15),
+                    colors: { bg: '#050b16', text: '#e4edff', accent: '#6366f1', green: '#84cc16' }
+                });
+                
+                localStorage.setItem('mustno-custom-themes', JSON.stringify(customThemes));
+                this.updateSimThemeDropdown();
+                this.handleThemeSelection(newId);
+                this.notify('Theme erstellt! Du kannst jetzt die Farben live anpassen.', 'success');
             }
 
             updateSetting(key, val) {
                 this.settings[key] = val;
                 if (key === 'volume') {
+
                     this.audio.setVolume(val);
                 }
                 if (key === 'gridColor') {
@@ -1360,60 +1922,114 @@ async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
                 }
                 localStorage.setItem('ng_settings', JSON.stringify(this.settings));
                 this.draw();
+
             }
 
 setGlobalTheme(themeName) {
                 document.body.className = `flex flex-col h-screen select-none text-sm antialiased text-slate-100 ${themeName}`;
+
                 localStorage.setItem('mustno-theme', themeName);
                 
                 // Mappe auf Simulator-interne Background-Farben
+
                 if (themeName === 'theme-retro') this.applyTheme('matrix');
+
                 else if (themeName === 'theme-wii') this.applyTheme('corporate');
+
                 else if (themeName === 'theme-cyberpunk') this.applyTheme('cyberpunk');
+
                 else this.applyTheme('default');
+
                 
                 // Audio aktualisieren
                 const bgmMap = this.audio.bgmMap;
+
                 this.audio.tracks = bgmMap[themeName] || bgmMap[''];
                 this.audio.currentTrackIndex = 0;
                 localStorage.setItem('mustno-track-idx', '0');
+
                 localStorage.setItem('mustno-bgm-time', '0');
                 
                 if (this.audio.musicEnabled) {
+
                     this.audio.playMusic();
                 } else {
+
                     this.audio.bgm.src = this.audio.tracks[0].url;
                     document.getElementById('music-status-text').innerText = "Ready";
+
                 }
             }
 
-            applyTheme(themeName) {
-                let grid, term, overlay, textColor, ipColor, badgeBg;
-                if (themeName === 'matrix') { grid = '#00ff00'; term = '#001100'; overlay = 'rgba(0, 20, 0, 0.9)'; textColor = '#00ff00'; ipColor = '#00aa00'; badgeBg = 'rgba(0, 20, 0, 0.9)'; } 
-                else if (themeName === 'cyberpunk') { grid = '#ff00ff'; term = '#1a0b1a'; overlay = 'rgba(40, 0, 40, 0.85)'; textColor = '#ffffff'; ipColor = '#00f0ff'; badgeBg = 'rgba(22, 0, 36, 0.9)'; } 
-                else if (themeName === 'corporate') { grid = '#e2e8f0'; term = '#ffffff'; overlay = 'rgba(244, 244, 244, 0.95)'; textColor = '#222222'; ipColor = '#0055cc'; badgeBg = 'rgba(255, 255, 255, 0.9)'; } 
-                else { grid = 'rgba(99, 102, 241, 0.1)'; term = '#0b0c15'; overlay = 'rgba(21, 22, 40, 0.85)'; textColor = '#f8fafc'; ipColor = '#818cf8'; badgeBg = 'rgba(11, 12, 21, 0.9)'; }
-                
-                this.canvasTextColor = textColor;
-                this.canvasIpColor = ipColor;
-                this.canvasBadgeBg = badgeBg;
 
-                this.updateThemeColor('--grid-color', grid);
+
+            applyTheme(themeName) {
+                let grid, term, overlay, textColor, ipColor, badgeBg, vignette, mainBgColor;
+                
+                if (themeName && themeName.startsWith('custom-')) {
+                    let customBg = '#050b16'; let customAccent = '#6366f1'; let customText = '#f8fafc'; let customGreen = '#4ade80';
+                    try {
+                        const customThemes = JSON.parse(localStorage.getItem('mustno-custom-themes')) || [];
+                        const ct = customThemes.find(t => t.id === themeName);
+                        if (ct && ct.colors) {
+                            if (ct.colors.bg) customBg = ct.colors.bg;
+                            if (ct.colors.accent) customAccent = ct.colors.accent;
+                            if (ct.colors.text) customText = ct.colors.text;
+                            if (ct.colors.green) customGreen = ct.colors.green;
+                        }
+                    } catch(e) {}
+
+                    // WICHTIG: Setzt die Farben ins HTML für das CSS!
+                    document.documentElement.style.setProperty('--bg', customBg, 'important');
+                    document.documentElement.style.setProperty('--accent', customAccent, 'important');
+                    document.documentElement.style.setProperty('--text', customText, 'important');
+                    document.documentElement.style.setProperty('--green', customGreen, 'important');
+
+                    // Fix: color-mix() zerstört das Raster in Chrome, wir nutzen sicheres RGBA
+                    let r = 99, g = 102, b = 241;
+                    if (customAccent.length === 7) {
+                        r = parseInt(customAccent.substr(1, 2), 16);
+                        g = parseInt(customAccent.substr(3, 2), 16);
+                        b = parseInt(customAccent.substr(5, 2), 16);
+                    }
+                    grid = `rgba(${r}, ${g}, ${b}, 0.2)`;
+                    
+                    term = customBg;
+                    overlay = `color-mix(in srgb, ${customBg} 85%, transparent)`;
+                    textColor = customText;
+                    ipColor = customAccent;
+                    badgeBg = `color-mix(in srgb, ${customBg} 90%, transparent)`;
+                    vignette = 'rgba(0, 0, 0, 0.6)';
+                    mainBgColor = customBg;
+                } 
+                else if (themeName === 'theme-retro') { grid = 'rgba(0, 255, 0, 0.06)'; term = '#001100'; overlay = 'rgba(0, 20, 0, 0.9)'; textColor = '#00ff00'; ipColor = '#00aa00'; badgeBg = 'rgba(0, 20, 0, 0.9)'; vignette = 'rgba(0, 0, 0, 0.85)'; mainBgColor = '#000000';} 
+                else if (themeName === 'theme-cyberpunk') { grid = 'rgba(255, 0, 124, 0.12)'; term = '#1a0b1a'; overlay = 'rgba(40, 0, 40, 0.85)'; textColor = '#ffffff'; ipColor = '#00f0ff'; badgeBg = 'rgba(22, 0, 36, 0.9)'; vignette = 'rgba(0, 0, 0, 0.8)'; mainBgColor = '#1a0b1a';} 
+                else if (themeName === 'theme-wii') { grid = 'rgba(0, 0, 0, 0.05)'; term = '#ffffff'; overlay = 'rgba(244, 244, 244, 0.95)'; textColor = '#222222'; ipColor = '#0055cc'; badgeBg = 'rgba(255, 255, 255, 0.9)'; vignette = 'rgba(0, 0, 0, 0.15)'; mainBgColor = '#f4f4f4';} 
+                else { grid = 'rgba(99, 102, 241, 0.1)'; term = '#0b0c15'; overlay = 'rgba(21, 22, 40, 0.85)'; textColor = '#f8fafc'; ipColor = '#818cf8'; badgeBg = 'rgba(11, 12, 21, 0.9)'; vignette = 'rgba(0, 0, 0, 0.75)'; mainBgColor = '#0b0c15';}
+                
+                this.canvasTextColor = textColor; this.canvasIpColor = ipColor; this.canvasBadgeBg = badgeBg;
+                
+                this.updateThemeColor('--grid-color', grid); 
                 this.updateThemeColor('--term-bg', term);
-                this.updateThemeColor('--overlay-bg', overlay);
+                this.updateThemeColor('--overlay-bg', overlay); 
+                this.updateThemeColor('--vignette-color', vignette);
+                this.updateThemeColor('--bg-color', mainBgColor); 
                 
-                try {
-                    document.getElementById('set-color-grid').value = this.rgbaToHex(grid);
-                    document.getElementById('set-color-term').value = this.rgbaToHex(term);
-                    document.getElementById('set-color-overlay').value = this.rgbaToHex(overlay);
-                } catch(e) {}
+                document.documentElement.style.setProperty('background-color', mainBgColor, 'important');
+                document.body.style.setProperty('background-color', mainBgColor, 'important');
+                const cw = document.getElementById('canvas-wrapper');
+                if(cw) {
+                    // Wir entfernen Inline-Styles, damit das CSS sauber übernehmen kann
+                    cw.style.removeProperty('background-color');
+                    cw.style.removeProperty('background-image');
+                }
                 
-                const mainBg = document.getElementById('canvas-wrapper');
-                if(themeName === 'corporate') mainBg.style.backgroundColor = '#f4f4f4';
-                else if(themeName === 'matrix') mainBg.style.backgroundColor = '#000000';
-                else if(themeName === 'cyberpunk') mainBg.style.backgroundColor = '#090014';
-                else mainBg.style.backgroundColor = '#0b0c15';
+                setTimeout(() => { this.resize(); }, 50);
+                if(this.audio && typeof this.audio.updateThemeTracks === 'function') {
+                    this.audio.updateThemeTracks(themeName);
+                }
             }
+            
             updateThemeColor(variable, value) {
                 document.documentElement.style.setProperty(variable, value);
             }
@@ -1427,9 +2043,12 @@ setGlobalTheme(themeName) {
                 else if (val < 75) color = '#facc15'; // Yellow
                 else color = '#ef4444'; // Red
                 
+
                 slider.style.setProperty('--thumb-color', color);
+                slider.style.setProperty('--val', val);
                 display.style.color = color;
             }
+
 
             checkAutoReset() {
                 if(this.settings.autoReset) {
@@ -1440,6 +2059,7 @@ setGlobalTheme(themeName) {
             resetWorkspace() {
                 this.devices = []; this.connections = []; this.packets = []; this.nextId = 1; this.notes = [];
                 this.infoPanelDevice = null;
+
                 this.draw(); this.audio.playSFX('delete'); this.notify('Arbeitsfläche komplett geleert', 'success');
             }
 
@@ -1453,70 +2073,85 @@ setGlobalTheme(themeName) {
                 const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'alert-circle' : (type === 'ai' ? 'sparkles' : 'info'));
                 el.className = `toast-enter pointer-events-auto p-3 rounded-lg border shadow-xl backdrop-blur flex items-center gap-3 min-w-[250px] ${colors[type]} bg-opacity-90`;
                 el.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i> <span class="text-xs font-bold font-sans">${msg}</span>`;
+
                 con.appendChild(el); lucide.createIcons();
+
                 setTimeout(() => { el.style.opacity='0'; el.style.transform='translateX(20px)'; setTimeout(()=>el.remove(), 300); }, 3000);
             }
 
             initEvents() {
                 this.canvas.addEventListener('mousedown', e => this.handleDown(e));
+
                 this.canvas.addEventListener('mousemove', e => { this.handleMove(e); });
                 window.addEventListener('mouseup', e => this.handleUp(e));
                 this.canvas.addEventListener('wheel', e => this.handleWheel(e));
                 window.addEventListener('keydown', e => this.handleKey(e));
                 this.canvas.addEventListener('dblclick', e => this.handleDblClick(e));
+
                 this.canvas.addEventListener('contextmenu', e => { e.preventDefault(); this.handleRightClick(e); });
                 document.getElementById('file-loader').addEventListener('change', e => this.loadProject(e));
                 document.getElementById('cli-input').addEventListener('keydown', e => {
                     if(e.key === 'Enter') this.processCLI(e.target.value);
                     if(e.key === 'ArrowUp') { e.preventDefault(); this.navigateCLIHistory('up'); }
+
                     if(e.key === 'ArrowDown') { e.preventDefault(); this.navigateCLIHistory('down'); }
                     if(e.key === 'Tab') {
                         e.preventDefault();
                         const inp = e.target;
                         if (this.activeDev && this.activeDev.ios) {
+
                             const result = this.activeDev.ios.tabComplete(inp.value, this.activeDev);
                             if (result && !result.includes('  ')) {
                                 inp.value = result;
                             } else if (result) {
                                 const out = document.getElementById('cli-output');
+
                                 out.innerHTML += `<div class="text-slate-500">${result}</div>`;
                                 out.scrollTop = out.scrollHeight;
                             }
                         }
+
                     }
                 });
                 document.getElementById('term-input').addEventListener('keydown', e => {
                     if (e.key === 'Enter') this.processTerminal(e.target.value);
                 });
 
+
                 this.canvas.addEventListener('dragover', e => e.preventDefault());
                 this.canvas.addEventListener('drop', e => this.handleDrop(e));
                 const startAudio = () => { this.audio.init(); window.removeEventListener('click', startAudio); };
                 window.addEventListener('click', startAudio);
+
             }
 
             initDraggableWindow() {
                 const win = document.getElementById('terminal-window');
                 const header = document.getElementById('terminal-header');
+
                 let isDragging = false; let offset = {x:0, y:0};
 
                 header.addEventListener('mousedown', (e) => {
                     isDragging = true;
                     offset.x = e.clientX - win.offsetLeft;
+
                     offset.y = e.clientY - win.offsetTop;
                 });
                 window.addEventListener('mousemove', (e) => {
                     if (isDragging) {
                         win.style.left = (e.clientX - offset.x) + 'px';
+
                         win.style.top = (e.clientY - offset.y) + 'px';
                     }
                 });
                 window.addEventListener('mouseup', () => { isDragging = false; });
             }
 
+
             handleDragStart(e, type, model) { e.dataTransfer.setData('type', type); e.dataTransfer.setData('model', model); e.dataTransfer.effectAllowed = 'copy'; }
             handleDrop(e) {
                 e.preventDefault(); const type = e.dataTransfer.getData('type'); const model = e.dataTransfer.getData('model');
+
                 if (type && model) { const pos = this.getPos(e); this.addDevice(type, model, pos.x, pos.y); }
             }
 
@@ -1527,6 +2162,7 @@ setGlobalTheme(themeName) {
                 var l2 = dist2(v, w); if (l2 == 0) return dist2(p, v);
                 var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
                 t = Math.max(0, Math.min(1, t));
+
                 return Math.sqrt(dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) }));
             }
 
@@ -1537,6 +2173,7 @@ setGlobalTheme(themeName) {
                         return note;
                     }
                 }
+
                 return null;
             }
 
@@ -1547,49 +2184,59 @@ setGlobalTheme(themeName) {
 
                 if (e.button === 2) return;
                 
+
                 this.hideTooltip();
                 
                 if (this.tool === 'note') {
                     if (this.pendingNote) {
+
                         this.placeNote(pos.x, pos.y);
                     } else {
                         document.getElementById('note-modal').classList.remove('hidden');
                     }
                     return;
+
                 }
 
                 if (this.tool === 'connection') {
                     if (dev) {
                         this.tempConnection = { from: dev, toPos: pos };
+
                         this.audio.playSFX('click');
                     } else {
                         this.isPanning = true; this.dragStart = { x: e.clientX, y: e.clientY };
                     }
                     return;
+
                 }
 
                 if (this.tool === 'cut') {
                     if (dev) { this.removeDevice(dev); this.notify(`${dev.name} entfernt`, 'info'); this.checkAutoReset(); return; }
                     if (note) { this.notes = this.notes.filter(n => n !== note); this.audio.playSFX('delete'); this.draw(); return; }
+
                     const hitDist = 10 / this.scale; const conn = this.connections.find(c => { return this.distToSegment(pos, c.a, c.b) < hitDist; });
                     if (conn) { this.connections = this.connections.filter(c => c !== conn); this.audio.playSFX('delete'); this.notify('Verbindung getrennt', 'info'); this.draw(); this.checkAutoReset(); return; }
                 }
                 
                 if (this.tool === 'packet' && dev) {
+
                     this.audio.playSFX('click');
                     if (!this.packetSource) { this.packetSource = dev; this.notify('Zielgerät auswählen...', 'info'); }
                     else { if (this.packetSource !== dev) this.spawnPacket(this.packetSource, dev); this.packetSource = null; this.checkAutoReset(); }
                     return;
                 }
+
                 
                 if (note && !dev) {
                     this.isDragging = true;
                     this.draggingNote = note;
+
                     this.dragOffset = { x: pos.x - note.x, y: pos.y - note.y };
                     return;
                 }
 
                 if (dev) {
+
                     if (e.shiftKey) { this.tempConnection = { from: dev, toPos: pos }; }
                     else { this.isDragging = true; this.selectedDevice = dev; this.dragOffset = { x: pos.x - dev.x, y: pos.y - dev.y }; this.updateInfoPanel(dev); this.audio.playSFX('click'); }
                 } else { this.isPanning = true; this.dragStart = { x: e.clientX, y: e.clientY }; }
@@ -1600,6 +2247,7 @@ setGlobalTheme(themeName) {
                 
                 if (this.tool === 'connection') {
                     this.canvas.style.cursor = this.hoveredDevice ? 'crosshair' : 'default';
+
                 } else {
                     this.canvas.style.cursor = this.hoveredDevice ? 'pointer' : (this.isPanning ? 'grabbing' : 'default');
                 }
@@ -1610,49 +2258,60 @@ setGlobalTheme(themeName) {
                 }
                 else if (this.isDragging && this.draggingNote) {
                     this.draggingNote.x = pos.x - this.dragOffset.x;
+
                     this.draggingNote.y = pos.y - this.dragOffset.y;
                 }
                 else if (this.isPanning) {
+
                     this.offset.x += e.clientX - this.dragStart.x; this.offset.y += e.clientY - this.dragStart.y;
+
                     this.dragStart = { x: e.clientX, y: e.clientY }; 
                     this.wrapper.style.backgroundPosition = `${this.offset.x}px ${this.offset.y}px`;
                 } else if (this.tempConnection) { this.tempConnection.toPos = pos; }
                 
                 this.updateEnhancedTooltip(e);
+
                 
                 if (this.settings.portLabels === 'hover' || this.tempConnection || this.isDragging || this.isPanning) this.draw();
             }
 
             handleUp(e) {
+
                 if (this.tempConnection) {
                     const pos = this.getPos(e); const target = this.getDeviceAt(pos);
                     if (target && target !== this.tempConnection.from) { this.openPortSelector(this.tempConnection.from, target); }
                     this.tempConnection = null;
                     this.draw();
+
                 }
                 this.isDragging = false; this.isPanning = false; this.selectedDevice = null; this.draggingNote = null;
             }
 
             isPortConnected(dev, portName) { return this.connections.some(c => (c.a === dev && c.aPort === portName) || (c.b === dev && c.bPort === portName)); }
 
+
             openPortSelector(devA, devB) {
                 this.pendingConnection = { devA, devB };
                 const modal = document.getElementById('port-selector-modal'); const selA = document.getElementById('sel-port-a'); const selB = document.getElementById('sel-port-b');
                 document.getElementById('lbl-dev-a').innerText = devA.name; document.getElementById('lbl-dev-b').innerText = devB.name;
+
                 
                 const isFiber = this.currentCableType === 'fiber';
                 const isSerial = this.currentCableType === 'serial';
                 const isConsole = this.currentCableType === 'console';
 
+
                 const getPorts = (d) => {
                     return Object.keys(d.interfaces).map(p => {
                         const isUsed = this.isPortConnected(d, p);
                         let compatible = false;
+
                         if (isFiber) compatible = (p.startsWith('Gi') || p.includes('SFP') || p.startsWith('Fiber'));
                         else if (isSerial) compatible = p.startsWith('Se') || p.startsWith('Ser');
                         else if (isConsole) {
                             if (d.type === 'pc' || d.type === 'server') compatible = (p === 'USB');
                             else compatible = (p === 'Console');
+
                         }
                         else {
                             compatible = (p.startsWith('Fa') || p.startsWith('Gi') || p.startsWith('Eth') || p.startsWith('EthSwitch')) && !p.includes('SFP');
@@ -1663,6 +2322,7 @@ setGlobalTheme(themeName) {
                 
                 const fillSelect = (sel, ports) => {
                     sel.innerHTML = '';
+
                     if (ports.length === 0) { const opt = document.createElement('option'); opt.text = "Inkompatibel"; sel.add(opt); sel.disabled = true; }
                     else {
                         ports.forEach(p => {
@@ -1674,6 +2334,7 @@ setGlobalTheme(themeName) {
                     }
                 };
 
+
                 fillSelect(selA, getPorts(devA)); fillSelect(selB, getPorts(devB));
                 
                 if (isConsole) {
@@ -1682,20 +2343,24 @@ setGlobalTheme(themeName) {
                     }
                 }
 
+
                 modal.classList.remove('hidden'); this.audio.playSFX('click');
             }
 
             cancelConnection() { document.getElementById('port-selector-modal').classList.add('hidden'); this.pendingConnection = null; }
             
+
             confirmConnection() {
                 const selA = document.getElementById('sel-port-a'); const selB = document.getElementById('sel-port-b');
                 if (selA.disabled || selB.disabled || !selA.value || !selB.value) { this.notify("Verbindung nicht möglich!", "error"); return; }
                 const portA = selA.value; const portB = selB.value;
                 const { devA, devB } = this.pendingConnection;
+
                 this.addConnection(devA, devB, portA, portB);
                 document.getElementById('port-selector-modal').classList.add('hidden'); this.pendingConnection = null;
                 this.checkAutoReset();
             }
+
 
             handleWheel(e) { e.preventDefault(); const delta = e.deltaY > 0 ? -0.1 : 0.1; this.scale = Math.min(Math.max(0.5, this.scale + delta), 3); this.draw(); }
             
@@ -1780,6 +2445,7 @@ createDeviceObject(type, model, x, y, name, id = this.nextId++) {
 
             addDevice(type, model, x, y) {
                 if(!type) return; const name = `${type.charAt(0).toUpperCase() + type.slice(1)}${this.devices.filter(d=>d.type===type).length}`;
+
                 const dev = this.createDeviceObject(type, model, x, y, name);
                 this.devices.push(dev); this.audio.playSFX('click'); this.notify(`${dev.name} erstellt (Power: OFF)`, 'info'); this.draw();
                 this.checkAutoReset();
@@ -1840,6 +2506,7 @@ addConnection(d1, d2, port1, port2) {
                 if (src === dst) {
                      this.notify('Ping an sich selbst abgebrochen.', 'info');
                      return;
+
                 }
 
                 if (!src.power || !dst.power) { 
@@ -1972,6 +2639,7 @@ addConnection(d1, d2, port1, port2) {
                 const height = 14;
                 
                 this.ctx.fillStyle = this.canvasBadgeBg || "rgba(11, 12, 21, 0.9)";
+
                 this.ctx.strokeStyle = "rgba(99, 102, 241, 0.4)";
                 this.ctx.lineWidth = 1;
 
@@ -2144,6 +2812,7 @@ addConnection(d1, d2, port1, port2) {
                     this.ctx.lineWidth = 3;
                     const ax = this.tempConnection.from.x; const ay = this.tempConnection.from.y; const bx = this.tempConnection.toPos.x; const by = this.tempConnection.toPos.y;
                     this.ctx.strokeStyle = '#6366f1'; this.ctx.setLineDash([5, 5]); this.ctx.beginPath(); this.ctx.moveTo(ax, ay); this.ctx.lineTo(bx, by); this.ctx.stroke(); this.ctx.setLineDash([]);
+
                     this.ctx.restore();
                 }
 
@@ -2326,6 +2995,7 @@ const isForward = conn.a === from;
             
             renderPDUList() {
                 const list = document.getElementById('pdu-list');
+
                 const empty = document.getElementById('pdu-empty');
                 const count = document.getElementById('pdu-count');
                 
@@ -2472,6 +3142,7 @@ setIPMode(dev, ifaceName, mode, isAutoRetry = false) {
                             let usedIPs = this.devices.map(d => Object.values(d.interfaces).map(i => i.ip)).flat().filter(Boolean);
 
                             let assignedIp = null;
+
                             for (let i = start; i <= end; i++) {
                                 let ipStr = this.intToIp(i);
                                 if (!usedIPs.includes(ipStr) || (dev.interfaces[ifaceName].ip === ipStr && dev.interfaces[ifaceName].dhcpServerId === foundServer.id)) {
@@ -2523,6 +3194,7 @@ setIPMode(dev, ifaceName, mode, isAutoRetry = false) {
                 this.audio.playSFX('click');
                 
                 const realtimeBtn = document.getElementById('sim-realtime');
+
                 const simBtn = document.getElementById('sim-simulation');
                 const controls = document.getElementById('sim-controls');
                 
@@ -2781,6 +3453,7 @@ powerAllDevices(powerOn) {
             
             showARPTable() {
                 this.setTableTab('arp');
+
                 document.getElementById('arp-modal-title').innerText = 'ARP Tabelle (Globale Ansicht)';
                 document.getElementById('arp-table-header').innerHTML = `
                     <th class="py-2 px-3 text-left">Gerät</th>
@@ -2998,6 +3671,7 @@ powerAllDevices(powerOn) {
                     ctx.fillStyle = '#334155'; ctx.fillRect(-28, -8, 56, 2);
                     if(d.power) { ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.arc(-20, 0, 2, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(-15, 0, 2, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(-10, 0, 2, 0, Math.PI*2); ctx.fill(); }
                     if(isSel || isHov) { ctx.strokeStyle = highlightColor; ctx.lineWidth = 2; ctx.strokeRect(-32, -27, 64, 40); }
+
                 } else if (d.type === 'pc') {
                     ctx.fillStyle = '#e2e8f0';
                     ctx.fillRect(-20, -18, 40, 28);
@@ -3112,6 +3786,7 @@ powerAllDevices(powerOn) {
                     } else {
                         btn.draggable = true; btn.ondragstart = (e) => this.handleDragStart(e, i.t, i.l);
                         let icon = 'box'; if(i.t==='pc') icon = 'monitor'; else if(i.t==='switch') icon = 'layers'; else if(i.t==='router') icon = 'router'; else if(i.t==='firewall') icon = 'shield-alert'; else if(i.t==='cloud') icon = 'cloud'; else if(i.t==='server') icon = 'server';
+
                         btn.innerHTML = `<div class="p-1.5 bg-space-950 rounded border border-space-700"><i data-lucide="${icon}" class="w-4 h-4 text-brand-400"></i></div> <span class="text-xs font-bold text-slate-200">${i.l}</span>`;
                     }
                     list.appendChild(btn);
@@ -3280,6 +3955,7 @@ powerAllDevices(powerOn) {
             
             setModalTab(tab) { 
                 this.audio.playSFX('click'); 
+
                 document.querySelectorAll('.view-panel').forEach(e => e.classList.add('hidden')); 
                 document.getElementById('view-'+tab).classList.remove('hidden'); 
                 document.querySelectorAll('.modal-tab').forEach(e => e.classList.remove('active')); 
@@ -3322,6 +3998,7 @@ powerAllDevices(powerOn) {
                             } else if (mod.type === 'WIC-1T') {
                                 face = '<div class="port-serial w-9 h-3 border border-black mb-1"></div>';
                                 label = `Ser${i}`;
+
                             } else if (mod.type === 'GLC-LH-SM') {
                                 face = '<div class="sfp-metal-cage w-5 h-6 rounded-sm shadow-inner"><div class="sfp-pcb"></div></div>';
                                 label = `Fiber${i}`;
@@ -3406,7 +4083,7 @@ powerAllDevices(powerOn) {
                             ${isConnected ? `<div class="text-[9px] text-slate-500 mt-0.5 truncate w-full" title="Verbunden mit ${connectInfo.replace('-> ', '')}"><i data-lucide="link" class="w-3 h-3 inline mr-1 text-brand-400"></i>${connectInfo}</div>` : ''}
                         </div>
                     `;
-                    btn.onclick = () => this.renderConfigDetail(key); lst.appendChild(btn);
+                    btn.onclick = () => this.renderConfigDetail(key); btn.onmouseenter = () => this.audio.playSFX('click'); lst.appendChild(btn);
                 });
                 lucide.createIcons();
             }
@@ -3477,6 +4154,7 @@ renderConfigDetail(ifaceName) {
                 const modList = document.getElementById('module-list'); const slotList = document.getElementById('rack-slots'); modList.innerHTML = '';
                 
                 if (this.activeDev.type !== 'pc' && this.activeDev.type !== 'server') {
+
                     slotList.innerHTML = '';
                 }
 
@@ -3490,7 +4168,7 @@ renderConfigDetail(ifaceName) {
                 modules.forEach(m => {
                     const div = document.createElement('div'); div.className = 'module-item';
                     div.innerHTML = `<span class="font-bold text-white">${m.type}</span><span class="text-slate-400">${m.name}</span>`;
-                    div.onclick = () => this.addModule(m); modList.appendChild(div);
+                    div.onclick = () => this.addModule(m); div.onmouseenter = () => this.audio.playSFX('click'); modList.appendChild(div);
                 });
                 
                 if (this.activeDev.type === 'pc' || this.activeDev.type === 'server') {
@@ -3504,9 +4182,11 @@ renderConfigDetail(ifaceName) {
                         let faceplate = '';
                         if(m.type === 'NM-1FE') { faceplate = `<div class="text-[7px] text-slate-400 uppercase tracking-tighter mb-1">FastEth</div><div class="port-rj45 w-10 h-8 mb-1"></div><div class="text-[6px] text-slate-500 font-mono">${m.ports[0].replace('Eth','')}</div><div class="status-led mt-1 ${getLedClass(m.ports[0])}"></div>`; }
                         else if(m.type === 'WIC-1T') { faceplate = `<div class="text-[7px] text-slate-400 uppercase tracking-tighter mb-2">Serial</div><div class="port-serial w-12 h-6 mb-1"></div><div class="text-[6px] text-slate-500 font-mono">${m.ports[0].replace('Se','')}</div><div class="status-led mt-1 ${getLedClass(m.ports[0])}"></div>`; }
+
                         else if(m.type === 'HWIC-4ESW') { faceplate = `<div class="text-[6px] text-slate-400 uppercase tracking-tighter mb-1">Switch</div><div class="grid grid-cols-2 gap-1 mb-1"><div class="port-rj45 w-4 h-4"></div><div class="port-rj45 w-4 h-4"></div><div class="port-rj45 w-4 h-4"></div><div class="port-rj45 w-4 h-4"></div></div><div class="flex gap-1 justify-center mt-1"><div class="status-led ${getLedClass(m.ports[0])}"></div><div class="status-led ${getLedClass(m.ports[1])}"></div><div class="status-led ${getLedClass(m.ports[2])}"></div><div class="status-led ${getLedClass(m.ports[3])}"></div></div>`; }
                         else if(m.type === 'GLC-LH-SM') { faceplate = `<div class="text-[7px] text-slate-400 uppercase tracking-tighter mb-2">GigEth</div><div class="sfp-metal-cage w-10 h-8 rounded-sm shadow-inner group-hover:translate-y-0.5 transition-transform cursor-pointer"><div class="sfp-pcb"></div><div class="absolute -right-2 top-1/2 -translate-y-1/2 w-3 h-1.5 bg-blue-600 rounded-r shadow-sm border-l border-black/20"></div></div><div class="text-[6px] text-slate-500 font-mono mt-1">${m.ports[0].replace('Fiber','')}</div><div class="status-led mt-1 ${getLedClass(m.ports[0])}"></div>`; }
                         s.innerHTML = `<div class="rack-screw top-1 left-1"></div><div class="rack-screw top-1 right-1"></div><div class="rack-screw bottom-1 left-1"></div><div class="rack-screw bottom-1 right-1"></div>${faceplate}<div class="absolute inset-0 bg-accent-pink/90 items-center justify-center text-[10px] font-bold text-white hidden group-hover:flex backdrop-blur-sm z-10 rounded">ENTFERNEN</div>`;
+
                         s.onclick = () => this.removeModule(m); slotList.appendChild(s);
                     });
                 }
@@ -3597,6 +4277,7 @@ let ports = [];
                 else if (mod.type === 'HWIC-4ESW') {
                     let nextId = 1; while(this.activeDev.interfaces[`Eth0/${nextId}/0`]) nextId++;
                     ports = [`Eth0/${nextId}/0`, `Eth0/${nextId}/1`, `Eth0/${nextId}/2`, `Eth0/${nextId}/3`];
+
                 }
                 else if (mod.type === 'GLC-LH-SM') {
                     let nextId = 1; while(this.activeDev.interfaces[`Fiber0/${nextId}`] || this.activeDev.interfaces[`Fiber1/${nextId}`]) nextId++;
@@ -3639,6 +4320,7 @@ removeModule(mod) {
             }
 
             updateIP(iface, val) {
+
                 if(val === '') { this.activeDev.interfaces[iface].ip = ''; return; }
                 const exists = this.devices.some(d => Object.values(d.interfaces).some(i => i.ip === val && (d !== this.activeDev || i !== this.activeDev.interfaces[iface])));
                 if (exists) { this.notify('IP existiert bereits!', 'error'); this.audio.playSFX('error'); this.renderConfigDetail(iface); return; }
@@ -3699,6 +4381,7 @@ removeModule(mod) {
                     if (cidrInput.includes('.')) { const maskParts = cidrInput.split('.').map(Number); if (maskParts.length !== 4) throw new Error("Ungültige Maske"); const maskBinStr = maskParts.map(p => p.toString(2).padStart(8,'0')).join(''); cidr = maskBinStr.split('1').length - 1; } else { cidr = parseInt(cidrInput.replace('/','')); }
                     if(ipParts.length !== 4 || ipParts.some(p => isNaN(p) || p < 0 || p > 255)) throw new Error("Ungültige IP"); if(isNaN(cidr) || cidr < 0 || cidr > 32) throw new Error("Ungültiges CIDR");
                     const ipBin = (ipParts[0] << 24) | (ipParts[1] << 16) | (ipParts[2] << 8) | ipParts[3]; const maskBin = cidr === 0 ? 0 : (~0 << (32 - cidr)); const netBin = ipBin & maskBin; const broadBin = netBin | (~maskBin);
+
                     const firstBin = netBin + 1; const lastBin = broadBin - 1; const toIP = (bin) => [ (bin >>> 24) & 255, (bin >>> 16) & 255, (bin >>> 8) & 255, bin & 255 ].join('.'); const hosts = Math.pow(2, 32 - cidr) - 2;
                     document.getElementById('res-net').innerText = toIP(netBin); document.getElementById('res-broad').innerText = toIP(broadBin); document.getElementById('res-first').innerText = cidr > 30 ? 'N/A' : toIP(firstBin); document.getElementById('res-last').innerText = cidr > 30 ? 'N/A' : toIP(lastBin); document.getElementById('res-hosts').innerText = hosts > 0 ? hosts : 0; document.getElementById('res-mask').innerText = toIP(maskBin);
                     document.getElementById('calc-results').classList.remove('hidden');
@@ -3737,6 +4420,7 @@ applyAITopology(topology) {
                 
                 topology.devices.forEach(d => {
                     const newDevice = this.createDeviceObject(d.type, d.model || 'Generic', x, y, d.name, d.id);
+
                     
                     // FIX 1: Geräte direkt mit Strom versorgen, damit die Ports hochfahren
                     newDevice.power = true;
@@ -3762,6 +4446,7 @@ applyAITopology(topology) {
                         // FIX 3: Automatisch freie Ports für das Kabel finden
                         const p1 = Object.keys(d1.interfaces).find(p => p !== 'Console' && p !== 'USB' && !this.isPortConnected(d1, p));
                         const p2 = Object.keys(d2.interfaces).find(p => p !== 'Console' && p !== 'USB' && !this.isPortConnected(d2, p));
+
                         
                         if (p1 && p2) {
                             this.addConnection(d1, d2, p1, p2);
@@ -3814,6 +4499,7 @@ applyAITopology(topology) {
 
             navigateCLIHistory(direction) {
                 if (!this.activeDev || !this.activeDev.cmdHistory || this.activeDev.cmdHistory.length === 0) return;
+
                 const history = this.activeDev.cmdHistory;
                 if (this.cliHistoryIndex === null) { this.cliHistoryIndex = history.length; }
                 if (direction === 'up') { if (this.cliHistoryIndex > 0) this.cliHistoryIndex--; }
@@ -3963,6 +4649,7 @@ loadProject(e) {
 
             // NEW: Update hostname from config panel
             updateHostname() {
+
                 const input = document.getElementById('hostname-input');
                 const newName = input.value.trim();
                 if (!newName) {
@@ -4000,12 +4687,14 @@ loadProject(e) {
                     <div class="font-mono text-brand-400">${s.key}</div>
                     <div>${s.action}</div>
                 `).join('');
+
             }
 
             // NEW: Render shortcuts configuration
             renderShortcutsConfig() {
                 const container = document.getElementById('shortcuts-config-list');
                 if (!container) return;
+
                 
                 container.innerHTML = this.shortcuts.map((s, index) => `
                     <div class="shortcut-item" onclick="app.editShortcut(${index})">
@@ -4013,6 +4702,7 @@ loadProject(e) {
                             <span class="shortcut-key">${s.key}</span>
                             <span class="text-slate-300 text-sm">${s.action}</span>
                         </div>
+
                         <div class="flex items-center gap-2">
                             ${s.disabled ? '<span class="text-[10px] text-accent-pink">Deaktiviert</span>' : ''}
                             <button onclick="event.stopPropagation(); app.toggleShortcut(${index})" class="text-slate-500 hover:text-white">
@@ -4021,15 +4711,18 @@ loadProject(e) {
                             <button onclick="event.stopPropagation(); app.deleteShortcut(${index})" class="text-slate-500 hover:text-accent-pink">
                                 <i data-lucide="-2" class="w-4 h-4"></i>
                             </button>
+
                         </div>
                     </div>
                 `).join('');
+
                 
                 lucide.createIcons();
             }
 
             // NEW: Edit shortcut key
             editShortcut(index) {
+
                 const shortcut = this.shortcuts[index];
                 const newKey = prompt(`Neue Taste für "${shortcut.action}" (aktuell: ${shortcut.key}):`, shortcut.key);
                 if (newKey !== null && newKey.trim() !== '') {
@@ -4052,8 +4745,10 @@ loadProject(e) {
                 this.shortcuts[index].disabled = !this.shortcuts[index].disabled;
                 this.saveShortcuts();
                 this.renderShortcutsConfig();
+
                 this.renderShortcuts();
             }
+
 
             // NEW: Delete shortcut
             deleteShortcut(index) {
@@ -4067,6 +4762,7 @@ loadProject(e) {
             }
 
             // NEW: Save shortcuts to localStorage
+
             saveShortcuts() {
                 localStorage.setItem('ng_shortcuts', JSON.stringify(this.shortcuts));
             }
@@ -4080,6 +4776,22 @@ loadProject(e) {
             app.renderPDUList();
             lucide.createIcons();
         };
+        
+                // ESC Taste schliesst Theme Modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const themeModal = document.getElementById('custom-theme-modal');
+                if (themeModal && themeModal.style.display !== 'none') {
+                    if (typeof closeCustomThemeModal === 'function') {
+                        closeCustomThemeModal();
+
+                    } else {
+                        themeModal.style.display = 'none';
+                    }
+                }
+            }
+        });
+
 class AcademyEngine {
     constructor(app) {
         this.app = app;
@@ -4114,6 +4826,7 @@ class AcademyEngine {
                     this.app.devices[0].psuOn = false;
                     this.app.nextId = 1;
                 },
+
                 check: () => {
                     const pc = this.app.devices.find(d => d.name.toLowerCase() === "pc0");
                     if (!pc) return "PC0 wurde gelöscht! Bitte starte das Level neu.";
@@ -4152,39 +4865,46 @@ class AcademyEngine {
                     this.app.devices[0].name = "PC0";
                     this.app.devices[1].name = "PC1";
                     this.app.devices.forEach(d => { d.power = true; d.psuOn = true; });
+
                     this.app.addConnection(this.app.devices[0], this.app.devices[1], 'Eth0', 'Eth0');
                     this.app.nextId = 2;
                 },
                 check: () => {
                     const p0 = this.app.devices.find(d => d.name.toLowerCase() === "pc0");
+
                     const p1 = this.app.devices.find(d => d.name.toLowerCase() === "pc1");
                     const ip0 = p0?.interfaces['Eth0']?.ip;
                     const ip1 = p1?.interfaces['Eth0']?.ip;
                     if (!ip0 || !ip1) return "Einem PC fehlt noch die IP-Konfiguration.";
                     if (ip0 === ip1) return "Adress-Konflikt! Beide PCs haben die gleiche IP.";
                     if (this.app.simEngine.sameSubnet(ip0, ip1)) return true;
+
                     return "Die IPs liegen nicht im selben Netzbereich (z.B. beide 192.168.1.x).";
                 }
             },
             {
                 title: "5. Der Ping-Test",
+
                 tutorial: "Ein Ping prüft, ob die Gegenseite antwortet. Es ist das wichtigste Tool für Admins.",
                 task: "Wähle das Ping-Tool (Brief) oben links. Klicke erst auf PC0 (Absender), dann auf PC1 (Ziel).",
                 setup: () => {
                     this.app.resetWorkspace();
                     this.app.nextId = 0;
                     this.app.addDevice('pc', 'PC-PT', 250, 300); 
+
                     this.app.addDevice('pc', 'PC-PT', 550, 300); 
                     this.app.devices[0].name = "PC0";
                     this.app.devices[1].name = "PC1";
                     this.app.devices.forEach(d => { d.power = true; d.psuOn = true; });
                     this.app.addConnection(this.app.devices[0], this.app.devices[1], 'Eth0', 'Eth0');
+
                     this.app.devices[0].interfaces['Eth0'].ip = "192.168.1.1"; 
                     this.app.devices[1].interfaces['Eth0'].ip = "192.168.1.2";
                     this.app.pduList = [];
                     this.app.nextId = 2;
                 },
                 check: () => this.app.pduList.some(p => p.status === 'Success') ? true : "Der Ping war noch nicht erfolgreich."
+
             },
             {
                 title: "6. Der Switch (Stern)",
@@ -4196,18 +4916,21 @@ class AcademyEngine {
                     this.app.addDevice('switch', '2960-24TT', 400, 200);
                     this.app.devices[0].name = "Switch0";
                     for(let i=0; i<3; i++) {
+
                         this.app.addDevice('pc', 'PC-PT', 150+(i*200), 400);
                         const dev = this.app.devices[this.app.devices.length-1];
                         dev.name = "PC"+i; dev.power = true; dev.psuOn = true;
                     }
                     this.app.nextId = 4;
                 },
+
                 check: () => {
                     const sw = this.app.devices.find(d => d.type === 'switch');
                     if (!sw?.power) return "Der Switch hat noch keinen Strom.";
                     const conns = this.app.connections.filter(c => c.a === sw || c.b === sw);
                     return conns.length >= 3 ? true : "Es müssen alle 3 PCs am Switch hängen.";
                 }
+
             },
             {
                 title: "7. Routing Basics",
@@ -4218,6 +4941,7 @@ class AcademyEngine {
                     this.app.nextId = 0;
                     this.app.addDevice('router', 'ISR 4321', 400, 200); 
                     this.app.addDevice('pc', 'PC-PT', 400, 450); 
+
                     this.app.devices[0].name = "Router0"; 
                     this.app.devices[1].name = "PC0";
                     this.app.devices.forEach(d => d.power = true);
@@ -4235,6 +4959,7 @@ class AcademyEngine {
                 title: "8. DHCP (Auto-Config)",
                 tutorial: "DHCP verteilt IPs automatisch. Du musst nur den Service am Router einschalten.",
                 task: "Aktiviere DHCP am Router. Stelle PC0 danach in der Config auf 'IP-Mode: DHCP' um.",
+
                 setup: () => {
                     this.app.resetWorkspace();
                     this.app.nextId = 0;
@@ -4284,6 +5009,7 @@ class AcademyEngine {
                 setup: () => {
                     this.app.resetWorkspace();
                     this.app.nextId = 0;
+
                     const p0 = this.app.addDevice('pc', 'PC-PT', 250, 300); 
                     const p1 = this.app.addDevice('pc', 'PC-PT', 550, 300); 
                     this.app.devices[0].name = "PC0";
@@ -4335,6 +5061,7 @@ class AcademyEngine {
                 }
             },
             {
+
                 title: "13. Die Abschlussprüfung",
                 tutorial: "Baue ein komplettes Netz mit Router, Switch und 2 PCs. Nutze DHCP.",
                 task: "Wenn ein Ping von PC0 zu PC1 erfolgreich ist, hast du bestanden!",
@@ -4374,6 +5101,7 @@ class AcademyEngine {
             <button id="tab-btn-acad" class="acad-tab-btn active">Academy Mode</button>
             <button id="tab-btn-lib" class="acad-tab-btn">Bibliothek</button>
         `;
+
         sidebar.appendChild(tabs);
 
         const acadContainer = document.createElement('div');
@@ -4407,6 +5135,7 @@ class AcademyEngine {
         sidebar.appendChild(acadContainer);
 
         const libContainer = document.createElement('div');
+
         libContainer.id = 'container-lib'; libContainer.className = 'acad-container custom-scroll';
         oldContent.forEach(el => libContainer.appendChild(el));
         sidebar.appendChild(libContainer);
@@ -4416,6 +5145,7 @@ class AcademyEngine {
         document.getElementById('a-btn').onclick = () => this.verifyCurrentLevel();
         document.getElementById('a-reset').onclick = () => { this.app.audio.playSFX('delete'); this.loadLevel(this.currentLevelIndex); };
     }
+
 
     switchTab(target) {
         document.getElementById('tab-btn-lib').classList.toggle('active', target === 'lib');
@@ -4429,6 +5159,7 @@ class AcademyEngine {
 
     loadLevel(idx) {
         if (idx >= this.levels.length) {
+
             document.getElementById('a-title').innerText = "🏆 Academy Master!";
             document.getElementById('a-tut').innerHTML = "Glückwunsch! Du hast alle 13 Level bestanden. Nutze jetzt die Bibliothek für eigene Projekte.";
             document.getElementById('a-task').innerText = "Zertifikat erhalten.";
@@ -4461,6 +5192,7 @@ class AcademyEngine {
             const btn = document.getElementById('a-btn'); btn.innerText = "Nächstes Level starten";
             btn.className = "w-full py-3.5 rounded-xl bg-accent-lime text-black font-black animate-pulse text-xs";
             btn.onclick = () => this.loadLevel(this.currentLevelIndex + 1);
+
         } else {
             this.app.audio.playSFX('error'); fb.innerText = res; fb.className = "acad-feedback-box fb-error";
         }
@@ -4479,5 +5211,25 @@ startAcademy();
 
             // von NOEL und Musti - MustNoⒸ
     </script>
+
+<script src="theme.js"></script>
+
+<!-- ── MULTI CUSTOM THEME EDITOR (Externes Popup) ── -->
+<div id="custom-theme-modal" style="position:fixed; inset:0; z-index:20000; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px); font-family:'Space Mono', monospace;">
+  <div style="background:#050b16; border:1px solid #4a7aff; padding:25px; border-radius:12px; width:90%; max-width:350px; box-shadow:0 0 30px rgba(0,0,0,0.8);">
+    <h3 id="ct-modal-title" style="color:#e4edff; text-align:center; margin-bottom:20px; font-weight:bold; letter-spacing:0.05em;">NEUES THEME ERSTELLEN</h3>
+    <div style="margin-bottom:15px;">
+        <label style="color:#a0beff; font-size:0.8rem; display:block; margin-bottom:5px;">Theme Name</label>
+        <input type="text" id="ct-name" placeholder="Mein Custom Theme" maxlength="15" style="width:100%; padding:8px; background:rgba(255,255,255,0.05); border:1px solid #3c64f0; color:#fff; border-radius:4px; outline:none; font-family:inherit; font-weight:bold;">
+    </div>
+    <div id="ct-inputs" style="display:flex; flex-direction:column; gap:12px; margin-bottom:25px;"></div>
+    <div style="display:flex; gap:10px;">
+      <button onclick="closeCustomThemeModal()" style="flex:1; padding:8px; background:transparent; border:1px solid #3c64f0; color:#a0beff; border-radius:6px; cursor:pointer;">Abbrechen</button>
+      <button id="ct-btn-delete" onclick="deleteCustomTheme()" style="display:none; padding:8px; background:transparent; border:1px solid #ff4a4a; color:#ff4a4a; border-radius:6px; cursor:pointer;">Löschen</button>
+      <button onclick="saveCustomTheme()" style="flex:1; padding:8px; background:#4a7aff; border:none; color:#fff; font-weight:bold; border-radius:6px; cursor:pointer;">Speichern</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
+

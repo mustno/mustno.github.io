@@ -1,11 +1,116 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+    <!-- deine bestehenden meta-tags und styles -->
+    <script>
+// FOUC-Prevention & Theme-Synchronisation
+// Lade dieses Skript im <head> ALLER HTML-Dateien!
+
+(function() {
+    const activeTheme = localStorage.getItem('mustno-theme') || '';
+    
+    // 1. Theme sofort auf <html> anwenden (verhindert FOUC / Flackern beim Laden)
+    if (activeTheme) {
+        document.documentElement.className = activeTheme;
+    }
+
+    // 2. Sobald der <body> existiert: Sync zwischen <body> und <html> herstellen
+    const initObserver = new MutationObserver((mutations, obs) => {
+        if (document.body) {
+            // Wende das initiale Theme auch auf den Body an
+            if (activeTheme) document.body.classList.add(activeTheme);
+            
+            // DER FIX: Ueberwache den Body! 
+            // Wenn theme.js im laufenden Betrieb das Theme wechselt,
+            // erzwingen wir, dass das <html> Tag dieselbe Klasse bekommt.
+            // Das verhindert, dass Widgets in alten Themes steckenbleiben.
+            const classObserver = new MutationObserver((mutationsList) => {
+                for (const mutation of mutationsList) {
+                    if (mutation.attributeName === 'class') {
+                        document.documentElement.className = document.body.className;
+                    }
+                }
+            });
+            classObserver.observe(document.body, { attributes: true });
+            
+            obs.disconnect(); // Den Start-Observer beenden
+        }
+    });
+    initObserver.observe(document.documentElement, { childList: true });
+
+    // 3. CSS-Bruecke fuer die Music Bar erstellen
+    const style = document.createElement('style');
+    style.innerHTML = `
+        :root {
+            --m-bg: var(--bg, var(--bg-card, #0a1628));
+            --m-text: var(--text, var(--text-primary, #e4edff));
+            --m-accent: var(--accent, #4a7aff);
+        }
+
+        /* Spezifische Theme-Overrides (z.B. fuer das Wii-Theme) */
+        html.theme-wii, body.theme-wii {
+            --m-bg: #f4f4f4 !important;
+            --m-text: #444444 !important;
+            --m-accent: #00baff !important;
+        }
+
+        /* Wende synchronisierte Variablen auf alle Audio/Music-Bar IDs & Klassen an */
+        #audio-widget, .audio-widget-container, .music-bar, #music-bar {
+            background-color: var(--m-bg) !important;
+            color: var(--m-text) !important;
+            border-color: color-mix(in srgb, var(--m-accent) 30%, transparent) !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+        }
+
+        .audio-progress-bg, #bgm-progress-container {
+            background-color: color-mix(in srgb, var(--m-accent) 25%, transparent) !important;
+        }
+
+        .audio-progress-fill, #bgm-progress-bar, .seekbar-fill {
+            background-color: var(--m-accent) !important;
+        }
+
+        .audio-btn, .music-btn {
+            color: var(--m-text) !important;
+        }
+        .audio-btn:hover, .music-btn:hover {
+            color: var(--m-accent) !important;
+        }
+    `;
+    // Sofort in den Head injecten (noch bevor <body> rendert)
+    document.head.appendChild(style);
+
+    // 4. Custom Themes sofort laden
+    if (activeTheme.startsWith('custom-')) {
+        try {
+            const customThemes = JSON.parse(localStorage.getItem('mustno-custom-themes')) || [];
+            const ct = customThemes.find(t => t.id === activeTheme);
+            if (ct && ct.colors) {
+                const root = document.documentElement;
+                if (ct.colors.bg) {
+                    root.style.setProperty('--bg', ct.colors.bg);
+                    root.style.setProperty('--bg-deep', ct.colors.bg);
+                    root.style.setProperty('--bg-mid', ct.colors.bg);
+                    root.style.setProperty('--bg-card', ct.colors.bg);
+                }
+                if (ct.colors.accent) root.style.setProperty('--accent', ct.colors.accent);
+                if (ct.colors.text) {
+                    root.style.setProperty('--text', ct.colors.text);
+                    root.style.setProperty('--text-primary', ct.colors.text);
+                }
+                if (ct.colors.green) root.style.setProperty('--green', ct.colors.green);
+            }
+        } catch(e) {
+            console.error("Custom Theme Load Error:", e);
+        }
+    }
+})();    
+    </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MustNo — Academy</title>
 <link rel="icon" type="image/png" href="logo.png?v=1">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Syne:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-deep: #070d1a; --bg-mid: #0a1328; --bg-card: #0d1b35; --bg-card-hover: #112040;
@@ -15,6 +120,10 @@
     --text-primary: #e8eeff; --text-dim: rgba(180, 200, 255, 0.5); --text-muted: rgba(100, 130, 200, 0.4);
     --border: rgba(64, 120, 255, 0.2); --border-bright: rgba(64, 120, 255, 0.5);
     --font-main: 'Syne', sans-serif;
+    /* Short aliases used by the audio widget */
+    --bg: #070d1a; --text: #e8eeff; --green: #7fff00;
+    --dim: rgba(180,200,255,0.5); --muted: rgba(100,130,200,0.4);
+    --glass: rgba(7,13,26,0.8);
   }
 
   body.theme-wii {
@@ -24,6 +133,9 @@
     --accent-green: #00a2e8; --accent-green-dim: rgba(0, 162, 232, 0.1);
     --text-primary: #444444; --text-dim: #777777; --text-muted: #999999;
     --border: #d0d0d0; --border-bright: #aaaaaa; --font-main: 'Arial', sans-serif;
+    /* Short aliases */
+    --bg: #f4f4f4; --text: #444444; --green: #00a2e8;
+    --dim: #777777; --muted: #999999; --glass: rgba(255,255,255,0.9);
   }
   .theme-wii .grid-bg, .theme-wii .scanlines, .theme-wii .glow-orb, .theme-wii .particles { display: none; }
   .theme-wii .app-card { box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 20px; border: 1px solid #e0e0e0; }
@@ -36,6 +148,9 @@
     --accent-green: #00ff00; --accent-green-dim: rgba(0, 255, 0, 0.1);
     --text-primary: #00ff00; --text-dim: #00cc00; --text-muted: #007700;
     --border: #00ff00; --border-bright: #00ff00; --font-main: 'Space Mono', monospace;
+    /* Short aliases */
+    --bg: #000000; --text: #00ff00; --green: #00ff00;
+    --dim: #00cc00; --muted: #007700; --glass: rgba(0,0,0,0.9);
   }
   .theme-retro .app-card { border-radius: 0; }
   .theme-retro .hero-title .line-2 { -webkit-text-stroke: 1.5px var(--accent); color: transparent; }
@@ -47,6 +162,18 @@
     --accent-green: #00f0ff; --accent-green-dim: rgba(0, 240, 255, 0.15);
     --text-primary: #ffffff; --text-dim: #ff99cc; --text-muted: #b057ff;
     --border: rgba(255, 0, 124, 0.3); --border-bright: rgba(0, 240, 255, 0.5); --font-main: 'Syne', sans-serif;
+    /* Short aliases */
+    --bg: #090014; --text: #ffffff; --green: #00f0ff;
+    --dim: #ff99cc; --muted: #b057ff; --glass: rgba(9,0,20,0.88);
+  }
+  .theme-cyberpunk .hero-title .line-2 { -webkit-text-stroke: 1.5px var(--accent-green); text-shadow: 0 0 15px rgba(0, 240, 255, 0.6); color: transparent; }
+  .theme-cyberpunk .app-card:hover { border-color: var(--accent); box-shadow: 0 0 40px rgba(255, 0, 124, 0.4); }
+
+  /* Custom theme: --bg, --text, --green, --accent set by theme.js; derive the rest */
+  body.theme-custom {
+    --dim: color-mix(in srgb, var(--text) 45%, transparent);
+    --muted: color-mix(in srgb, var(--text) 25%, transparent);
+    --glass: color-mix(in srgb, var(--bg) 80%, transparent);
   }
   .theme-cyberpunk .hero-title .line-2 { -webkit-text-stroke: 1.5px var(--accent-green); text-shadow: 0 0 15px rgba(0, 240, 255, 0.6); color: transparent; }
   .theme-cyberpunk .app-card:hover { border-color: var(--accent); box-shadow: 0 0 40px rgba(255, 0, 124, 0.4); }
@@ -178,14 +305,16 @@
   .footer-copy { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.1em; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 </style>
-</head>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="chrome-extension://d420bcda-9c2d-4560-b15f-c9bfbf4cbe8d/app/content-style.css"></head>
 <body>
 
-<div class="cursor" id="cursor"></div>
+
+<div class="cursor" id="cursor" style="left: 1048.5px; top: 266.5px;"></div>
 <div class="grid-bg"></div>
 <div class="scanlines"></div>
-<div class="glow-orb" id="glowOrb"></div>
-<div class="particles" id="particles"></div>
+<div class="glow-orb" id="glowOrb" style="left: 1052px; top: 270px;"></div>
+<div class="particles" id="particles"><div class="particle" style="left: 15.5082%; --drift: 86.65191190128591px; animation-duration: 16.2851s; animation-delay: 13.021s; width: 1.3904px; height: 2.59111px; background: var(--accent);"></div><div class="particle" style="left: 33.8872%; --drift: -51.09735551624068px; animation-duration: 20.9678s; animation-delay: 9.13724s; width: 2.72282px; height: 2.37934px; background: var(--accent);"></div><div class="particle" style="left: 2.43782%; --drift: -18.031881876443066px; animation-duration: 18.2104s; animation-delay: 10.1323s; width: 2.08329px; height: 1.67376px; background: var(--accent-green);"></div><div class="particle" style="left: 1.25396%; --drift: -67.28712382492404px; animation-duration: 9.99153s; animation-delay: 3.07813s; width: 2.0673px; height: 1.16502px; background: var(--accent-green);"></div><div class="particle" style="left: 44.4116%; --drift: -15.459665932845201px; animation-duration: 21.9142s; animation-delay: 1.48699s; width: 2.17181px; height: 1.44393px; background: var(--accent-green);"></div><div class="particle" style="left: 71.3212%; --drift: -52.59793044018255px; animation-duration: 12.7596s; animation-delay: 11.8378s; width: 2.58461px; height: 1.43032px; background: var(--accent);"></div><div class="particle" style="left: 87.5724%; --drift: -46.36227191019371px; animation-duration: 9.62779s; animation-delay: 2.13887s; width: 1.75139px; height: 2.29068px; background: var(--accent);"></div><div class="particle" style="left: 74.545%; --drift: -28.160226543451007px; animation-duration: 16.5459s; animation-delay: 6.1634s; width: 2.11772px; height: 2.26047px; background: var(--accent);"></div><div class="particle" style="left: 40.0624%; --drift: -3.265171600099137px; animation-duration: 11.2126s; animation-delay: 9.94471s; width: 1.9839px; height: 2.68105px; background: var(--accent);"></div><div class="particle" style="left: 39.1836%; --drift: 32.78538399311195px; animation-duration: 22.714s; animation-delay: 11.4009s; width: 2.25743px; height: 1.39868px; background: var(--accent-green);"></div><div class="particle" style="left: 15.5871%; --drift: -29.901466611132975px; animation-duration: 22.3843s; animation-delay: 10.6154s; width: 1.78179px; height: 1.82126px; background: var(--accent);"></div><div class="particle" style="left: 52.6724%; --drift: -55.54169639536195px; animation-duration: 16.3343s; animation-delay: 5.18925s; width: 1.93873px; height: 2.61782px; background: var(--accent);"></div><div class="particle" style="left: 50.3415%; --drift: 4.304653418973858px; animation-duration: 21.1567s; animation-delay: 12.5452s; width: 1.32698px; height: 1.21004px; background: var(--accent-green);"></div><div class="particle" style="left: 33.7814%; --drift: -66.94677085197367px; animation-duration: 20.416s; animation-delay: 8.79537s; width: 2.01884px; height: 1.7509px; background: var(--accent-green);"></div><div class="particle" style="left: 64.9835%; --drift: 98.74966887499073px; animation-duration: 19.3576s; animation-delay: 5.88211s; width: 2.44021px; height: 1.09849px; background: var(--accent);"></div><div class="particle" style="left: 92.8345%; --drift: -71.09725402476113px; animation-duration: 9.76629s; animation-delay: 11.2942s; width: 1.67972px; height: 2.28645px; background: var(--accent);"></div><div class="particle" style="left: 88.0244%; --drift: -68.75848069755803px; animation-duration: 12.7863s; animation-delay: 5.52435s; width: 2.93313px; height: 1.22669px; background: var(--accent-green);"></div><div class="particle" style="left: 50.9839%; --drift: 93.37307419365837px; animation-duration: 18.1927s; animation-delay: 7.75233s; width: 1.41423px; height: 1.90623px; background: var(--accent-green);"></div><div class="particle" style="left: 44.1618%; --drift: -28.191850999061295px; animation-duration: 18.3543s; animation-delay: 10.2789s; width: 2.4585px; height: 1.53276px; background: var(--accent-green);"></div><div class="particle" style="left: 59.616%; --drift: -50.44983427095211px; animation-duration: 15.878s; animation-delay: 1.48634s; width: 1.59889px; height: 2.01622px; background: var(--accent);"></div><div class="particle" style="left: 11.5026%; --drift: 67.61602335062062px; animation-duration: 10.8775s; animation-delay: 6.79356s; width: 2.04811px; height: 1.017px; background: var(--accent);"></div><div class="particle" style="left: 31.8673%; --drift: 25.825000812864097px; animation-duration: 14.7823s; animation-delay: 11.9675s; width: 1.79102px; height: 1.38945px; background: var(--accent-green);"></div><div class="particle" style="left: 49.1894%; --drift: 45.42683846403257px; animation-duration: 18.109s; animation-delay: 8.71068s; width: 2.05008px; height: 2.18586px; background: var(--accent);"></div><div class="particle" style="left: 62.2571%; --drift: 45.10090660262613px; animation-duration: 11.904s; animation-delay: 11.8004s; width: 1.12135px; height: 1.25731px; background: var(--accent-green);"></div><div class="particle" style="left: 34.8836%; --drift: 69.51181472913643px; animation-duration: 8.68537s; animation-delay: 0.531733s; width: 2.20793px; height: 2.50661px; background: var(--accent);"></div><div class="particle" style="left: 40.5736%; --drift: -0.24350358975879782px; animation-duration: 18.245s; animation-delay: 13.4949s; width: 1.03542px; height: 1.19874px; background: var(--accent);"></div><div class="particle" style="left: 71.0916%; --drift: -20.184602673546937px; animation-duration: 18.5961s; animation-delay: 5.29932s; width: 2.47987px; height: 1.84108px; background: var(--accent);"></div><div class="particle" style="left: 35.843%; --drift: 8.542577616761694px; animation-duration: 13.6722s; animation-delay: 6.27296s; width: 1.19078px; height: 2.397px; background: var(--accent);"></div><div class="particle" style="left: 95.1019%; --drift: 39.16138095604309px; animation-duration: 22.8584s; animation-delay: 10.612s; width: 2.52224px; height: 2.50678px; background: var(--accent);"></div><div class="particle" style="left: 61.9014%; --drift: 27.008664279172013px; animation-duration: 9.40486s; animation-delay: 6.67843s; width: 1.31013px; height: 1.91899px; background: var(--accent);"></div></div>
 
 <nav>
   <div style="display:flex;align-items:center;gap:16px;">
@@ -229,10 +358,10 @@
 </section>
 
 <div class="stats-bar">
-  <div class="stat-item"><span class="stat-num" id="stat1">0</span><div class="stat-label">Lektionen</div></div>
-  <div class="stat-item"><span class="stat-num" id="stat2">0<span>%</span></span><div class="stat-label">Praxis</div></div>
-  <div class="stat-item"><span class="stat-num" id="stat3">0</span><div class="stat-label">Module</div></div>
-  <div class="stat-item"><span class="stat-num" id="stat4">0</span><div class="stat-label">Vorwissen nötig</div></div>
+  <div class="stat-item"><span class="stat-num" id="stat1">12<span></span></span><div class="stat-label">Lektionen</div></div>
+  <div class="stat-item"><span class="stat-num" id="stat2">100<span>%</span></span><div class="stat-label">Praxis</div></div>
+  <div class="stat-item"><span class="stat-num" id="stat3">5<span></span></span><div class="stat-label">Module</div></div>
+  <div class="stat-item"><span class="stat-num" id="stat4">0<span></span></span><div class="stat-label">Vorwissen nötig</div></div>
 </div>
 
 <div class="marquee-wrap">
@@ -263,12 +392,12 @@
 
   <div class="app-grid">
     <!-- Featured App (Die erste Lektion) -->
-    <div class="app-card featured" onclick="window.location.href='academy.html'">
+    <div class="app-card featured" onclick="window.location.href='academy.html'" style="opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s, background 0.3s, border-color 0.3s, box-shadow 0.3s;">
       <div class="corner-tl"></div><div class="corner-br"></div>
       <div class="app-icon-wrap">
         <div class="app-icon">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path d="M16,11V3H8V6H5V18H19V11H16M10,5H14V11H10V5M7,8H8V11H10V13H14V11H16V16H7V8M17,16V13H14V16H17Z"/>
+            <path d="M16,11V3H8V6H5V18H19V11H16M10,5H14V11H10V5M7,8H8V11H10V13H14V11H16V16H7V8M17,16V13H14V16H17Z"></path>
           </svg>
         </div>
       </div>
@@ -279,24 +408,24 @@
     </div>
     
     <!-- Locked Apps (Spätere Lektionen) -->
-    <div class="app-card locked">
+    <div class="app-card locked" style="opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s, background 0.3s, border-color 0.3s, box-shadow 0.3s;">
       <div class="app-icon-wrap">
         <div class="app-icon">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L5,8.09L12,12.03L19,8.09L12,4.15M19,15.91V10.27L13,14.21V20.06L19,15.91M11,20.06V14.21L5,10.27V15.91L11,20.06Z"/>
+            <path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L5,8.09L12,12.03L19,8.09L12,4.15M19,15.91V10.27L13,14.21V20.06L19,15.91M11,20.06V14.21L5,10.27V15.91L11,20.06Z"></path>
           </svg>
         </div>
       </div>
-      <div class="app-name">Switching & VLANs</div>
+      <div class="app-name">Switching &amp; VLANs</div>
       <div class="app-desc">Konfiguriere Cisco Switches, richte Virtual LANs ein und verstehe Trunking-Protokolle (802.1Q).</div>
       <span class="app-tag blue">Modul 2</span>
     </div>
     
-    <div class="app-card locked">
+    <div class="app-card locked" style="opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s, background 0.3s, border-color 0.3s, box-shadow 0.3s;">
       <div class="app-icon-wrap">
         <div class="app-icon">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path d="M14,16.94V12.94L20,9V14.5L14,16.94M21.24,5.92L12.5,2L3.76,5.92C3.42,6.07 3.2,6.4 3.2,6.77V13.84C3.2,14.1 3.32,14.34 3.54,14.47L11.66,19.23C11.87,19.35 12.12,19.35 12.33,19.23L20.45,14.47C20.67,14.34 20.8,14.1 20.8,13.84V6.77C20.8,6.4 20.58,6.07 21.24,5.92M12,4L18.15,6.77L12,9.54L5.85,6.77L12,4M10,12.94V16.94L4,14.5V9L10,12.94Z"/>
+            <path d="M14,16.94V12.94L20,9V14.5L14,16.94M21.24,5.92L12.5,2L3.76,5.92C3.42,6.07 3.2,6.4 3.2,6.77V13.84C3.2,14.1 3.32,14.34 3.54,14.47L11.66,19.23C11.87,19.35 12.12,19.35 12.33,19.23L20.45,14.47C20.67,14.34 20.8,14.1 20.8,13.84V6.77C20.8,6.4 20.58,6.07 21.24,5.92M12,4L18.15,6.77L12,9.54L5.85,6.77L12,4M10,12.94V16.94L4,14.5V9L10,12.94Z"></path>
           </svg>
         </div>
       </div>
@@ -305,11 +434,11 @@
       <span class="app-tag blue">Modul 3</span>
     </div>
     
-    <div class="app-card locked">
+    <div class="app-card locked" style="opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s, background 0.3s, border-color 0.3s, box-shadow 0.3s;">
       <div class="app-icon-wrap">
         <div class="app-icon">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,10.5A1.5,1.5 0 0,1 13.5,12A1.5,1.5 0 0,1 12,13.5A1.5,1.5 0 0,1 10.5,12A1.5,1.5 0 0,1 12,10.5M7.5,10.5A1.5,1.5 0 0,1 9,12A1.5,1.5 0 0,1 7.5,13.5A1.5,1.5 0 0,1 6,12A1.5,1.5 0 0,1 7.5,10.5M16.5,10.5A1.5,1.5 0 0,1 18,12A1.5,1.5 0 0,1 16.5,13.5A1.5,1.5 0 0,1 15,12A1.5,1.5 0 0,1 16.5,10.5Z"/>
+            <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,10.5A1.5,1.5 0 0,1 13.5,12A1.5,1.5 0 0,1 12,13.5A1.5,1.5 0 0,1 10.5,12A1.5,1.5 0 0,1 12,10.5M7.5,10.5A1.5,1.5 0 0,1 9,12A1.5,1.5 0 0,1 7.5,13.5A1.5,1.5 0 0,1 6,12A1.5,1.5 0 0,1 7.5,10.5M16.5,10.5A1.5,1.5 0 0,1 18,12A1.5,1.5 0 0,1 16.5,13.5A1.5,1.5 0 0,1 15,12A1.5,1.5 0 0,1 16.5,10.5Z"></path>
           </svg>
         </div>
       </div>
@@ -318,11 +447,11 @@
       <span class="app-tag orange">Modul 4</span>
     </div>
     
-    <div class="app-card locked">
+    <div class="app-card locked" style="opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s, background 0.3s, border-color 0.3s, box-shadow 0.3s;">
       <div class="app-icon-wrap">
         <div class="app-icon">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,5A3,3 0 0,1 15,8C15,9.31 14.16,10.42 13,10.83V15H11V10.83C9.84,10.42 9,9.31 9,8A3,3 0 0,1 12,5Z"/>
+            <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,5A3,3 0 0,1 15,8C15,9.31 14.16,10.42 13,10.83V15H11V10.83C9.84,10.42 9,9.31 9,8A3,3 0 0,1 12,5Z"></path>
           </svg>
         </div>
       </div>
@@ -331,11 +460,11 @@
       <span class="app-tag orange">Modul 5</span>
     </div>
     
-    <div class="app-card locked">
+    <div class="app-card locked" style="opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s, background 0.3s, border-color 0.3s, box-shadow 0.3s;">
       <div class="app-icon-wrap">
         <div class="app-icon">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path d="M22.7,19L13.6,9.9C14.5,7.6 14,4.9 12.1,3C10.1,1 7.1,0.6 4.7,1.7L9,6L6,9L1.6,4.7C0.4,7.1 0.9,10.1 2.9,12.1C4.8,14 7.5,14.5 9.8,13.6L18.9,22.7C19.3,23.1 19.9,23.1 20.3,22.7L22.6,20.4C23.1,20 23.1,19.3 22.7,19Z"/>
+            <path d="M22.7,19L13.6,9.9C14.5,7.6 14,4.9 12.1,3C10.1,1 7.1,0.6 4.7,1.7L9,6L6,9L1.6,4.7C0.4,7.1 0.9,10.1 2.9,12.1C4.8,14 7.5,14.5 9.8,13.6L18.9,22.7C19.3,23.1 19.9,23.1 20.3,22.7L22.6,20.4C23.1,20 23.1,19.3 22.7,19Z"></path>
           </svg>
         </div>
       </div>
@@ -379,102 +508,257 @@ const cObs=new IntersectionObserver(e=>{ e.forEach((en)=>{ if(en.isIntersecting)
 cards.forEach(c=>{ c.style.opacity='0'; c.style.transform='translateY(30px)'; c.style.transition='opacity 0.6s ease, transform 0.6s ease, background 0.3s, border-color 0.3s, box-shadow 0.3s'; cObs.observe(c); });
 </script>
 
-<!-- ── PREMIUM AUDIO & THEME SYSTEM ── -->
+<!-- ── MULTI CUSTOM THEME EDITOR ── -->
+<div id="custom-theme-modal" style="position:fixed; inset:0; z-index:20000; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px); font-family:'Space Mono', monospace;">
+  <div style="background:#050b16; border:1px solid #4a7aff; padding:25px; border-radius:12px; width:90%; max-width:350px; box-shadow:0 0 30px rgba(0,0,0,0.8);">
+    <h3 id="ct-modal-title" style="color:#e4edff; text-align:center; margin-bottom:20px; font-weight:bold; letter-spacing:0.05em;">NEUES THEME ERSTELLEN</h3>
+    
+    <div style="margin-bottom:15px;">
+        <label style="color:#a0beff; font-size:0.8rem; display:block; margin-bottom:5px;">Theme Name</label>
+        <input type="text" id="ct-name" placeholder="Mein Neon Theme" maxlength="15" style="width:100%; padding:8px; background:rgba(255,255,255,0.05); border:1px solid #3c64f0; color:#fff; border-radius:4px; outline:none; font-family:inherit; font-weight:bold;">
+    </div>
+
+    <div id="ct-inputs" style="display:flex; flex-direction:column; gap:12px; margin-bottom:25px;"></div>
+
+    <div style="display:flex; gap:10px;">
+      <button onclick="closeCustomThemeModal()" style="flex:1; padding:8px; background:transparent; border:1px solid #3c64f0; color:#a0beff; border-radius:6px; cursor:pointer;">Abbrechen</button>
+      <button id="ct-btn-delete" onclick="deleteCustomTheme()" style="display:none; padding:8px; background:transparent; border:1px solid #ff4a4a; color:#ff4a4a; border-radius:6px; cursor:pointer;">Löschen</button>
+      <button onclick="saveCustomTheme()" style="flex:1; padding:8px; background:#4a7aff; border:none; color:#fff; font-weight:bold; border-radius:6px; cursor:pointer;">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ── PREMIUM AUDIO SYSTEM (Widget + Logic) ── -->
+<!-- ========================================== -->
 <style>
+  /* --- FIX: Cursor immer ganz nach vorne holen! --- */
+  #cur, #cursor, .cursor { z-index: 999999 !important; }
+
   #audio-widget {
-    position: fixed; bottom: clamp(20px, 4vh, 40px); left: clamp(20px, 4vw, 56px); z-index: 9990;
+    position: fixed; bottom: clamp(20px, 4vh, 40px); left: clamp(20px, 4vw, 56px); z-index: 10005;
     display: flex; gap: 14px; align-items: center;
     background: var(--glass, rgba(255, 255, 255, 0.05)); border: 1px solid var(--border, rgba(255,255,255,0.1));
-    padding: 10px 18px 10px 14px; border-radius: calc(var(--proj-rad, 0px) / 2 + 12px); backdrop-filter: blur(12px);
+    padding: 10px 18px 10px 10px;
+    border-radius: calc(var(--proj-rad, 0px) / 2 + 12px); backdrop-filter: blur(12px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    overflow: hidden;
   }
   #audio-widget:hover { border-color: var(--accent, #4a7aff); box-shadow: 0 8px 30px color-mix(in srgb, var(--accent, #4a7aff) 20%, transparent); transform: translateY(-2px); }
   body.theme-wii #audio-widget { background: rgba(255, 255, 255, 0.85); border-color: #ccc; }
+  
   .audio-eq { display: flex; gap: 3px; align-items: flex-end; height: 16px; width: 18px; }
   .eq-bar { width: 4px; background: var(--dim, #888); border-radius: 2px; height: 4px; transition: height 0.1s, background 0.3s; }
   #audio-widget.is-playing .eq-bar { background: var(--green, #5effa8); animation: eq-bounce 0.8s infinite alternate ease-in-out; box-shadow: 0 0 6px var(--green, #5effa8); }
   #audio-widget.is-playing .eq-bar:nth-child(2) { animation-delay: -0.4s; }
   #audio-widget.is-playing .eq-bar:nth-child(3) { animation-delay: -0.2s; }
   @keyframes eq-bounce { 0%, 20% { height: 4px; } 100% { height: 16px; } }
-  .audio-info { display: flex; flex-direction: column; justify-content: center; min-width: 70px; }
-  .audio-label { font-family: 'Space Mono', monospace; font-size: 0.45rem; color: var(--muted, #999); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 3px; }
+  
+  .audio-info { display: flex; flex-direction: column; justify-content: center; min-width: 90px; }
+  .audio-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3px; gap: 12px; }
+  .audio-label { font-family: 'Space Mono', monospace; font-size: 0.45rem; color: #888; letter-spacing: 0.25em; text-transform: uppercase; line-height: 1; }
+  .audio-time { font-family: 'Space Mono', monospace; font-size: 0.45rem; color: #888; letter-spacing: 0.1em; transition: color 0.3s; line-height: 1; font-variant-numeric: tabular-nums; }
+  
   .audio-track { font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700; color: var(--text, #fff); letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.3s; }
   #audio-widget.is-playing .audio-track { color: var(--accent, #4a7aff); }
-  .audio-controls { display: flex; gap: 6px; align-items: center; margin-left: 10px; padding-left: 14px; border-left: 1px solid var(--border, #444); }
+  #audio-widget.is-playing .audio-time { color: color-mix(in srgb, var(--accent, #4a7aff) 80%, transparent); }
+  
+  .audio-controls { display: flex; gap: 6px; align-items: center; margin-left: 6px; padding-left: 14px; border-left: 1px solid var(--border, #444); }
   .audio-btn { background: transparent; border: none; color: var(--dim, #888); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; cursor: none; transition: all 0.2s; }
   .audio-btn svg { width: 14px; height: 14px; fill: currentColor; }
   .audio-btn:hover { color: var(--bg, #000); background: var(--text, #fff); transform: scale(1.1); }
   #audio-widget.is-playing .audio-btn:hover { background: var(--green, #5effa8); }
+
+  .audio-progress-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: color-mix(in srgb, var(--text) 10%, transparent); cursor: none; transition: height 0.2s ease, background 0.2s ease; }
+  #audio-widget:hover .audio-progress-bg { height: 6px; background: color-mix(in srgb, var(--text) 20%, transparent); }
+  
+  /* DIE FARBE DER LEISTE: Sichtbar in Pausiert, Grün in Play */
+  .audio-progress-fill { height: 100%; width: 0%; background: color-mix(in srgb, var(--text) 40%, transparent); pointer-events: none; transition: width 0.1s linear, background 0.3s; }
+  #audio-widget.is-playing .audio-progress-fill { background: var(--green, #5effa8); box-shadow: 0 0 8px color-mix(in srgb, var(--green, #5effa8) 50%, transparent); }
 </style>
 
 <div id="audio-widget">
   <div class="audio-eq"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
-  <div class="audio-info"><div class="audio-label">SYS.BGM</div><div class="audio-track" id="bgm-track-name">TRACK 01</div></div>
+  <div class="audio-info">
+    <div class="audio-header">
+      <div class="audio-label">AMBIENCE</div>
+      <div class="audio-time" id="bgm-time">0:00 / 0:00</div>
+    </div>
+    <div class="audio-track" id="bgm-track-name">TRACK 01</div>
+  </div>
   <div class="audio-controls">
-    <button class="audio-btn" onclick="toggleBGM()"><svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
+    <button class="audio-btn" onclick="toggleBGM()"><svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg></button>
     <button class="audio-btn" onclick="nextTrack()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+  </div>
+  <div class="audio-progress-bg" onclick="seekAudio(event)"  >
+    <div class="audio-progress-fill" id="bgm-progress"></div>
   </div>
 </div>
 
 <script>
-const savedTheme = localStorage.getItem('mustno-theme');
-if (savedTheme) { document.body.className = savedTheme; if (document.querySelector('.theme-select')) document.querySelector('.theme-select').value = savedTheme; }
-
-function changeTheme(themeName) {
-  document.body.className = themeName; localStorage.setItem('mustno-theme', themeName);
-  trackIdx = 0; localStorage.setItem('mustno-track-idx', '0'); localStorage.setItem('mustno-bgm-time', '0'); playCurrentTrack();
-}
-
 const AUDIO_CFG = {
-  sfx: { hover: 'Downloads/sfx-hover.mp3', click: 'Downloads/sfx-click.mp3' },
+  sfx: { hover: '/sfx-hover.mp3', click: '/sfx-click.mp3' },
   bgm: {
-    'default':         ['Downloads/cyber-1.mp3', 'Downloads/cyber-2.mp3'],
-    'theme-wii':       ['Downloads/wii-1.mp3',   'Downloads/wii-2.mp3'],
-    'theme-retro':     ['Downloads/retro-1.mp3', 'Downloads/retro-2.mp3'],
-    'theme-cyberpunk': ['Downloads/cyberpunk-1.mp3', 'Downloads/cyberpunk-2.mp3']
+    'default':         ['/cyber-1.mp3', '/cyber-2.mp3'],
+    'theme-wii':       ['/wii-1.mp3',   '/wii-2.mp3'],
+    'theme-retro':     ['/retro-1.mp3', '/retro-2.mp3'],
+    'theme-cyberpunk': ['/cyberpunk-1.mp3', '/cyberpunk-2.mp3']
   }
 };
 
+const allTracks = [...new Set(Object.values(AUDIO_CFG.bgm).flat())];
+AUDIO_CFG.bgm['theme-custom'] = allTracks;
+
 const sfxHover = new Audio(AUDIO_CFG.sfx.hover); sfxHover.volume = 0.15;
 const sfxClick = new Audio(AUDIO_CFG.sfx.click); sfxClick.volume = 0.3;
-document.querySelectorAll('a, button, .proj, .app-card:not(.locked), .rchip, select, .feat, .nav-back, .cs-btn, .btn-primary, .btn-secondary').forEach(el => {
-  el.addEventListener('mouseenter', () => { sfxHover.currentTime = 0; sfxHover.play().catch(()=>{}); });
+
+document.querySelectorAll('a, button, .proj, .app-card:not(.locked), .rchip, select, .feat, .nav-back, .cs-btn, .btn-primary, .btn-secondary, .audio-btn, .zoom-btn').forEach(el => {
+        /* MUSTNO AUTO FIX: SKIP AUDIO BTNS */
+        if (el.classList && el.classList.contains('audio-btn')) {
+            if (!el.dataset.cursorAttached) {
+                el.addEventListener('click', () => { if(typeof sfxClick !== 'undefined' && sfxClick.play) { sfxClick.currentTime = 0; sfxClick.play().catch(()=>{}); } });
+                el.dataset.cursorAttached = 'true';
+            }
+            return; // Skip hover scaling!
+        }
+
+  el.addEventListener('mouseenter', () => { 
+    let c = document.getElementById('cur') || document.getElementById('cursor');
+    if(c) c.style.transform = 'scale(2.5)'; 
+    sfxHover.currentTime = 0; sfxHover.play().catch(()=>{}); 
+  });
+  el.addEventListener('mouseleave', () => { 
+    let c = document.getElementById('cur') || document.getElementById('cursor');
+    if(c) c.style.transform = 'scale(1)'; 
+  });
   el.addEventListener('click', () => { sfxClick.currentTime = 0; sfxClick.play().catch(()=>{}); });
 });
 
-const bgmAudio = new Audio(); bgmAudio.loop = true; bgmAudio.volume = 1;
+const bgmAudio = new Audio(); 
+bgmAudio.volume = 1;
+bgmAudio.loop = false;
+
 let isPlaying = localStorage.getItem('mustno-bgm-play') === 'true';
 let trackIdx = parseInt(localStorage.getItem('mustno-track-idx')) || 0;
+
+function getCurrentPlaylist() {
+  const tName = document.body.className || 'default';
+  return AUDIO_CFG.bgm[tName] || AUDIO_CFG.bgm['default'];
+}
 
 function updateBgmUI() {
   const w = document.getElementById('audio-widget'), pIcon = document.getElementById('icon-play'), pauseIcon = document.getElementById('icon-pause'), tName = document.getElementById('bgm-track-name');
   if (isPlaying) { w.classList.add('is-playing'); pIcon.style.display = 'none'; pauseIcon.style.display = 'block'; } 
   else { w.classList.remove('is-playing'); pIcon.style.display = 'block'; pauseIcon.style.display = 'none'; }
-  tName.textContent = `TRACK 0${trackIdx + 1}`;
+  
+  const playlist = getCurrentPlaylist();
+  const safeIdx = (trackIdx % playlist.length) || 0;
+  tName.textContent = `TRACK ${(safeIdx + 1).toString().padStart(2, '0')}`;
 }
 
 function playCurrentTrack() {
-  let tName = document.body.className || 'default';
-  if (!AUDIO_CFG.bgm[tName]) tName = 'default';
-  bgmAudio.src = AUDIO_CFG.bgm[tName][trackIdx % 2];
+  const playlist = getCurrentPlaylist();
+  const safeIdx = (trackIdx % playlist.length) || 0;
+  bgmAudio.src = playlist[safeIdx];
   bgmAudio.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
-  if (isPlaying) bgmAudio.play().catch(() => { const r = () => { bgmAudio.play(); updateBgmUI(); window.removeEventListener('click', r); }; window.addEventListener('click', r); });
+  
+  if (isPlaying) {
+    bgmAudio.play().catch(() => {
+      const resumePlay = () => { bgmAudio.play().catch(e => console.warn(e)); updateBgmUI(); window.removeEventListener('click', resumePlay); };
+      window.addEventListener('click', resumePlay);
+    });
+  }
   updateBgmUI();
 }
 
 window.toggleBGM = function() {
-  if (bgmAudio.paused) { bgmAudio.play().then(() => { isPlaying = true; localStorage.setItem('mustno-bgm-play', 'true'); updateBgmUI(); }); } 
+  if (bgmAudio.paused) { bgmAudio.play().then(() => { isPlaying = true; localStorage.setItem('mustno-bgm-play', 'true'); updateBgmUI(); }).catch(e => console.warn(e)); } 
   else { bgmAudio.pause(); isPlaying = false; localStorage.setItem('mustno-bgm-play', 'false'); updateBgmUI(); }
 };
 
 window.nextTrack = function() {
-  trackIdx = (trackIdx + 1) % 2; localStorage.setItem('mustno-track-idx', trackIdx); localStorage.setItem('mustno-bgm-time', '0');
-  playCurrentTrack(); if (!isPlaying) toggleBGM();
+  const playlist = getCurrentPlaylist();
+  trackIdx = (trackIdx + 1) % playlist.length; 
+  localStorage.setItem('mustno-track-idx', trackIdx); 
+  localStorage.setItem('mustno-bgm-time', '0');
+  playCurrentTrack(); 
+  if (!isPlaying) window.toggleBGM();
+};
+
+bgmAudio.addEventListener('ended', window.nextTrack);
+
+function formatTime(seconds) {
+  if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+bgmAudio.addEventListener('timeupdate', () => {
+  if (bgmAudio.duration) {
+    const percent = (bgmAudio.currentTime / bgmAudio.duration) * 100;
+    document.getElementById('bgm-progress').style.width = percent + '%';
+    document.getElementById('bgm-time').innerText = `${formatTime(bgmAudio.currentTime)} / ${formatTime(bgmAudio.duration)}`;
+  }
+});
+
+bgmAudio.addEventListener('loadedmetadata', () => {
+  document.getElementById('bgm-time').innerText = `0:00 / ${formatTime(bgmAudio.duration)}`;
+});
+
+window.seekAudio = function(e) {
+  if (!bgmAudio.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const percent = Math.max(0, Math.min(1, clickX / rect.width));
+  
+  bgmAudio.currentTime = percent * bgmAudio.duration;
+  localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime);
 };
 
 setInterval(() => { if (!bgmAudio.paused) localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime); }, 1000);
 playCurrentTrack(); updateBgmUI();
 document.querySelectorAll('.tb-back,.cs-btn,.theme-select,.audio-btn').forEach(el=>{el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2.5)';}); el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';});});
 </script>
+<!-- ========================================== -->
+
+
+<script data-mustno-modal-fix="true">
+    // Sicherheitsnetz: Versteckt das Theme-Modal beim Start, damit Knöpfe klickbar bleiben
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            const modal = document.getElementById('custom-theme-modal');
+            if (modal && modal.style.display !== 'none') modal.style.display = 'none';
+        }, 50);
+    });
+</script>
+
+<script data-mustno-cursor-fix="true">
+    // Garantiertes Cursor-Wachstum auf der Seekbar
+    document.addEventListener('DOMContentLoaded', () => {
+        const bindSeekbar = () => {
+            const seekbars = document.querySelectorAll('.audio-progress-bg, #bgm-progress-container');
+            seekbars.forEach(bar => {
+                if(bar.dataset.cursorFixed) return;
+                bar.addEventListener('mouseenter', () => {
+                    const c = document.getElementById('cur') || document.getElementById('cursor') || document.querySelector('.cursor');
+                    // '!important' via JS hebelt alle störenden CSS-Regeln aus
+                    if(c) c.style.setProperty('transform', 'scale(1.8)', 'important');
+                });
+                bar.addEventListener('mouseleave', () => {
+                    const c = document.getElementById('cur') || document.getElementById('cursor') || document.querySelector('.cursor');
+                    if(c) {
+                        c.style.removeProperty('transform');
+                        c.style.transform = 'scale(1)'; // Standardgröße wiederherstellen
+                    }
+                });
+                bar.dataset.cursorFixed = 'true';
+            });
+        };
+        bindSeekbar();
+        setTimeout(bindSeekbar, 1000); // Falls die Bar asynchron geladen wird
+    });
+</script>
+
 </body>
 </html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <!-- deine bestehenden meta-tags und styles -->
+    <script src="theme-init.js"></script>
+</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coming Soon— App</title>
+<link rel="icon" type="image/png" href="/logo.png?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #070d1a; --bg-mid: #0a1328; --bg-card: #0d1b35; --bg-card-hover: #112040;
+    --grid-line: rgba(64, 120, 255, 0.12); --grid-line-bright: rgba(64, 120, 255, 0.25);
+    --accent: #4078ff; --accent-glow: rgba(64, 120, 255, 0.4);
+    --accent-green: #7fff00; --accent-green-dim: rgba(127, 255, 0, 0.15);
+    --text-primary: #e8eeff; --text-dim: rgba(180, 200, 255, 0.5); --text-muted: rgba(100, 130, 200, 0.4);
+    --border: rgba(64, 120, 255, 0.2); --border-bright: rgba(64, 120, 255, 0.5);
+    --font-main: 'Syne', sans-serif;
+    /* Short aliases used by the audio widget */
+    --bg: #070d1a; --text: #e8eeff; --green: #7fff00;
+    --dim: rgba(180,200,255,0.5); --muted: rgba(100,130,200,0.4);
+    --glass: rgba(7,13,26,0.8);
+  }
+
+  body.theme-wii {
+    --bg-deep: #f4f4f4; --bg-mid: #e8e8e8; --bg-card: #ffffff; --bg-card-hover: #f9f9f9;
+    --grid-line: rgba(0, 0, 0, 0.05); --grid-line-bright: rgba(0, 0, 0, 0.1);
+    --accent: #00baff; --accent-glow: rgba(0, 186, 255, 0.2);
+    --accent-green: #00a2e8; --accent-green-dim: rgba(0, 162, 232, 0.1);
+    --text-primary: #444444; --text-dim: #777777; --text-muted: #999999;
+    --border: #d0d0d0; --border-bright: #aaaaaa; --font-main: 'Arial', sans-serif;
+    /* Short aliases */
+    --bg: #f4f4f4; --text: #444444; --green: #00a2e8;
+    --dim: #777777; --muted: #999999; --glass: rgba(255,255,255,0.9);
+  }
+  .theme-wii .grid-bg, .theme-wii .scanlines, .theme-wii .glow-orb, .theme-wii .particles { display: none; }
+  .theme-wii .app-card { box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 20px; border: 1px solid #e0e0e0; }
+  .theme-wii .app-card:hover { box-shadow: 0 0 0 4px rgba(0, 162, 232, 0.3), 0 8px 25px rgba(0,0,0,0.1); border-color: var(--accent); }
+
+  body.theme-retro {
+    --bg-deep: #000000; --bg-mid: #000000; --bg-card: #000000; --bg-card-hover: #001100;
+    --grid-line: rgba(0, 255, 0, 0.15); --grid-line-bright: rgba(0, 255, 0, 0.3);
+    --accent: #00ff00; --accent-glow: rgba(0, 255, 0, 0.2);
+    --accent-green: #00ff00; --accent-green-dim: rgba(0, 255, 0, 0.1);
+    --text-primary: #00ff00; --text-dim: #00cc00; --text-muted: #007700;
+    --border: #00ff00; --border-bright: #00ff00; --font-main: 'Space Mono', monospace;
+    /* Short aliases */
+    --bg: #000000; --text: #00ff00; --green: #00ff00;
+    --dim: #00cc00; --muted: #007700; --glass: rgba(0,0,0,0.9);
+  }
+  .theme-retro .app-card { border-radius: 0; }
+  .theme-retro .hero-title .line-2 { -webkit-text-stroke: 1.5px var(--accent); color: transparent; }
+
+  body.theme-cyberpunk {
+    --bg-deep: #090014; --bg-mid: #160024; --bg-card: #160024; --bg-card-hover: #220038;
+    --grid-line: rgba(255, 0, 124, 0.15); --grid-line-bright: rgba(255, 0, 124, 0.3);
+    --accent: #ff007c; --accent-glow: rgba(255, 0, 124, 0.4);
+    --accent-green: #00f0ff; --accent-green-dim: rgba(0, 240, 255, 0.15);
+    --text-primary: #ffffff; --text-dim: #ff99cc; --text-muted: #b057ff;
+    --border: rgba(255, 0, 124, 0.3); --border-bright: rgba(0, 240, 255, 0.5); --font-main: 'Syne', sans-serif;
+    /* Short aliases */
+    --bg: #090014; --text: #ffffff; --green: #00f0ff;
+    --dim: #ff99cc; --muted: #b057ff; --glass: rgba(9,0,20,0.88);
+  }
+  .theme-cyberpunk .hero-title .line-2 { -webkit-text-stroke: 1.5px var(--accent-green); text-shadow: 0 0 15px rgba(0, 240, 255, 0.6); color: transparent; }
+  .theme-cyberpunk .app-card:hover { border-color: var(--accent); box-shadow: 0 0 40px rgba(255, 0, 124, 0.4); }
+
+  /* Custom theme: --bg, --text, --green, --accent set by theme.js; derive the rest */
+  body.theme-custom {
+    --dim: color-mix(in srgb, var(--text) 45%, transparent);
+    --muted: color-mix(in srgb, var(--text) 25%, transparent);
+    --glass: color-mix(in srgb, var(--bg) 80%, transparent);
+  }
+.theme-cyberpunk .cs-title span { -webkit-text-stroke: 1.5px var(--green); text-shadow: 0 0 15px rgba(0, 240, 255, 0.6); color: transparent; }
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-main);cursor:none; transition: background 0.5s ease, color 0.5s ease;}
+#cur{position:fixed;width:7px;height:7px;background:var(--green);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:screen;transition:transform .15s, background .2s;}
+body.theme-wii #cur { mix-blend-mode: normal; }
+
+.grid{position:fixed;inset:0;background-image:linear-gradient(color-mix(in srgb, var(--accent) 15%, transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb, var(--accent) 15%, transparent) 1px,transparent 1px);background-size:64px 64px;}
+.scan{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.02) 2px,rgba(0,0,0,.02) 4px);}
+
+.theme-select { background: transparent; border: 1px solid var(--border); color: var(--dim); font-family: 'Space Mono', monospace; font-size: 0.6rem; padding: 4px 8px; outline: none; cursor: none; border-radius: 4px; }
+.theme-select option { background: var(--bg); color: var(--text); }
+
+.topbar{position:fixed;top:0;left:0;right:0;height:48px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--hdr-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);}
+.tb-left{display:flex;align-items:center;gap:12px;}
+.tb-back{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.1em;color:var(--dim);text-decoration:none;cursor:none;border:1px solid var(--border);padding:4px 10px;transition:color .2s,border-color .2s;border-radius: 4px;}
+.tb-back:hover{color:var(--green);border-color:var(--green);}
+.tb-title{font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;letter-spacing:.18em;color:var(--text);}
+.tb-title em{color:var(--green);font-style:normal;animation:blink 1.8s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.tb-right{display:flex;align-items:center;gap:14px;}
+.tb-badge{display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.1em;color:var(--green);}
+.bdot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pls 2s ease-in-out infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.35}}
+
+.center{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:20px;}
+.cs-icon{font-size:3.5rem;line-height:1;filter:saturate(.5) brightness(.8);margin-bottom:4px;animation:float 4s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.cs-label{font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.28em;color:var(--green);text-transform:uppercase;}
+.cs-title{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;letter-spacing:-.03em;color:var(--text);}
+.cs-title span{color:transparent;-webkit-text-stroke:1px color-mix(in srgb, var(--accent) 50%, transparent);}
+.cs-sub{font-size:.85rem;color:var(--dim);max-width:400px;line-height:1.7;}
+.cs-bar-wrap{width:240px;height:1px;background:var(--border);overflow:hidden;margin-top:8px;}
+.cs-bar{height:100%;background:var(--green);animation:barLoop 3s ease-in-out infinite;}
+@keyframes barLoop{0%{transform:scaleX(0) translateX(0);transform-origin:left;}50%{transform:scaleX(1);transform-origin:left;}51%{transform-origin:right;}100%{transform:scaleX(0);transform-origin:right;}}
+.cs-btn{display:flex;align-items:center;gap:8px;padding:12px 28px;margin-top:8px;background:transparent;border:1px solid var(--border);font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);cursor:none;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));transition:color .25s,border-color .25s,background .25s;}
+.cs-btn:hover{color:var(--text);border-color:var(--accent);background:color-mix(in srgb, var(--accent) 10%, transparent);}
+
+/* Fix: Seekbar Fill Farbe */
+.audio-progress-fill { background: color-mix(in srgb, var(--text) 80%, transparent) !important; }
+
+</style>
+<!-- THEME ENGINE FIX: Erzwingt konsistente Farben und frühes Laden -->
+<style>
+body.theme-wii { --bg: #f4f4f4 !important; --text: #444444 !important; --green: #00a2e8 !important; --accent: #00baff !important; --border: #d0d0d0 !important; --dim: #777777 !important; --muted: rgba(0, 162, 232, 0.2) !important; --glass: rgba(255, 255, 255, 0.9) !important; }
+body.theme-retro { --bg: #000000 !important; --text: #00ff00 !important; --green: #00ff00 !important; --accent: #00ff00 !important; --dim: #00aa00 !important; --muted: #005500 !important; --border: #00aa00 !important; --glass: rgba(0, 0, 0, 0.9) !important; }
+body.theme-cyberpunk { --bg: #09020f !important; --text: #fcee0a !important; --green: #00ff9f !important; --accent: #ff003c !important; --dim: rgba(252, 238, 10, 0.6) !important; --muted: rgba(255, 0, 60, 0.4) !important; --border: rgba(255, 0, 60, 0.3) !important; --glass: rgba(26, 6, 46, 0.85) !important; }
+</style>
+<script src="theme.js"></script>
+</head>
+<body>
+
+<div id="cur"></div>
+<div class="grid"></div>
+<div class="scan"></div>
+
+<div class="topbar">
+  <div class="tb-left">
+    <a href="/" class="tb-back">← Launcher</a>
+    <a href="/" class="tb-back">← Projekte</a>
+    <div class="tb-title">COMING<em>_</em>SOON</div>
+  </div>
+  <div class="tb-right">
+    <select class="theme-select" onchange="changeTheme(this.value)">
+      <option value="">Cyber (Default)</option>
+      <option value="theme-wii">Wii Style</option>
+      <option value="theme-retro">Retro</option>
+      <option value="theme-cyberpunk">Cyberpunk</option>
+    </select>
+    <div class="tb-badge"><div class="bdot"></div>In Entwicklung</div>
+  </div>
+</div>
+
+<div class="center">
+  <div class="cs-icon">⬡</div>
+  <div class="cs-label">// Simulator</div>
+  <div class="cs-title">Coming <span>Soon</span></div>
+  <div class="cs-sub">Diese Seite ist in aktiver Entwicklung. Diese Seite wird durch die echte Simulator-Oberfläche ersetzt.</div>
+  <div class="cs-bar-wrap"><div class="cs-bar"></div></div>
+  <button class="cs-btn" onclick="window.location.href='/'">← Zurück zur Info-Seite</button>
+</div>
+
+<script>
+const cur=document.getElementById('cur');
+document.addEventListener('mousemove',e=>{cur.style.left=e.clientX-3.5+'px';cur.style.top=e.clientY-3.5+'px';});
+document.querySelectorAll('.tb-back,.cs-btn,.theme-select').forEach(el=>{
+        /* MUSTNO AUTO FIX: SKIP AUDIO BTNS */
+        if (el.classList && el.classList.contains('audio-btn')) {
+            if (!el.dataset.cursorAttached) {
+                el.addEventListener('click', () => { if(typeof sfxClick !== 'undefined' && sfxClick.play) { sfxClick.currentTime = 0; sfxClick.play().catch(()=>{}); } });
+                el.dataset.cursorAttached = 'true';
+            }
+            return; // Skip hover scaling!
+        }
+
+  el.addEventListener('mouseenter',()=>cur.style.transform='scale(2.5)');
+  el.addEventListener('mouseleave',()=>cur.style.transform='scale(1)');
+});
+window.addEventListener('touchstart',()=>{cur.style.display='none';},{once:true});
+</script>
+
+<!-- ── MULTI CUSTOM THEME EDITOR ── -->
+<div id="custom-theme-modal" style="position:fixed; inset:0; z-index:20000; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px); font-family:'Space Mono', monospace;">
+  <div style="background:#050b16; border:1px solid #4a7aff; padding:25px; border-radius:12px; width:90%; max-width:350px; box-shadow:0 0 30px rgba(0,0,0,0.8);">
+    <h3 id="ct-modal-title" style="color:#e4edff; text-align:center; margin-bottom:20px; font-weight:bold; letter-spacing:0.05em;">NEUES THEME ERSTELLEN</h3>
+    
+    <div style="margin-bottom:15px;">
+        <label style="color:#a0beff; font-size:0.8rem; display:block; margin-bottom:5px;">Theme Name</label>
+        <input type="text" id="ct-name" placeholder="Mein Neon Theme" maxlength="15" style="width:100%; padding:8px; background:rgba(255,255,255,0.05); border:1px solid #3c64f0; color:#fff; border-radius:4px; outline:none; font-family:inherit; font-weight:bold;">
+    </div>
+
+    <div id="ct-inputs" style="display:flex; flex-direction:column; gap:12px; margin-bottom:25px;"></div>
+
+    <div style="display:flex; gap:10px;">
+      <button onclick="closeCustomThemeModal()" style="flex:1; padding:8px; background:transparent; border:1px solid #3c64f0; color:#a0beff; border-radius:6px; cursor:pointer;">Abbrechen</button>
+      <button id="ct-btn-delete" onclick="deleteCustomTheme()" style="display:none; padding:8px; background:transparent; border:1px solid #ff4a4a; color:#ff4a4a; border-radius:6px; cursor:pointer;">Löschen</button>
+      <button onclick="saveCustomTheme()" style="flex:1; padding:8px; background:#4a7aff; border:none; color:#fff; font-weight:bold; border-radius:6px; cursor:pointer;">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ── PREMIUM AUDIO SYSTEM (Widget + Logic) ── -->
+<!-- ========================================== -->
+<style>
+  /* --- FIX: Cursor immer ganz nach vorne holen! --- */
+  #cur, #cursor, .cursor { z-index: 999999 !important; }
+
+  #audio-widget {
+    position: fixed; bottom: clamp(20px, 4vh, 40px); left: clamp(20px, 4vw, 56px); z-index: 10005;
+    display: flex; gap: 14px; align-items: center;
+    background: var(--glass, rgba(255, 255, 255, 0.05)); border: 1px solid var(--border, rgba(255,255,255,0.1));
+    padding: 10px 18px 10px 10px;
+    border-radius: calc(var(--proj-rad, 0px) / 2 + 12px); backdrop-filter: blur(12px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    overflow: hidden;
+  }
+  #audio-widget:hover { border-color: var(--accent, #4a7aff); box-shadow: 0 8px 30px color-mix(in srgb, var(--accent, #4a7aff) 20%, transparent); transform: translateY(-2px); }
+  body.theme-wii #audio-widget { background: rgba(255, 255, 255, 0.85); border-color: #ccc; }
+  
+  .audio-eq { display: flex; gap: 3px; align-items: flex-end; height: 16px; width: 18px; }
+  .eq-bar { width: 4px; background: var(--dim, #888); border-radius: 2px; height: 4px; transition: height 0.1s, background 0.3s; }
+  #audio-widget.is-playing .eq-bar { background: var(--green, #5effa8); animation: eq-bounce 0.8s infinite alternate ease-in-out; box-shadow: 0 0 6px var(--green, #5effa8); }
+  #audio-widget.is-playing .eq-bar:nth-child(2) { animation-delay: -0.4s; }
+  #audio-widget.is-playing .eq-bar:nth-child(3) { animation-delay: -0.2s; }
+  @keyframes eq-bounce { 0%, 20% { height: 4px; } 100% { height: 16px; } }
+  
+  .audio-info { display: flex; flex-direction: column; justify-content: center; min-width: 90px; }
+  .audio-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3px; gap: 12px; }
+  .audio-label { font-family: 'Space Mono', monospace; font-size: 0.45rem; color: #888; letter-spacing: 0.25em; text-transform: uppercase; line-height: 1; }
+  .audio-time { font-family: 'Space Mono', monospace; font-size: 0.45rem; color: #888; letter-spacing: 0.1em; transition: color 0.3s; line-height: 1; font-variant-numeric: tabular-nums; }
+  
+  .audio-track { font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700; color: var(--text, #fff); letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.3s; }
+  #audio-widget.is-playing .audio-track { color: var(--accent, #4a7aff); }
+  #audio-widget.is-playing .audio-time { color: color-mix(in srgb, var(--accent, #4a7aff) 80%, transparent); }
+  
+  .audio-controls { display: flex; gap: 6px; align-items: center; margin-left: 6px; padding-left: 14px; border-left: 1px solid var(--border, #444); }
+  .audio-btn { background: transparent; border: none; color: var(--dim, #888); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; cursor: none; transition: all 0.2s; }
+  .audio-btn svg { width: 14px; height: 14px; fill: currentColor; }
+  .audio-btn:hover { color: var(--bg, #000); background: var(--text, #fff); transform: scale(1.1); }
+  #audio-widget.is-playing .audio-btn:hover { background: var(--green, #5effa8); }
+
+  .audio-progress-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: color-mix(in srgb, var(--text) 10%, transparent); cursor: none; transition: height 0.2s ease, background 0.2s ease; }
+  #audio-widget:hover .audio-progress-bg { height: 6px; background: color-mix(in srgb, var(--text) 20%, transparent); }
+  
+  /* DIE FARBE DER LEISTE: Sichtbar in Pausiert, Grün in Play */
+  .audio-progress-fill { height: 100%; width: 0%; background: color-mix(in srgb, var(--text) 40%, transparent); pointer-events: none; transition: width 0.1s linear, background 0.3s; }
+  #audio-widget.is-playing .audio-progress-fill { background: var(--green, #5effa8); box-shadow: 0 0 8px color-mix(in srgb, var(--green, #5effa8) 50%, transparent); }
+</style>
+
+<div id="audio-widget">
+  <div class="audio-eq"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
+  <div class="audio-info">
+    <div class="audio-header">
+      <div class="audio-label">AMBIENCE</div>
+      <div class="audio-time" id="bgm-time">0:00 / 0:00</div>
+    </div>
+    <div class="audio-track" id="bgm-track-name">TRACK 01</div>
+  </div>
+  <div class="audio-controls">
+    <button class="audio-btn" onclick="toggleBGM()"><svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg></button>
+    <button class="audio-btn" onclick="nextTrack()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+  </div>
+  <div class="audio-progress-bg" onclick="seekAudio(event)"  >
+    <div class="audio-progress-fill" id="bgm-progress"></div>
+  </div>
+</div>
+
+<script>
+const AUDIO_CFG = {
+  sfx: { hover: '/sfx-hover.mp3', click: '/sfx-click.mp3' },
+  bgm: {
+    'default':         ['/cyber-1.mp3', '/cyber-2.mp3'],
+    'theme-wii':       ['/wii-1.mp3',   '/wii-2.mp3'],
+    'theme-retro':     ['/retro-1.mp3', '/retro-2.mp3'],
+    'theme-cyberpunk': ['/cyberpunk-1.mp3', '/cyberpunk-2.mp3']
+  }
+};
+
+const allTracks = [...new Set(Object.values(AUDIO_CFG.bgm).flat())];
+AUDIO_CFG.bgm['theme-custom'] = allTracks;
+
+const sfxHover = new Audio(AUDIO_CFG.sfx.hover); sfxHover.volume = 0.15;
+const sfxClick = new Audio(AUDIO_CFG.sfx.click); sfxClick.volume = 0.3;
+
+document.querySelectorAll('a, button, .proj, .app-card:not(.locked), .rchip, select, .feat, .nav-back, .cs-btn, .btn-primary, .btn-secondary, .audio-btn, .zoom-btn').forEach(el => {
+        /* MUSTNO AUTO FIX: SKIP AUDIO BTNS */
+        if (el.classList && el.classList.contains('audio-btn')) {
+            if (!el.dataset.cursorAttached) {
+                el.addEventListener('click', () => { if(typeof sfxClick !== 'undefined' && sfxClick.play) { sfxClick.currentTime = 0; sfxClick.play().catch(()=>{}); } });
+                el.dataset.cursorAttached = 'true';
+            }
+            return; // Skip hover scaling!
+        }
+
+  el.addEventListener('mouseenter', () => { 
+    let c = document.getElementById('cur') || document.getElementById('cursor');
+    if(c) c.style.transform = 'scale(2.5)'; 
+    sfxHover.currentTime = 0; sfxHover.play().catch(()=>{}); 
+  });
+  el.addEventListener('mouseleave', () => { 
+    let c = document.getElementById('cur') || document.getElementById('cursor');
+    if(c) c.style.transform = 'scale(1)'; 
+  });
+  el.addEventListener('click', () => { sfxClick.currentTime = 0; sfxClick.play().catch(()=>{}); });
+});
+
+const bgmAudio = new Audio(); 
+bgmAudio.volume = 1;
+bgmAudio.loop = false;
+
+let isPlaying = localStorage.getItem('mustno-bgm-play') === 'true';
+let trackIdx = parseInt(localStorage.getItem('mustno-track-idx')) || 0;
+
+function getCurrentPlaylist() {
+  const tName = document.body.className || 'default';
+  return AUDIO_CFG.bgm[tName] || AUDIO_CFG.bgm['default'];
+}
+
+function updateBgmUI() {
+  const w = document.getElementById('audio-widget'), pIcon = document.getElementById('icon-play'), pauseIcon = document.getElementById('icon-pause'), tName = document.getElementById('bgm-track-name');
+  if (isPlaying) { w.classList.add('is-playing'); pIcon.style.display = 'none'; pauseIcon.style.display = 'block'; } 
+  else { w.classList.remove('is-playing'); pIcon.style.display = 'block'; pauseIcon.style.display = 'none'; }
+  
+  const playlist = getCurrentPlaylist();
+  const safeIdx = (trackIdx % playlist.length) || 0;
+  tName.textContent = `TRACK ${(safeIdx + 1).toString().padStart(2, '0')}`;
+}
+
+function playCurrentTrack() {
+  const playlist = getCurrentPlaylist();
+  const safeIdx = (trackIdx % playlist.length) || 0;
+  bgmAudio.src = playlist[safeIdx];
+  bgmAudio.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
+  
+  if (isPlaying) {
+    bgmAudio.play().catch(() => {
+      const resumePlay = () => { bgmAudio.play().catch(e => console.warn(e)); updateBgmUI(); window.removeEventListener('click', resumePlay); };
+      window.addEventListener('click', resumePlay);
+    });
+  }
+  updateBgmUI();
+}
+
+window.toggleBGM = function() {
+  if (bgmAudio.paused) { bgmAudio.play().then(() => { isPlaying = true; localStorage.setItem('mustno-bgm-play', 'true'); updateBgmUI(); }).catch(e => console.warn(e)); } 
+  else { bgmAudio.pause(); isPlaying = false; localStorage.setItem('mustno-bgm-play', 'false'); updateBgmUI(); }
+};
+
+window.nextTrack = function() {
+  const playlist = getCurrentPlaylist();
+  trackIdx = (trackIdx + 1) % playlist.length; 
+  localStorage.setItem('mustno-track-idx', trackIdx); 
+  localStorage.setItem('mustno-bgm-time', '0');
+  playCurrentTrack(); 
+  if (!isPlaying) window.toggleBGM();
+};
+
+bgmAudio.addEventListener('ended', window.nextTrack);
+
+function formatTime(seconds) {
+  if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+bgmAudio.addEventListener('timeupdate', () => {
+  if (bgmAudio.duration) {
+    const percent = (bgmAudio.currentTime / bgmAudio.duration) * 100;
+    document.getElementById('bgm-progress').style.width = percent + '%';
+    document.getElementById('bgm-time').innerText = `${formatTime(bgmAudio.currentTime)} / ${formatTime(bgmAudio.duration)}`;
+  }
+});
+
+bgmAudio.addEventListener('loadedmetadata', () => {
+  document.getElementById('bgm-time').innerText = `0:00 / ${formatTime(bgmAudio.duration)}`;
+});
+
+window.seekAudio = function(e) {
+  if (!bgmAudio.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const percent = Math.max(0, Math.min(1, clickX / rect.width));
+  
+  bgmAudio.currentTime = percent * bgmAudio.duration;
+  localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime);
+};
+
+setInterval(() => { if (!bgmAudio.paused) localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime); }, 1000);
+playCurrentTrack(); updateBgmUI();
+</script>
+<!-- ========================================== -->
+
+
+<script data-mustno-modal-fix="true">
+    // Sicherheitsnetz: Versteckt das Theme-Modal beim Start, damit Knöpfe klickbar bleiben
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            const modal = document.getElementById('custom-theme-modal');
+            if (modal && modal.style.display !== 'none') modal.style.display = 'none';
+        }, 50);
+    });
+</script>
+
+<script data-mustno-cursor-fix="true">
+    // Garantiertes Cursor-Wachstum auf der Seekbar
+    document.addEventListener('DOMContentLoaded', () => {
+        const bindSeekbar = () => {
+            const seekbars = document.querySelectorAll('.audio-progress-bg, #bgm-progress-container');
+            seekbars.forEach(bar => {
+                if(bar.dataset.cursorFixed) return;
+                bar.addEventListener('mouseenter', () => {
+                    const c = document.getElementById('cur') || document.getElementById('cursor') || document.querySelector('.cursor');
+                    // '!important' via JS hebelt alle störenden CSS-Regeln aus
+                    if(c) c.style.setProperty('transform', 'scale(1.8)', 'important');
+                });
+                bar.addEventListener('mouseleave', () => {
+                    const c = document.getElementById('cur') || document.getElementById('cursor') || document.querySelector('.cursor');
+                    if(c) {
+                        c.style.removeProperty('transform');
+                        c.style.transform = 'scale(1)'; // Standardgröße wiederherstellen
+                    }
+                });
+                bar.dataset.cursorFixed = 'true';
+            });
+        };
+        bindSeekbar();
+        setTimeout(bindSeekbar, 1000); // Falls die Bar asynchron geladen wird
+    });
+</script>
+</body>
+</html>
+
+

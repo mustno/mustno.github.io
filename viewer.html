@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <script src="theme-init.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MUSTNO — HTML Viewer</title>
+  <meta name="description" content="MUSTNO HTML Viewer: HTML einfügen, formatieren, minifizieren, previewen, Datei laden und herunterladen." />
+  <link rel="icon" type="image/png" href="logo.png?v=1">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <script id="mustno-theme-init-inline">
+    (function() {
+      const activeTheme = localStorage.getItem('mustno-theme') || '';
+      if (activeTheme) document.documentElement.className = activeTheme;
+      const observer = new MutationObserver((mutations, obs) => {
+        if (document.body) {
+          if (activeTheme) document.body.className = activeTheme.startsWith('custom-') ? 'theme-custom' : activeTheme;
+          const sync = () => { document.documentElement.className = document.body.className; };
+          new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+          obs.disconnect();
+        }
+      });
+      observer.observe(document.documentElement, { childList: true });
+      if (activeTheme.startsWith('custom-')) {
+        try {
+          const customThemes = JSON.parse(localStorage.getItem('mustno-custom-themes')) || [];
+          const ct = customThemes.find(t => t.id === activeTheme);
+          if (ct && ct.colors) {
+            const root = document.documentElement;
+            const c = ct.colors;
+            if (c.bg) {
+              root.style.setProperty('--bg', c.bg);
+              root.style.setProperty('--bg2', c.bg);
+              root.style.setProperty('--bg-color', c.bg);
+              root.style.setProperty('--bg-deep', c.bg);
+              root.style.setProperty('--bg-mid', c.bg);
+              root.style.setProperty('--bg-card', c.bg);
+              root.style.setProperty('--term-bg', c.bg);
+              root.style.setProperty('--panel', c.bg);
+              root.style.setProperty('--panel2', 'color-mix(in srgb, ' + c.bg + ' 82%, transparent)');
+            }
+            if (c.accent) {
+              root.style.setProperty('--accent', c.accent);
+              root.style.setProperty('--accent-color', c.accent);
+              root.style.setProperty('--grid-color', 'color-mix(in srgb, ' + c.accent + ' 15%, transparent)');
+            }
+            if (c.green) {
+              root.style.setProperty('--green', c.green);
+              root.style.setProperty('--accent-green', c.green);
+            }
+            if (c.text) {
+              root.style.setProperty('--text', c.text);
+              root.style.setProperty('--text-primary', c.text);
+            }
+            if (c.border) {
+              root.style.setProperty('--border', c.border);
+              root.style.setProperty('--border-color', c.border);
+            }
+          }
+        } catch(e) { console.error('Custom Theme Load Error:', e); }
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --bg: #050b16;
+      --bg2: #071226;
+      --panel: rgba(8, 17, 34, .84);
+      --panel2: rgba(11, 24, 49, .72);
+      --accent: #4a7aff;
+      --green: #5effa8;
+      --text: #e4edff;
+      --dim: rgba(160,190,255,.54);
+      --muted: rgba(80,110,185,.35);
+      --border: rgba(74,122,255,.20);
+      --border2: rgba(94,255,168,.26);
+      --danger: #ff5b7d;
+      --warning: #ffcc66;
+      --font-main: "Syne", system-ui, sans-serif;
+      --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --radius: 18px;
+      --shadow: 0 24px 90px rgba(0,0,0,.38);
+    }
+
+    body.theme-wii {
+      --bg:#f4f4f4;
+      --bg2:#e9eef6;
+      --panel:rgba(255,255,255,.86);
+      --panel2:rgba(255,255,255,.72);
+      --accent:#00baff;
+      --green:#00a2e8;
+      --text:#333;
+      --dim:#666;
+      --muted:#b7c2cf;
+      --border:#d0d8e4;
+      --border2:rgba(0,186,255,.32);
+      --shadow:0 16px 50px rgba(0,0,0,.08);
+      --font-main:Arial, sans-serif;
+    }
+
+    body.theme-retro {
+      --bg:#000;
+      --bg2:#001100;
+      --panel:rgba(0,10,0,.88);
+      --panel2:rgba(0,18,0,.72);
+      --accent:#00ff00;
+      --green:#00ff00;
+      --text:#00ff00;
+      --dim:#00aa00;
+      --muted:#003c00;
+      --border:#00aa00;
+      --border2:#00ff00;
+      --shadow:none;
+      --font-main:"Space Mono", monospace;
+    }
+
+    body.theme-cyberpunk {
+      --bg:#090014;
+      --bg2:#17002f;
+      --panel:rgba(22,0,36,.84);
+      --panel2:rgba(26,0,48,.72);
+      --accent:#ff007c;
+      --green:#00f0ff;
+      --text:#fff;
+      --dim:#ff99cc;
+      --muted:rgba(176,87,255,.38);
+      --border:rgba(255,0,124,.32);
+      --border2:rgba(0,240,255,.38);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(900px 520px at 18% 20%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 62%),
+        radial-gradient(760px 480px at 78% 16%, color-mix(in srgb, var(--green) 10%, transparent), transparent 62%),
+        linear-gradient(160deg, var(--bg), var(--bg2));
+      font-family: var(--font-main);
+      overflow: hidden;
+      transition: background .35s ease, color .35s ease;
+    }
+
+    .grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .48;
+      background-image:
+        linear-gradient(color-mix(in srgb, var(--accent) 15%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 15%, transparent) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: radial-gradient(circle at 50% 35%, #000 0 54%, transparent 86%);
+    }
+
+    body.theme-wii .grid { opacity: .22; }
+    body.theme-retro .grid { opacity: .55; }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 64px 1fr 34px;
+      min-width: 0;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 clamp(14px, 2vw, 28px);
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      border: 1px solid var(--border2);
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(145deg, color-mix(in srgb, var(--accent) 22%, transparent), transparent),
+        color-mix(in srgb, var(--panel) 88%, transparent);
+      box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 18%, transparent);
+      font: 700 13px var(--font-mono);
+      color: var(--green);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1rem, 2.1vw, 1.55rem);
+      line-height: 1;
+      letter-spacing: -.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .sub {
+      display: block;
+      margin-top: 4px;
+      color: var(--dim);
+      font: 700 10px var(--font-mono);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .head-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    select, button, input {
+      font: 700 11px var(--font-mono);
+    }
+
+    .control,
+    .btn {
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--panel) 76%, transparent);
+      color: var(--text);
+      outline: none;
+      transition: border-color .18s ease, background .18s ease, transform .18s ease, color .18s ease;
+    }
+
+    .control {
+      padding: 0 10px;
+      color: var(--dim);
+    }
+
+    .btn {
+      padding: 0 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .btn:hover,
+    .control:hover {
+      border-color: var(--green);
+      color: var(--green);
+      transform: translateY(-1px);
+    }
+
+    .btn.primary {
+      border-color: color-mix(in srgb, var(--green) 50%, transparent);
+      background: color-mix(in srgb, var(--green) 14%, var(--panel));
+      color: var(--green);
+    }
+
+    .btn.danger:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(320px, var(--split, 50%)) 8px minmax(320px, 1fr);
+      gap: 0;
+      padding: clamp(10px, 1.4vw, 18px);
+    }
+
+    .panel {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.04), transparent 34%),
+        var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .panel-head {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .label {
+      font: 900 12px var(--font-mono);
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .meta {
+      font: 700 10px var(--font-mono);
+      color: var(--dim);
+      letter-spacing: .08em;
+    }
+
+    .tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--panel2) 72%, transparent);
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--dim);
+      font: 700 10px var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: 0 9px;
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .toggle input { accent-color: var(--green); }
+
+    .editor-wrap {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      background: color-mix(in srgb, var(--bg) 64%, black 12%);
+    }
+
+    .lines {
+      padding: 14px 8px 18px 0;
+      color: color-mix(in srgb, var(--dim) 64%, transparent);
+      font: 400 13px/1.55 var(--font-mono);
+      text-align: right;
+      overflow: hidden;
+      user-select: none;
+      border-right: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+      background: color-mix(in srgb, var(--bg) 72%, transparent);
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      border: 0;
+      outline: 0;
+      resize: none;
+      padding: 14px 16px 18px;
+      background: transparent;
+      color: var(--text);
+      font: 400 13px/1.55 var(--font-mono);
+      tab-size: var(--tab-size, 2);
+      caret-color: var(--green);
+      white-space: pre;
+      overflow: auto;
+    }
+
+    textarea::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+
+    .preview-wrap {
+      min-height: 0;
+      position: relative;
+      display: grid;
+      place-items: stretch;
+      background:
+        linear-gradient(45deg, color-mix(in srgb, var(--muted) 26%, transparent) 25%, transparent 25% 75%, color-mix(in srgb, var(--muted) 26%, transparent) 75%),
+        linear-gradient(45deg, color-mix(in srgb, var(--muted) 26%, transparent) 25%, transparent 25% 75%, color-mix(in srgb, var(--muted) 26%, transparent) 75%);
+      background-position: 0 0, 12px 12px;
+      background-size: 24px 24px;
+      padding: 14px;
+    }
+
+    iframe {
+      width: var(--device-width, 100%);
+      max-width: 100%;
+      height: 100%;
+      margin: 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 18px 50px rgba(0,0,0,.28);
+    }
+
+    .output-source {
+      display: none;
+      height: 100%;
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--bg) 72%, black 18%);
+      overflow: hidden;
+    }
+
+    .output-source textarea {
+      color: var(--green);
+    }
+
+    .preview-wrap.show-source iframe { display: none; }
+    .preview-wrap.show-source .output-source { display: block; }
+
+    .resizer {
+      cursor: col-resize;
+      display: grid;
+      place-items: center;
+      z-index: 3;
+    }
+
+    .resizer::before {
+      content: "";
+      width: 2px;
+      height: min(280px, 56vh);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--border) 88%, transparent);
+      transition: background .2s, width .2s;
+    }
+
+    .resizer:hover::before {
+      width: 4px;
+      background: var(--green);
+      box-shadow: 0 0 22px color-mix(in srgb, var(--green) 40%, transparent);
+    }
+
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 0 clamp(14px, 2vw, 28px);
+      border-top: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 76%, transparent);
+      font: 700 10px var(--font-mono);
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: .10em;
+      overflow: hidden;
+    }
+
+    .status {
+      display: flex;
+      gap: 14px;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .status strong {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 48px;
+      z-index: 20;
+      min-width: 240px;
+      max-width: min(420px, calc(100vw - 32px));
+      padding: 12px 14px;
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--panel) 92%, black 8%);
+      box-shadow: var(--shadow);
+      color: var(--text);
+      font: 700 11px/1.4 var(--font-mono);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity .22s ease, transform .22s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .url-pop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+    }
+
+    .url-pop.show { display: flex; }
+
+    .dialog {
+      width: min(620px, 100%);
+      border: 1px solid var(--border2);
+      border-radius: 22px;
+      background: color-mix(in srgb, var(--panel) 94%, black 6%);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .dialog h2 {
+      margin: 0 0 8px;
+      font-size: 1.15rem;
+      letter-spacing: -.03em;
+    }
+
+    .dialog p {
+      margin: 0 0 16px;
+      color: var(--dim);
+      font: 700 11px/1.5 var(--font-mono);
+    }
+
+    .dialog-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dialog input {
+      flex: 1;
+      min-width: 0;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--bg) 64%, transparent);
+      color: var(--text);
+      padding: 0 12px;
+      outline: none;
+    }
+
+
+
+    /* MUSTNO Custom Theme Modal - centered window like index/preview */
+    .custom-theme-modal {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 20000 !important;
+      display: none !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: clamp(18px, 3vw, 32px) !important;
+      background: rgba(0, 0, 0, .86) !important;
+      backdrop-filter: blur(10px) saturate(1.08) !important;
+      -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
+      font-family: var(--font-mono) !important;
+    }
+
+    .custom-theme-modal.show {
+      display: flex !important;
+    }
+
+    .custom-theme-modal .ct-box {
+      width: min(350px, calc(100vw - 32px)) !important;
+      max-height: min(88vh, 760px) !important;
+      overflow: auto !important;
+      background: #050b16 !important;
+      border: 1px solid #4a7aff !important;
+      border-radius: 12px !important;
+      padding: 25px !important;
+      box-shadow: 0 0 30px rgba(0,0,0,.8), 0 0 0 1px rgba(74,122,255,.16) inset !important;
+      color: #e4edff !important;
+      transform: translateY(0) scale(1) !important;
+    }
+
+    .custom-theme-modal .ct-box::-webkit-scrollbar { width: 8px; }
+    .custom-theme-modal .ct-box::-webkit-scrollbar-track { background: #050b16; }
+    .custom-theme-modal .ct-box::-webkit-scrollbar-thumb { background: #3c64f0; border-radius: 999px; }
+
+    .custom-theme-modal h3 {
+      margin: 0 0 20px !important;
+      color: #e4edff !important;
+      text-align: center !important;
+      font-family: var(--font-mono) !important;
+      font-size: 1.02rem !important;
+      font-weight: 900 !important;
+      letter-spacing: .08em !important;
+      text-transform: uppercase !important;
+    }
+
+    .custom-theme-modal .ct-name-wrap {
+      margin-bottom: 15px !important;
+      display: block !important;
+    }
+
+    .custom-theme-modal .ct-name-wrap label,
+    .custom-theme-modal .ct-field label {
+      color: #a0beff !important;
+      font-size: .75rem !important;
+      line-height: 1.2 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 10px !important;
+      margin: 0 0 5px !important;
+      font-family: var(--font-mono) !important;
+      font-weight: 400 !important;
+      text-transform: none !important;
+      letter-spacing: .02em !important;
+    }
+
+    .custom-theme-modal .ct-field label span:last-child {
+      color: #506eb9 !important;
+      font-size: .58rem !important;
+      white-space: nowrap !important;
+    }
+
+    .custom-theme-modal #ctName,
+    .custom-theme-modal .ct-row input[type="text"] {
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 38px !important;
+      padding: 8px !important;
+      background: rgba(255,255,255,.05) !important;
+      border: 1px solid #3c64f0 !important;
+      color: #ffffff !important;
+      border-radius: 4px !important;
+      outline: none !important;
+      font-family: var(--font-mono) !important;
+      font-size: .8rem !important;
+      font-weight: 700 !important;
+      letter-spacing: .02em !important;
+      box-shadow: none !important;
+    }
+
+    .custom-theme-modal #ctName::placeholder,
+    .custom-theme-modal .ct-row input[type="text"]::placeholder {
+      color: rgba(228,237,255,.38) !important;
+    }
+
+    .custom-theme-modal #ctName:focus,
+    .custom-theme-modal .ct-row input[type="text"]:focus {
+      border-color: #5effa8 !important;
+      box-shadow: 0 0 0 1px rgba(94,255,168,.16) !important;
+    }
+
+    .custom-theme-modal .ct-inputs {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 12px !important;
+      margin-bottom: 25px !important;
+    }
+
+    .custom-theme-modal .ct-field {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 4px !important;
+    }
+
+    .custom-theme-modal .ct-row {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      width: 100% !important;
+    }
+
+    .custom-theme-modal .ct-row input[type="color"] {
+      width: 36px !important;
+      height: 36px !important;
+      min-width: 36px !important;
+      flex: 0 0 36px !important;
+      padding: 0 !important;
+      border: 1px solid #3c64f0 !important;
+      border-radius: 6px !important;
+      cursor: pointer !important;
+      background: transparent !important;
+      outline: none !important;
+      box-shadow: none !important;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+    }
+
+    .custom-theme-modal .ct-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 3px; }
+    .custom-theme-modal .ct-row input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
+    .custom-theme-modal .ct-row input[type="color"]::-moz-color-swatch { border: none; border-radius: 3px; }
+
+    .custom-theme-modal .ct-actions {
+      display: flex !important;
+      gap: 10px !important;
+      align-items: center !important;
+    }
+
+    .custom-theme-modal .ct-actions button {
+      flex: 1 1 0 !important;
+      height: 34px !important;
+      padding: 8px !important;
+      border-radius: 6px !important;
+      font-family: var(--font-mono) !important;
+      font-size: .78rem !important;
+      font-weight: 700 !important;
+      cursor: pointer !important;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease !important;
+    }
+
+    .custom-theme-modal .ct-actions button:hover {
+      transform: translateY(-1px) !important;
+    }
+
+    .custom-theme-modal .ct-cancel {
+      background: transparent !important;
+      border: 1px solid #3c64f0 !important;
+      color: #a0beff !important;
+    }
+
+    .custom-theme-modal .ct-save {
+      background: #4a7aff !important;
+      border: none !important;
+      color: #ffffff !important;
+    }
+
+    .custom-theme-modal .ct-delete {
+      display: none;
+      flex: 0 0 auto !important;
+      background: transparent !important;
+      border: 1px solid #ff4a4a !important;
+      color: #ff4a4a !important;
+    }
+
+    @media (max-width: 520px) {
+      .custom-theme-modal .ct-box { padding: 20px !important; }
+      .custom-theme-modal h3 { font-size: .92rem !important; }
+      .custom-theme-modal .ct-actions { flex-direction: column !important; }
+      .custom-theme-modal .ct-actions button { width: 100% !important; }
+    }
+
+    @media (max-width: 940px) {
+      body { overflow: auto; }
+      .shell { height: auto; min-height: 100vh; grid-template-rows: auto auto auto; }
+      header { min-height: 72px; align-items: flex-start; padding-top: 12px; padding-bottom: 12px; flex-direction: column; }
+      .head-actions { width: 100%; justify-content: flex-start; }
+      .workspace { display: flex; flex-direction: column; gap: 12px; }
+      .panel { min-height: 520px; }
+      .resizer { display: none; }
+      footer { min-height: 46px; align-items: flex-start; justify-content: center; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
+      .status { flex-wrap: wrap; gap: 8px 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid"></div>
+
+  <main class="shell" id="app">
+    <header>
+      <div class="brand">
+        <div class="mark">&lt;/&gt;</div>
+        <div>
+          <h1>HTML Viewer</h1>
+          <span class="sub">MUSTNO Tools / Beautify / Preview / Export</span>
+        </div>
+      </div>
+
+      <div class="head-actions">
+        <select class="control theme-select" id="themeSelect" title="Theme"></select>
+        <button class="btn" id="newBtn" title="Editor leeren">New</button>
+        <button class="btn" id="saveLocalBtn" title="Im Browser speichern">Save</button>
+        <button class="btn" id="copyBtn" title="HTML kopieren">Copy</button>
+      </div>
+    </header>
+
+    <section class="workspace" id="workspace">
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <span class="label">Input HTML</span>
+            <span class="meta" id="inputMeta">Ln: 1 Col: 1</span>
+          </div>
+          <div class="tools">
+            <button class="btn" id="sampleBtn">Sample</button>
+            <button class="btn" id="uploadBtn">File</button>
+            <button class="btn" id="urlBtn">URL</button>
+            <input id="fileInput" type="file" accept=".html,.htm,.txt,text/html,text/plain" hidden>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <label class="toggle"><input id="autoUpdate" type="checkbox" checked> Auto Update</label>
+          <select class="control" id="tabSize">
+            <option value="1">Tab 1</option>
+            <option value="2" selected>Tab 2</option>
+            <option value="3">Tab 3</option>
+            <option value="4">Tab 4</option>
+            <option value="8">Tab 8</option>
+          </select>
+          <button class="btn primary" id="beautifyBtn">Beautify HTML</button>
+          <button class="btn primary" id="runBtn">Run / View</button>
+          <button class="btn" id="minifyBtn">Minify HTML</button>
+          <button class="btn danger" id="clearBtn">Clear</button>
+        </div>
+
+        <div class="editor-wrap">
+          <pre class="lines" id="lineNumbers">1</pre>
+          <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="HTML hier einfügen..."></textarea>
+        </div>
+      </section>
+
+      <div class="resizer" id="resizer" aria-hidden="true"></div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <span class="label">Output</span>
+            <span class="meta" id="outputMeta">Preview bereit</span>
+          </div>
+          <div class="tools">
+            <select class="control" id="deviceSelect" title="Preview Breite">
+              <option value="100%">Fit</option>
+              <option value="1440px">Desktop</option>
+              <option value="820px">Tablet</option>
+              <option value="390px">Mobile</option>
+            </select>
+            <button class="btn" id="toggleSourceBtn">Source</button>
+            <button class="btn" id="fullscreenBtn">Fullscreen</button>
+            <button class="btn primary" id="downloadBtn">Download</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <span class="meta">Sandbox Preview</span>
+          <span class="meta">CSS / JS / HTML wird lokal im Browser gerendert</span>
+        </div>
+
+        <div class="preview-wrap" id="previewWrap">
+          <iframe id="preview" title="HTML Preview" sandbox="allow-scripts allow-forms allow-popups allow-modals"></iframe>
+          <div class="output-source">
+            <textarea id="sourceOutput" readonly spellcheck="false"></textarea>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <footer>
+      <div class="status">
+        <span>Chars: <strong id="chars">0</strong></span>
+        <span>Lines: <strong id="linesCount">1</strong></span>
+        <span>Size: <strong id="size">0 B</strong></span>
+      </div>
+      <div class="status">
+        <span>Status: <strong id="state">Online</strong></span>
+        <span>Storage: <strong id="storage">Auto</strong></span>
+      </div>
+    </footer>
+  </main>
+
+
+
+  <div class="custom-theme-modal" id="customThemeModal" role="dialog" aria-modal="true" aria-labelledby="ctTitle">
+    <div class="ct-box">
+      <h3 id="ctTitle">NEUES THEME ERSTELLEN</h3>
+      <div class="ct-name-wrap">
+        <label for="ctName">Theme Name</label>
+        <input type="text" id="ctName" placeholder="Mein Neon Theme" maxlength="15" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="ct-inputs" id="ctInputs"></div>
+      <div class="ct-actions">
+        <button class="ct-cancel" id="ctCancelBtn" type="button">Abbrechen</button>
+        <button class="ct-delete" id="ctDeleteBtn" type="button">Löschen</button>
+        <button class="ct-save" id="ctSaveBtn" type="button">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="url-pop" id="urlPop" role="dialog" aria-modal="true" aria-labelledby="urlTitle">
+    <div class="dialog">
+      <h2 id="urlTitle">HTML von URL laden</h2>
+      <p>Direktes Laden funktioniert nur, wenn die Website CORS erlaubt. Sonst Datei herunterladen und über “File” laden.</p>
+      <div class="dialog-row">
+        <input id="urlInput" type="url" placeholder="https://example.com/index.html">
+        <button class="btn primary" id="loadUrlBtn">Load</button>
+        <button class="btn" id="closeUrlBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+      const editor = $('#editor');
+      const preview = $('#preview');
+      const sourceOutput = $('#sourceOutput');
+      const previewWrap = $('#previewWrap');
+      const lineNumbers = $('#lineNumbers');
+      const inputMeta = $('#inputMeta');
+      const outputMeta = $('#outputMeta');
+      const toast = $('#toast');
+      const storageKey = 'mustno-html-viewer-code';
+      const splitKey = 'mustno-html-viewer-split';
+      const themeKey = 'mustno-theme';
+      const customThemeKey = 'mustno-custom-themes';
+      const maxCustomThemes = 10;
+      let customThemes = readCustomThemes();
+      let currentEditId = null;
+
+      const sampleHTML = `<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>MUSTNO Sample</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: system-ui, sans-serif;
+      color: #e4edff;
+      background: radial-gradient(circle at 20% 20%, #4a7aff55, transparent 40%),
+                  linear-gradient(135deg, #050b16, #0b1833);
+    }
+    .card {
+      width: min(560px, 90vw);
+      padding: 34px;
+      border: 1px solid rgba(94,255,168,.3);
+      border-radius: 24px;
+      background: rgba(5,11,22,.72);
+      box-shadow: 0 24px 90px rgba(0,0,0,.45);
+      backdrop-filter: blur(18px);
+    }
+    h1 { margin: 0; font-size: clamp(2rem, 8vw, 5rem); line-height: .86; }
+    p { color: rgba(228,237,255,.72); line-height: 1.7; }
+    button {
+      border: 1px solid #5effa8;
+      color: #5effa8;
+      background: transparent;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <section class="card">
+    <h1>HTML Preview</h1>
+    <p>Bearbeite links den Code und sieh rechts sofort die Vorschau.</p>
+    <button onclick="alert('Preview läuft!')">Test Button</button>
+  </section>
+</body>
+</html>`;
+
+      init();
+
+      function init() {
+        updateThemeDropdowns();
+        applyInitialTheme();
+        restoreSplit();
+        const saved = localStorage.getItem(storageKey);
+        editor.value = saved || sampleHTML;
+        updateAll();
+        bindEvents();
+        runPreview();
+        showToast('HTML Viewer bereit');
+      }
+
+      function bindEvents() {
+        $('#themeSelect').addEventListener('change', (e) => changeTheme(e.target.value));
+        $('#sampleBtn').addEventListener('click', () => setEditor(sampleHTML, 'Sample geladen'));
+        $('#uploadBtn').addEventListener('click', () => $('#fileInput').click());
+        $('#fileInput').addEventListener('change', handleFile);
+        $('#urlBtn').addEventListener('click', openUrlDialog);
+        $('#closeUrlBtn').addEventListener('click', closeUrlDialog);
+        $('#loadUrlBtn').addEventListener('click', loadUrl);
+        $('#urlPop').addEventListener('click', (e) => { if (e.target.id === 'urlPop') closeUrlDialog(); });
+        $('#beautifyBtn').addEventListener('click', () => setEditor(beautifyHTML(editor.value, Number($('#tabSize').value)), 'HTML formatiert'));
+        $('#minifyBtn').addEventListener('click', () => setEditor(minifyHTML(editor.value), 'HTML minifiziert'));
+        $('#runBtn').addEventListener('click', runPreview);
+        $('#downloadBtn').addEventListener('click', downloadHTML);
+        $('#copyBtn').addEventListener('click', copyHTML);
+        $('#newBtn').addEventListener('click', newDoc);
+        $('#saveLocalBtn').addEventListener('click', saveLocal);
+        $('#clearBtn').addEventListener('click', () => setEditor('', 'Editor geleert'));
+        $('#toggleSourceBtn').addEventListener('click', toggleSource);
+        $('#fullscreenBtn').addEventListener('click', fullscreenPreview);
+        $('#deviceSelect').addEventListener('change', (e) => previewWrap.style.setProperty('--device-width', e.target.value));
+        $('#ctCancelBtn').addEventListener('click', closeCustomThemeModal);
+        $('#ctSaveBtn').addEventListener('click', saveCustomTheme);
+        $('#ctDeleteBtn').addEventListener('click', deleteCustomTheme);
+        $('#customThemeModal').addEventListener('click', (e) => { if (e.target.id === 'customThemeModal') closeCustomThemeModal(); });
+        $('#tabSize').addEventListener('change', (e) => document.documentElement.style.setProperty('--tab-size', e.target.value));
+        editor.addEventListener('input', () => {
+          updateAll();
+          localStorage.setItem(storageKey, editor.value);
+          if ($('#autoUpdate').checked) debounceRun();
+        });
+        editor.addEventListener('scroll', () => lineNumbers.scrollTop = editor.scrollTop);
+        editor.addEventListener('keyup', updateCursorMeta);
+        editor.addEventListener('click', updateCursorMeta);
+        editor.addEventListener('keydown', handleTab);
+        initResizer();
+      }
+
+      function setEditor(value, message) {
+        editor.value = value;
+        localStorage.setItem(storageKey, value);
+        updateAll();
+        runPreview();
+        showToast(message);
+      }
+
+      function updateAll() {
+        updateLineNumbers();
+        updateCursorMeta();
+        const code = editor.value;
+        $('#chars').textContent = String(code.length);
+        $('#linesCount').textContent = String(code.split('\n').length);
+        $('#size').textContent = bytes(code);
+        sourceOutput.value = code;
+      }
+
+      function updateLineNumbers() {
+        const count = Math.max(1, editor.value.split('\n').length);
+        let out = '';
+        for (let i = 1; i <= count; i++) out += i + (i === count ? '' : '\n');
+        lineNumbers.textContent = out;
+      }
+
+      function updateCursorMeta() {
+        const pos = editor.selectionStart || 0;
+        const before = editor.value.slice(0, pos);
+        const line = before.split('\n').length;
+        const col = before.length - before.lastIndexOf('\n');
+        inputMeta.textContent = `Ln: ${line} Col: ${col}`;
+      }
+
+      let runTimer = 0;
+      function debounceRun() {
+        clearTimeout(runTimer);
+        runTimer = setTimeout(runPreview, 260);
+      }
+
+      function runPreview() {
+        const code = editor.value || '<!doctype html><html><body></body></html>';
+        preview.srcdoc = code;
+        sourceOutput.value = code;
+        outputMeta.textContent = `Preview aktualisiert — ${new Date().toLocaleTimeString('de-DE')}`;
+        $('#state').textContent = 'Rendered';
+      }
+
+      function handleTab(e) {
+        if (e.key !== 'Tab') return;
+        e.preventDefault();
+        const size = Number($('#tabSize').value || 2);
+        const insert = ' '.repeat(size);
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        editor.value = editor.value.slice(0, start) + insert + editor.value.slice(end);
+        editor.selectionStart = editor.selectionEnd = start + insert.length;
+        editor.dispatchEvent(new Event('input'));
+      }
+
+      function beautifyHTML(input, tabSize = 2) {
+        const tab = ' '.repeat(tabSize);
+        const voidTags = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
+        const raw = String(input || '')
+          .replace(/\r\n/g, '\n')
+          .replace(/>\s+</g, '>\n<')
+          .replace(/\n{2,}/g, '\n')
+          .trim();
+
+        if (!raw) return '';
+
+        const lines = raw.split('\n').map(line => line.trim()).filter(Boolean);
+        let indent = 0;
+        let inRaw = null;
+        const out = [];
+
+        for (const line of lines) {
+          const lower = line.toLowerCase();
+
+          if (inRaw) {
+            out.push(tab.repeat(indent) + line);
+            if (lower.includes(`</${inRaw}>`)) inRaw = null;
+            continue;
+          }
+
+          if (/^<\//.test(line)) indent = Math.max(0, indent - 1);
+
+          out.push(tab.repeat(indent) + line);
+
+          const open = line.match(/^<([a-zA-Z0-9:-]+)(\s|>|\/)/);
+          const isClose = /^<\//.test(line);
+          const isSelfClose = /\/>$/.test(line);
+          const tag = open ? open[1].toLowerCase() : '';
+          const hasClosingSameLine = tag && lower.includes(`</${tag}>`);
+
+          if (tag && !isClose && !isSelfClose && !voidTags.has(tag) && !hasClosingSameLine) {
+            indent++;
+            if (tag === 'script' || tag === 'style' || tag === 'pre' || tag === 'textarea') inRaw = tag;
+          }
+        }
+
+        return out.join('\n') + '\n';
+      }
+
+      function minifyHTML(input) {
+        return String(input || '')
+          .replace(/<!--[\s\S]*?-->/g, '')
+          .replace(/>\s+</g, '><')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
+      }
+
+      function downloadHTML() {
+        const code = editor.value || '';
+        const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+        a.href = url;
+        a.download = `mustno-html-${stamp}.html`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('HTML heruntergeladen');
+      }
+
+      async function copyHTML() {
+        try {
+          await navigator.clipboard.writeText(editor.value);
+          showToast('HTML kopiert');
+        } catch {
+          editor.select();
+          document.execCommand('copy');
+          showToast('HTML kopiert');
+        }
+      }
+
+      function newDoc() {
+        if (editor.value.trim() && !confirm('Aktuellen Code löschen?')) return;
+        setEditor('<!DOCTYPE html>\n<html lang="de">\n<head>\n  <meta charset="UTF-8">\n  <title>Neue Seite</title>\n</head>\n<body>\n  \n</body>\n</html>\n', 'Neues Dokument');
+      }
+
+      function saveLocal() {
+        localStorage.setItem(storageKey, editor.value);
+        $('#storage').textContent = 'Saved';
+        showToast('Im Browser gespeichert');
+      }
+
+      function handleFile(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => setEditor(String(reader.result || ''), `Datei geladen: ${file.name}`);
+        reader.onerror = () => showToast('Datei konnte nicht gelesen werden');
+        reader.readAsText(file);
+        event.target.value = '';
+      }
+
+      function openUrlDialog() {
+        $('#urlPop').classList.add('show');
+        $('#urlInput').focus();
+      }
+
+      function closeUrlDialog() {
+        $('#urlPop').classList.remove('show');
+      }
+
+      async function loadUrl() {
+        const url = $('#urlInput').value.trim();
+        if (!url) return;
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const text = await res.text();
+          setEditor(text, 'URL geladen');
+          closeUrlDialog();
+        } catch (err) {
+          showToast('URL konnte nicht geladen werden — wahrscheinlich CORS blockiert');
+        }
+      }
+
+      function toggleSource() {
+        previewWrap.classList.toggle('show-source');
+        $('#toggleSourceBtn').textContent = previewWrap.classList.contains('show-source') ? 'Preview' : 'Source';
+      }
+
+      function fullscreenPreview() {
+        const target = previewWrap.classList.contains('show-source') ? sourceOutput : preview;
+        if (target.requestFullscreen) target.requestFullscreen();
+      }
+
+      function bytes(str) {
+        const b = new Blob([str]).size;
+        if (b < 1024) return `${b} B`;
+        if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+        return `${(b / 1024 / 1024).toFixed(2)} MB`;
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(showToast.t);
+        showToast.t = setTimeout(() => toast.classList.remove('show'), 2200);
+      }
+
+      function readCustomThemes() {
+        try { return JSON.parse(localStorage.getItem(customThemeKey)) || []; }
+        catch { return []; }
+      }
+
+      function writeCustomThemes() {
+        localStorage.setItem(customThemeKey, JSON.stringify(customThemes));
+      }
+
+      function updateThemeDropdowns() {
+        customThemes = readCustomThemes();
+        document.querySelectorAll('.theme-select').forEach(sel => {
+          sel.innerHTML = '';
+          sel.add(new Option('Cyber (Default)', ''));
+          sel.add(new Option('Wii Style', 'theme-wii'));
+          sel.add(new Option('Retro', 'theme-retro'));
+          sel.add(new Option('Cyberpunk', 'theme-cyberpunk'));
+          customThemes.forEach(ct => {
+            sel.add(new Option(ct.name, ct.id));
+            sel.add(new Option('✎ Bearbeiten: ' + ct.name, 'edit_' + ct.id));
+          });
+          if (customThemes.length < maxCustomThemes) sel.add(new Option('+ Neues Custom Theme...', 'new-custom'));
+          sel.value = localStorage.getItem(themeKey) || '';
+        });
+      }
+
+      function applyInitialTheme() {
+        const saved = localStorage.getItem(themeKey) || '';
+        changeTheme(saved, true);
+      }
+
+      function changeTheme(value, isInit = false) {
+        const val = value || '';
+        const prev = localStorage.getItem(themeKey) || '';
+
+        if (val === 'new-custom') {
+          openCustomThemeModal();
+          document.querySelectorAll('.theme-select').forEach(s => s.value = prev);
+          return;
+        }
+
+        if (val.startsWith('edit_')) {
+          openCustomThemeModal(val.replace('edit_', ''));
+          document.querySelectorAll('.theme-select').forEach(s => s.value = prev);
+          return;
+        }
+
+        localStorage.setItem(themeKey, val);
+        document.querySelectorAll('.theme-select').forEach(s => s.value = val);
+
+        if (val.startsWith('custom-')) {
+          document.body.className = 'theme-custom';
+          document.documentElement.className = 'theme-custom';
+          customThemes = readCustomThemes();
+          const ct = customThemes.find(t => t.id === val);
+          if (ct && ct.colors) applyThemeColors(ct.colors);
+        } else {
+          document.body.className = val;
+          document.documentElement.className = val;
+          clearThemeColors();
+        }
+
+        if (!isInit) showToast('Theme übernommen');
+      }
+
+      function applyThemeColors(colors) {
+        const root = document.documentElement;
+        const c = colors || {};
+        const bg = c.bg || '#050b16';
+        const accent = c.accent || '#4a7aff';
+        const green = c.green || '#5effa8';
+        const text = c.text || '#e4edff';
+        const border = c.border || accent;
+
+        root.style.setProperty('--bg', bg);
+        root.style.setProperty('--bg2', bg);
+        root.style.setProperty('--bg-color', bg);
+        root.style.setProperty('--bg-deep', bg);
+        root.style.setProperty('--bg-mid', bg);
+        root.style.setProperty('--bg-card', bg);
+        root.style.setProperty('--term-bg', bg);
+        root.style.setProperty('--panel', `color-mix(in srgb, ${bg} 88%, white 4%)`);
+        root.style.setProperty('--panel2', `color-mix(in srgb, ${bg} 82%, transparent)`);
+        root.style.setProperty('--overlay-bg', `color-mix(in srgb, ${bg} 85%, transparent)`);
+        root.style.setProperty('--vignette-color', `color-mix(in srgb, ${bg} 40%, transparent)`);
+
+        root.style.setProperty('--accent', accent);
+        root.style.setProperty('--accent-color', accent);
+        root.style.setProperty('--accent-glow', `color-mix(in srgb, ${accent} 40%, transparent)`);
+        root.style.setProperty('--grid-color', `color-mix(in srgb, ${accent} 15%, transparent)`);
+
+        root.style.setProperty('--green', green);
+        root.style.setProperty('--accent-green', green);
+        root.style.setProperty('--accent-green-dim', `color-mix(in srgb, ${green} 16%, transparent)`);
+
+        root.style.setProperty('--text', text);
+        root.style.setProperty('--text-primary', text);
+        root.style.setProperty('--dim', `color-mix(in srgb, ${text} 56%, transparent)`);
+        root.style.setProperty('--text-dim', `color-mix(in srgb, ${text} 56%, transparent)`);
+        root.style.setProperty('--muted', `color-mix(in srgb, ${text} 20%, transparent)`);
+        root.style.setProperty('--text-muted', `color-mix(in srgb, ${text} 20%, transparent)`);
+
+        root.style.setProperty('--border', border);
+        root.style.setProperty('--border-color', border);
+        root.style.setProperty('--bordm', border);
+        root.style.setProperty('--border2', `color-mix(in srgb, ${green} 32%, transparent)`);
+        root.style.setProperty('--border-bright', `color-mix(in srgb, ${border} 70%, white 10%)`);
+        root.style.setProperty('--glass', `color-mix(in srgb, ${bg} 72%, transparent)`);
+        root.style.setProperty('--glass-border', `color-mix(in srgb, ${border} 32%, transparent)`);
+      }
+
+      function clearThemeColors() {
+        [
+          '--bg','--bg2','--bg-color','--bg-deep','--bg-mid','--bg-card','--term-bg',
+          '--panel','--panel2','--overlay-bg','--vignette-color','--accent','--accent-color',
+          '--accent-glow','--grid-color','--green','--accent-green','--accent-green-dim',
+          '--text','--text-primary','--dim','--text-dim','--muted','--text-muted','--border',
+          '--border-color','--bordm','--border2','--border-bright','--glass','--glass-border'
+        ].forEach(prop => document.documentElement.style.removeProperty(prop));
+      }
+
+      function getCurrentThemeColors() {
+        const styles = getComputedStyle(document.documentElement);
+        return {
+          bg: styles.getPropertyValue('--bg').trim() || '#050b16',
+          accent: styles.getPropertyValue('--accent').trim() || '#4a7aff',
+          green: styles.getPropertyValue('--green').trim() || '#5effa8',
+          text: styles.getPropertyValue('--text').trim() || '#e4edff',
+          border: styles.getPropertyValue('--border').trim() || '#3c64f0'
+        };
+      }
+
+      function openCustomThemeModal(editId = null) {
+        currentEditId = editId;
+        const modal = $('#customThemeModal');
+        const inputs = $('#ctInputs');
+        const title = $('#ctTitle');
+        const nameInput = $('#ctName');
+        const deleteBtn = $('#ctDeleteBtn');
+        customThemes = readCustomThemes();
+        const existing = editId ? customThemes.find(item => item.id === editId) : null;
+        const startColors = existing && existing.colors ? { ...getCurrentThemeColors(), ...existing.colors } : getCurrentThemeColors();
+        const startName = existing ? existing.name : '';
+
+        title.textContent = existing ? 'THEME BEARBEITEN' : 'NEUES THEME ERSTELLEN';
+        deleteBtn.style.display = existing ? 'block' : 'none';
+        nameInput.value = startName;
+        inputs.innerHTML = '';
+
+        const labels = {
+          bg: 'Hintergrund',
+          accent: 'Accent (Primär)',
+          green: 'Highlight (Grün)',
+          text: 'Text Farbe',
+          border: 'Rahmen'
+        };
+
+        Object.keys(labels).forEach(key => {
+          const value = startColors[key] || getCurrentThemeColors()[key];
+          const field = document.createElement('div');
+          field.className = 'ct-field';
+          field.innerHTML = `
+            <label><span>${labels[key]}</span><span>HEX / RGB / HSL / NAME</span></label>
+            <div class="ct-row">
+              <input type="color" id="ctColor-${key}" value="${cssToHex(value)}">
+              <input type="text" id="ctText-${key}" value="${escapeAttr(value)}" placeholder="#hex, rgb(), red..." spellcheck="false">
+            </div>`;
+          inputs.appendChild(field);
+          const picker = field.querySelector(`#ctColor-${key}`);
+          const text = field.querySelector(`#ctText-${key}`);
+          picker.addEventListener('input', () => { text.value = picker.value; previewCustomTheme(); });
+          text.addEventListener('input', () => { picker.value = cssToHex(text.value); previewCustomTheme(); });
+        });
+
+        modal.classList.add('show');
+        modal.style.display = '';
+        setTimeout(() => nameInput.focus(), 0);
+      }
+
+      function collectCustomThemeColors() {
+        const colors = {};
+        ['bg','accent','green','text','border'].forEach(key => {
+          const input = document.getElementById(`ctText-${key}`);
+          colors[key] = input ? input.value.trim() : '';
+        });
+        return colors;
+      }
+
+      function previewCustomTheme() {
+        document.body.className = 'theme-custom';
+        document.documentElement.className = 'theme-custom';
+        applyThemeColors(collectCustomThemeColors());
+      }
+
+      function saveCustomTheme() {
+        const name = ($('#ctName').value || '').trim() || 'Custom Theme';
+        const colors = collectCustomThemeColors();
+        if (currentEditId) {
+          const index = customThemes.findIndex(item => item.id === currentEditId);
+          if (index !== -1) customThemes[index] = { id: currentEditId, name, colors };
+        } else {
+          currentEditId = 'custom-' + Date.now();
+          customThemes.push({ id: currentEditId, name, colors });
+        }
+        customThemes = customThemes.slice(0, maxCustomThemes);
+        writeCustomThemes();
+        $('#customThemeModal').classList.remove('show');
+        updateThemeDropdowns();
+        changeTheme(currentEditId, true);
+        showToast('Theme gespeichert');
+      }
+
+      function deleteCustomTheme() {
+        if (!currentEditId) return;
+        customThemes = customThemes.filter(item => item.id !== currentEditId);
+        writeCustomThemes();
+        currentEditId = null;
+        $('#customThemeModal').classList.remove('show');
+        updateThemeDropdowns();
+        changeTheme('', true);
+        showToast('Theme gelöscht');
+      }
+
+      function closeCustomThemeModal() {
+        $('#customThemeModal').classList.remove('show');
+        const active = localStorage.getItem(themeKey) || '';
+        document.querySelectorAll('.theme-select').forEach(s => s.value = active);
+        changeTheme(active, true);
+      }
+
+      function cssToHex(value) {
+        const probe = cssToHex.probe || (cssToHex.probe = document.createElement('span'));
+        if (!probe.parentNode) document.body.appendChild(probe);
+        probe.style.color = value || '#ffffff';
+        const match = getComputedStyle(probe).color.match(/\d+/g);
+        if (!match || match.length < 3) return '#ffffff';
+        return '#' + match.slice(0, 3).map(n => Number(n).toString(16).padStart(2, '0')).join('');
+      }
+
+      function escapeAttr(value) {
+        return String(value).replace(/[&<>"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
+      }
+
+      function restoreSplit() {
+        const saved = localStorage.getItem(splitKey);
+        if (saved) $('#workspace').style.setProperty('--split', saved);
+      }
+
+      function initResizer() {
+        const workspace = $('#workspace');
+        const resizer = $('#resizer');
+        let dragging = false;
+
+        resizer.addEventListener('pointerdown', (e) => {
+          dragging = true;
+          resizer.setPointerCapture(e.pointerId);
+          document.body.style.userSelect = 'none';
+        });
+
+        resizer.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          const rect = workspace.getBoundingClientRect();
+          const pct = ((e.clientX - rect.left) / rect.width) * 100;
+          const clamped = Math.max(32, Math.min(68, pct));
+          const value = `${clamped.toFixed(2)}%`;
+          workspace.style.setProperty('--split', value);
+          localStorage.setItem(splitKey, value);
+        });
+
+        const stop = () => {
+          dragging = false;
+          document.body.style.userSelect = '';
+        };
+
+        resizer.addEventListener('pointerup', stop);
+        resizer.addEventListener('pointercancel', stop);
+      }
+    })();
+  </script>
+  <script src="theme.js"></script>
+</body>
+</html>

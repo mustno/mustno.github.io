@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+    <!-- deine bestehenden meta-tags und styles -->
+    <script src="theme-init.js"></script>
+</head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NextGenSim — Network Simulator</title>
-<link rel="icon" type="image/png" href="logo.png?v=1">
+<link rel="icon" type="image/png" href="/logo.png?v=1">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -129,7 +132,18 @@ footer{position:relative;z-index:10;padding:clamp(20px,3vh,32px) clamp(20px,4vw,
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Fix: Seekbar Fill Farbe */
+.audio-progress-fill { background: color-mix(in srgb, var(--text) 80%, transparent) !important; }
+
 </style>
+<!-- THEME ENGINE FIX: Erzwingt konsistente Farben und frühes Laden -->
+<style>
+body.theme-wii { --bg: #f4f4f4 !important; --text: #444444 !important; --green: #00a2e8 !important; --accent: #00baff !important; --border: #d0d0d0 !important; --dim: #777777 !important; --muted: rgba(0, 162, 232, 0.2) !important; --glass: rgba(255, 255, 255, 0.9) !important; }
+body.theme-retro { --bg: #000000 !important; --text: #00ff00 !important; --green: #00ff00 !important; --accent: #00ff00 !important; --dim: #00aa00 !important; --muted: #005500 !important; --border: #00aa00 !important; --glass: rgba(0, 0, 0, 0.9) !important; }
+body.theme-cyberpunk { --bg: #09020f !important; --text: #fcee0a !important; --green: #00ff9f !important; --accent: #ff003c !important; --dim: rgba(252, 238, 10, 0.6) !important; --muted: rgba(255, 0, 60, 0.4) !important; --border: rgba(255, 0, 60, 0.3) !important; --glass: rgba(26, 6, 46, 0.85) !important; }
+</style>
+<script src="theme.js"></script>
 </head>
 <body>
 
@@ -143,7 +157,7 @@ footer{position:relative;z-index:10;padding:clamp(20px,3vh,32px) clamp(20px,4vw,
 
 <nav>
   <div class="nav-left">
-    <a href="index.html" class="nav-back"><span class="bkarr">←</span> Zurück</a>
+    <a href="mustno" class="nav-back"><span class="bkarr">←</span> Zurück</a>
     <div class="breadcrumb">
       <span>MustNo</span><span class="sep">/</span><span>NextGenSim</span>
     </div>
@@ -164,7 +178,7 @@ footer{position:relative;z-index:10;padding:clamp(20px,3vh,32px) clamp(20px,4vw,
   <h1 class="hero-title"><span class="solid">NextGen</span><span class="outline" data-text="Sim">Sim</span></h1>
   <p class="hero-sub">Der professionelle Netzwerk-Simulator für Cisco-Hardware, komplexe Topologien, DHCP-Management und Echtzeit-PDU-Analyse — direkt im Browser.</p>
   <div class="hero-cta">
-    <button class="btn-launch" onclick="window.location.href='24.3.26.html'"><span class="launch-icon">⬡</span> App starten</button>
+    <button class="btn-launch" onclick="window.location.href='24.3.26'"><span class="launch-icon">⬡</span> App starten</button>
   </div>
   <div class="hero-meta"><span class="vmeta">Version</span><span class="vtag">v13.0</span><span class="vtag g">Stable</span><span class="vtag o">DHCP</span></div>
   <div class="scroll-hint"><span>Mehr</span><div class="scroll-line"></div></div>
@@ -193,12 +207,12 @@ footer{position:relative;z-index:10;padding:clamp(20px,3vh,32px) clamp(20px,4vw,
 <div class="launch-banner">
   <div class="lb-hex">⬡</div>
   <div class="lb-left"><div class="lb-label">// Bereit loszulegen?</div><div class="lb-title">Starte die Simulation</div><div class="lb-sub">Öffne NextGenSim und beginne sofort mit dem Aufbau deines ersten Netzwerks — keine Installation, direkt im Browser.</div></div>
-  <button class="btn-launch" onclick="window.location.href='24.3.26.html'" style="flex-shrink:0;"><span class="launch-icon">⬡</span> App starten</button>
+  <button class="btn-launch" onclick="window.location.href='24.3.26'" style="flex-shrink:0;"><span class="launch-icon">⬡</span> App starten</button>
 </div>
 
 <footer>
   <div class="ft-l">NEXTGENSIM &nbsp;·&nbsp; <b>v13.0 DHCP &amp; Polish</b> &nbsp;·&nbsp; MustNo Platform</div>
-  <a href="index.html" class="ft-back">← Zurück zum Launcher</a>
+  <a href="/" class="ft-back">← Zurück zum Launcher</a>
 </footer>
 
 <script>
@@ -229,102 +243,239 @@ const fobs=new IntersectionObserver(entries=>{ entries.forEach(e=>{ if(e.isInter
 feats.forEach(f=>{ f.style.opacity='0';f.style.transform='translateY(20px)'; f.style.transition='opacity .5s ease,transform .5s ease,border-color .3s,background .3s,box-shadow .3s'; fobs.observe(f); });
 </script>
 
-<!-- ── PREMIUM AUDIO & THEME SYSTEM ── -->
+<!-- ========================================== -->
+<!-- ── PREMIUM AUDIO SYSTEM (Widget + Logic) ── -->
+<!-- ========================================== -->
 <style>
+  #cur, #cursor, .cursor { z-index: 999999 !important; }
+
   #audio-widget {
-    position: fixed; bottom: clamp(20px, 4vh, 40px); left: clamp(20px, 4vw, 56px); z-index: 9990;
+    position: fixed; bottom: clamp(20px, 4vh, 40px); left: clamp(20px, 4vw, 56px); z-index: 10005;
     display: flex; gap: 14px; align-items: center;
     background: var(--glass, rgba(255, 255, 255, 0.05)); border: 1px solid var(--border, rgba(255,255,255,0.1));
-    padding: 10px 18px 10px 14px; border-radius: calc(var(--proj-rad, 0px) / 2 + 12px); backdrop-filter: blur(12px);
+    padding: 10px 18px 10px 10px;
+    border-radius: calc(var(--proj-rad, 0px) / 2 + 12px); backdrop-filter: blur(12px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    overflow: hidden;
   }
   #audio-widget:hover { border-color: var(--accent, #4a7aff); box-shadow: 0 8px 30px color-mix(in srgb, var(--accent, #4a7aff) 20%, transparent); transform: translateY(-2px); }
   body.theme-wii #audio-widget { background: rgba(255, 255, 255, 0.85); border-color: #ccc; }
+  
   .audio-eq { display: flex; gap: 3px; align-items: flex-end; height: 16px; width: 18px; }
   .eq-bar { width: 4px; background: var(--dim, #888); border-radius: 2px; height: 4px; transition: height 0.1s, background 0.3s; }
   #audio-widget.is-playing .eq-bar { background: var(--green, #5effa8); animation: eq-bounce 0.8s infinite alternate ease-in-out; box-shadow: 0 0 6px var(--green, #5effa8); }
   #audio-widget.is-playing .eq-bar:nth-child(2) { animation-delay: -0.4s; }
   #audio-widget.is-playing .eq-bar:nth-child(3) { animation-delay: -0.2s; }
   @keyframes eq-bounce { 0%, 20% { height: 4px; } 100% { height: 16px; } }
-  .audio-info { display: flex; flex-direction: column; justify-content: center; min-width: 70px; }
-  .audio-label { font-family: 'Space Mono', monospace; font-size: 0.45rem; color: var(--muted, #999); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 3px; }
+  
+  .audio-info { display: flex; flex-direction: column; justify-content: center; min-width: 90px; }
+  .audio-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3px; gap: 12px; }
+  .audio-label { font-family: 'Space Mono', monospace; font-size: 0.45rem; color: #888; letter-spacing: 0.25em; text-transform: uppercase; line-height: 1; }
+  .audio-time { font-family: 'Space Mono', monospace; font-size: 0.45rem; color: #888; letter-spacing: 0.1em; transition: color 0.3s; line-height: 1; font-variant-numeric: tabular-nums; }
+  
   .audio-track { font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700; color: var(--text, #fff); letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.3s; }
   #audio-widget.is-playing .audio-track { color: var(--accent, #4a7aff); }
-  .audio-controls { display: flex; gap: 6px; align-items: center; margin-left: 10px; padding-left: 14px; border-left: 1px solid var(--border, #444); }
+  #audio-widget.is-playing .audio-time { color: color-mix(in srgb, var(--accent, #4a7aff) 80%, transparent); }
+  
+  .audio-controls { display: flex; gap: 6px; align-items: center; margin-left: 6px; padding-left: 14px; border-left: 1px solid var(--border, #444); }
   .audio-btn { background: transparent; border: none; color: var(--dim, #888); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; cursor: none; transition: all 0.2s; }
   .audio-btn svg { width: 14px; height: 14px; fill: currentColor; }
   .audio-btn:hover { color: var(--bg, #000); background: var(--text, #fff); transform: scale(1.1); }
   #audio-widget.is-playing .audio-btn:hover { background: var(--green, #5effa8); }
+
+  .audio-progress-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: color-mix(in srgb, var(--text) 10%, transparent); cursor: none; transition: height 0.2s ease, background 0.2s ease; }
+  #audio-widget:hover .audio-progress-bg { height: 6px; background: color-mix(in srgb, var(--text) 20%, transparent); }
+  
+  /* DIE FARBE DER LEISTE: Sichtbar in Pausiert, Grün in Play */
+  .audio-progress-fill { height: 100%; width: 0%; background: color-mix(in srgb, var(--text) 40%, transparent); pointer-events: none; transition: width 0.1s linear, background 0.3s; }
+  #audio-widget.is-playing .audio-progress-fill { background: var(--green, #5effa8); box-shadow: 0 0 8px color-mix(in srgb, var(--green, #5effa8) 50%, transparent); }
 </style>
 
 <div id="audio-widget">
   <div class="audio-eq"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
-  <div class="audio-info"><div class="audio-label">SYS.BGM</div><div class="audio-track" id="bgm-track-name">TRACK 01</div></div>
+  <div class="audio-info">
+    <div class="audio-header">
+      <div class="audio-label">AMBIENCE</div>
+      <div class="audio-time" id="bgm-time">0:00 / 0:00</div>
+    </div>
+    <div class="audio-track" id="bgm-track-name">TRACK 01</div>
+  </div>
   <div class="audio-controls">
-    <button class="audio-btn" onclick="toggleBGM()"><svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
+    <button class="audio-btn" onclick="toggleBGM()"><svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg></button>
     <button class="audio-btn" onclick="nextTrack()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+  </div>
+  <div class="audio-progress-bg" onclick="seekAudio(event)" onmouseenter="let c = document.getElementById('cur') || document.getElementById('cursor'); if(c) c.style.transform='scale(1.8)'" onmouseleave="let c = document.getElementById('cur') || document.getElementById('cursor'); if(c) c.style.transform='scale(1)'">
+    <div class="audio-progress-fill" id="bgm-progress"></div>
   </div>
 </div>
 
 <script>
-const savedTheme = localStorage.getItem('mustno-theme');
-if (savedTheme) { document.body.className = savedTheme; if (document.querySelector('.theme-select')) document.querySelector('.theme-select').value = savedTheme; }
-
-function changeTheme(themeName) {
-  document.body.className = themeName; localStorage.setItem('mustno-theme', themeName);
-  trackIdx = 0; localStorage.setItem('mustno-track-idx', '0'); localStorage.setItem('mustno-bgm-time', '0'); playCurrentTrack();
-}
-
+// ==========================================
+// ── PREMIUM AUDIO SYSTEM LOGIC ──
+// ==========================================
 const AUDIO_CFG = {
-  sfx: { hover: 'Downloads/sfx-hover.mp3', click: 'Downloads/sfx-click.mp3' },
+  sfx: { hover: '/sfx-hover.mp3', click: '/sfx-click.mp3' },
   bgm: {
-    'default':         ['Downloads/cyber-1.mp3', 'Downloads/cyber-2.mp3'],
-    'theme-wii':       ['Downloads/wii-1.mp3',   'Downloads/wii-2.mp3'],
-    'theme-retro':     ['Downloads/retro-1.mp3', 'Downloads/retro-2.mp3'],
-    'theme-cyberpunk': ['Downloads/cyberpunk-1.mp3', 'Downloads/cyberpunk-2.mp3']
+    'default':         ['/cyber-1.mp3', '/cyber-2.mp3'],
+    'theme-wii':       ['/wii-1.mp3',   '/wii-2.mp3'],
+    'theme-retro':     ['/retro-1.mp3', '/retro-2.mp3'],
+    'theme-cyberpunk': ['/cyberpunk-1.mp3', '/cyberpunk-2.mp3']
   }
 };
+// Custom Theme bekommt alle Tracks
+AUDIO_CFG.bgm['theme-custom'] = [...new Set(Object.values(AUDIO_CFG.bgm).flat())];
 
 const sfxHover = new Audio(AUDIO_CFG.sfx.hover); sfxHover.volume = 0.15;
 const sfxClick = new Audio(AUDIO_CFG.sfx.click); sfxClick.volume = 0.3;
-document.querySelectorAll('a, button, .proj, .app-card, .rchip, select, .feat, .nav-back, .cs-btn, .btn-primary, .btn-secondary').forEach(el => {
+document.querySelectorAll('a, button, .proj, .app-card:not(.locked), .rchip, select, .feat, .nav-back, .cs-btn, .btn-primary, .btn-secondary, .audio-btn').forEach(el => {
+        /* MUSTNO AUTO FIX: SKIP AUDIO BTNS */
+        if (el.classList && el.classList.contains('audio-btn')) {
+            if (!el.dataset.cursorAttached) {
+                el.addEventListener('click', () => { if(typeof sfxClick !== 'undefined' && sfxClick.play) { sfxClick.currentTime = 0; sfxClick.play().catch(()=>{}); } });
+                el.dataset.cursorAttached = 'true';
+            }
+            return; // Skip hover scaling!
+        }
+
   el.addEventListener('mouseenter', () => { sfxHover.currentTime = 0; sfxHover.play().catch(()=>{}); });
   el.addEventListener('click', () => { sfxClick.currentTime = 0; sfxClick.play().catch(()=>{}); });
 });
 
-const bgmAudio = new Audio(); bgmAudio.loop = true; bgmAudio.volume = 1;
+const bgmAudio = new Audio(); bgmAudio.volume = 1; bgmAudio.loop = false;
 let isPlaying = localStorage.getItem('mustno-bgm-play') === 'true';
 let trackIdx = parseInt(localStorage.getItem('mustno-track-idx')) || 0;
 
+function formatTime(seconds) {
+  if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+  return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+}
+
+// ZENTRALE UPDATE-FUNKTION (Aktualisiert Button, Text, Leiste)
 function updateBgmUI() {
-  const w = document.getElementById('audio-widget'), pIcon = document.getElementById('icon-play'), pauseIcon = document.getElementById('icon-pause'), tName = document.getElementById('bgm-track-name');
-  if (isPlaying) { w.classList.add('is-playing'); pIcon.style.display = 'none'; pauseIcon.style.display = 'block'; } 
-  else { w.classList.remove('is-playing'); pIcon.style.display = 'block'; pauseIcon.style.display = 'none'; }
-  tName.textContent = `TRACK 0${trackIdx + 1}`;
+  const w = document.getElementById('audio-widget');
+  if (!w) return;
+  
+  if (isPlaying) { 
+    w.classList.add('is-playing'); 
+    document.getElementById('icon-play').style.display = 'none'; 
+    document.getElementById('icon-pause').style.display = 'block'; 
+  } else { 
+    w.classList.remove('is-playing'); 
+    document.getElementById('icon-play').style.display = 'block'; 
+    document.getElementById('icon-pause').style.display = 'none'; 
+  }
+  
+  const tNameClass = document.body.className || 'default';
+  const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
+  const safeIdx = trackIdx % playlist.length;
+  document.getElementById('bgm-track-name').textContent = `TRACK 0${safeIdx + 1}`;
+  
+  if (bgmAudio.duration) {
+    const percent = (bgmAudio.currentTime / bgmAudio.duration) * 100;
+    const prog = document.getElementById('bgm-progress');
+    const timeDisp = document.getElementById('bgm-time');
+    if (prog) prog.style.width = percent + '%';
+    if (timeDisp) timeDisp.innerText = `${formatTime(bgmAudio.currentTime)} / ${formatTime(bgmAudio.duration)}`;
+  }
 }
 
 function playCurrentTrack() {
-  let tName = document.body.className || 'default';
-  if (!AUDIO_CFG.bgm[tName]) tName = 'default';
-  bgmAudio.src = AUDIO_CFG.bgm[tName][trackIdx % 2];
-  bgmAudio.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
-  if (isPlaying) bgmAudio.play().catch(() => { const r = () => { bgmAudio.play(); updateBgmUI(); window.removeEventListener('click', r); }; window.addEventListener('click', r); });
-  updateBgmUI();
+  const tNameClass = document.body.className || 'default';
+  const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
+  bgmAudio.src = playlist[trackIdx % playlist.length];
+  
+  if (isPlaying) {
+    bgmAudio.play().catch(() => {
+      const resumePlay = () => { bgmAudio.play(); updateBgmUI(); window.removeEventListener('click', resumePlay); };
+      window.addEventListener('click', resumePlay);
+    });
+  }
 }
 
 window.toggleBGM = function() {
-  if (bgmAudio.paused) { bgmAudio.play().then(() => { isPlaying = true; localStorage.setItem('mustno-bgm-play', 'true'); updateBgmUI(); }); } 
-  else { bgmAudio.pause(); isPlaying = false; localStorage.setItem('mustno-bgm-play', 'false'); updateBgmUI(); }
+  if (bgmAudio.paused) { 
+    bgmAudio.play().then(() => { isPlaying = true; localStorage.setItem('mustno-bgm-play', 'true'); updateBgmUI(); }); 
+  } else { 
+    bgmAudio.pause(); isPlaying = false; localStorage.setItem('mustno-bgm-play', 'false'); updateBgmUI(); 
+  }
 };
 
 window.nextTrack = function() {
-  trackIdx = (trackIdx + 1) % 2; localStorage.setItem('mustno-track-idx', trackIdx); localStorage.setItem('mustno-bgm-time', '0');
-  playCurrentTrack(); if (!isPlaying) toggleBGM();
+  const tNameClass = document.body.className || 'default';
+  const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
+  trackIdx = (trackIdx + 1) % playlist.length; 
+  localStorage.setItem('mustno-track-idx', trackIdx); 
+  localStorage.setItem('mustno-bgm-time', '0');
+  playCurrentTrack(); 
+  if (!isPlaying) toggleBGM();
+};
+
+bgmAudio.addEventListener('ended', window.nextTrack);
+bgmAudio.addEventListener('timeupdate', updateBgmUI);
+
+bgmAudio.addEventListener('loadedmetadata', () => {
+  const savedTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
+  if(savedTime < bgmAudio.duration) bgmAudio.currentTime = savedTime;
+  updateBgmUI();
+});
+
+window.seekAudio = function(e) {
+  if (!bgmAudio.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  
+  bgmAudio.currentTime = percent * bgmAudio.duration;
+  localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime);
+  updateBgmUI(); // Erzwingt das sofortige visuelle Update!
 };
 
 setInterval(() => { if (!bgmAudio.paused) localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime); }, 1000);
-playCurrentTrack(); updateBgmUI();
-document.querySelectorAll('button,.feat,.nav-back,.ft-back,.theme-select,.audio-btn').forEach(el=>{el.addEventListener('mouseenter',()=>{document.getElementById('cur').style.transform='scale(2.5)';}); el.addEventListener('mouseleave',()=>{document.getElementById('cur').style.transform='scale(1)';});});
+
+playCurrentTrack();
+</script>
+
+<script>
+    // Universal Hover-Cursor Fix für alle klickbaren Elemente (inkl. dynamischer Sim-Nodes)
+    document.addEventListener('DOMContentLoaded', () => {
+        const bindClickables = () => {
+            // Sucht nach Links, Buttons, Nodes und anklickbaren Karten
+            document.querySelectorAll('a, button, [onclick], select, input[type="button"], input[type="submit"], .app-card, .btn, .node').forEach(el => {
+                if(el.dataset.cursorFixedGeneric) return; // Verhindert doppeltes Binden
+                
+                // --- DIE NEUE AUSNAHME-REGEL ---
+                // Ignoriere die Play/Skip Buttons der Musiksteuerung!
+                if(el.classList.contains('audio-btn') || el.closest('#audio-widget') || el.closest('.audio-btn')) {
+                    return; // Stoppt hier! Der Cursor wird bei diesen Buttons nicht vergrößert.
+                }
+                
+                // Normales Vergrößern für alles andere
+                el.addEventListener('mouseenter', () => {
+                    const c = document.getElementById('cur') || document.getElementById('cursor') || document.querySelector('.cursor');
+                    if(c) c.style.setProperty('transform', 'scale(2.5)', 'important');
+                });
+                
+                el.addEventListener('mouseleave', () => {
+                    const c = document.getElementById('cur') || document.getElementById('cursor') || document.querySelector('.cursor');
+                    if(c) {
+                        c.style.removeProperty('transform');
+                        c.style.transform = 'scale(1)';
+                    }
+                });
+                
+                el.dataset.cursorFixedGeneric = 'true';
+            });
+        };
+        
+        bindClickables(); // Direkt beim Start ausführen
+        
+        // Observer überwacht die Seite auf neu generierte Elemente (wichtig für NextGenSim)
+        const obs = new MutationObserver(bindClickables);
+        obs.observe(document.body, { childList: true, subtree: true });
+        
+        // Sicherheitshalber nach 1 Sekunde nochmal ausführen
+        setTimeout(bindClickables, 1000); 
+    });
 </script>
 </body>
 </html>
+
