@@ -893,12 +893,12 @@ body.ln-webgl-enabled .proj .pi {
         <input id="sInput" type="text" placeholder="Suche..." oninput="filter(this.value)" autocomplete="off">
         <button id="sClear" onclick="clearS()">✕</button>
       </div>
-<div class="rec-chips" id="recentChips"><span class="rlabel">Zuletzt:</span><span class="rchip" onclick="launch('MustNo Lab', 'lab-platform')">MustNo Lab</span><span class="rchip" onclick="launch('MustNo Studio', 'coming-soon')">MustNo Studio</span><span class="rchip" onclick="launch('NextGenSim', 'mustno')">NextGenSim</span></div>
+<div class="rec-chips" id="recentChips"><span class="rlabel">Zuletzt:</span><span class="rchip" onclick="launch('MustNo Lab', 'lab-platform')">MustNo Lab</span><span class="rchip" onclick="launch('MustNo Studio', 'coming-soon')">MustNo Studio</span><span class="rchip" onclick="launch('NextGenSim', 'ngs')">NextGenSim</span></div>
     </div>
 
     <div class="projects" id="cards">
 
-      <div class="proj sim" data-k="nextgensim simulation netzwerk cisco dhcp routing" onclick="launch('NextGenSim','mustno')" style="opacity: 1; pointer-events: all;">
+      <div class="proj sim" data-k="nextgensim simulation netzwerk cisco dhcp routing" onclick="launch('NextGenSim','ngs')" style="opacity: 1; pointer-events: all;">
         <div class="pg"></div><div class="pshine"></div>
         <div class="orn otl"></div><div class="orn obr"></div>
         <div class="pver">v13.0</div>
@@ -1735,7 +1735,7 @@ const AUDIO_CFG = {
   bgm: {
     'default':         ['./cyber-1.mp3', './cyber-2.mp3'],
     'theme-wii':       ['./wii-1.mp3',   './wii-2.mp3'],
-    'theme-retro':     ['./retro-1.mp3', '/retro-2.mp3'],
+    'theme-retro':     ['./retro-1.mp3', './retro-2.mp3'],
     'theme-cyberpunk': ['./cyberpunk-1.mp3', './cyberpunk-2.mp3']
   }
 };
