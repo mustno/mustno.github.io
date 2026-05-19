@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <script src="theme-init.js"></script>
     <!-- deine bestehenden meta-tags und styles -->
     <script>
 // FOUC-Prävention & Theme-Synchronisation
@@ -740,6 +739,38 @@ body.ln-webgl-enabled .proj .pi {
 }
 </style>
 
+
+<style>
+/* Cleaner project names: keep names readable and prevent clipping on narrow cards */
+.proj .pname,
+body.ln-webgl-enabled .proj .pname {
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  hyphens: none !important;
+  text-transform: none !important;
+  font-size: clamp(1.08rem, 1.65vw, 1.95rem) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -0.035em !important;
+}
+
+body.ln-webgl-enabled .proj.sim .pname {
+  font-size: clamp(1rem, 1.48vw, 1.72rem) !important;
+  letter-spacing: -0.045em !important;
+}
+
+@media (max-width: 700px) {
+  .proj .pname,
+  body.ln-webgl-enabled .proj .pname {
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    font-size: clamp(.98rem, 5vw, 1.2rem) !important;
+    letter-spacing: -0.025em !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -893,12 +924,12 @@ body.ln-webgl-enabled .proj .pi {
         <input id="sInput" type="text" placeholder="Suche..." oninput="filter(this.value)" autocomplete="off">
         <button id="sClear" onclick="clearS()">✕</button>
       </div>
-<div class="rec-chips" id="recentChips"><span class="rlabel">Zuletzt:</span><span class="rchip" onclick="launch('MustNo Lab', 'lab-platform')">MustNo Lab</span><span class="rchip" onclick="launch('MustNo Studio', 'coming-soon')">MustNo Studio</span><span class="rchip" onclick="launch('NextGenSim', 'ngs')">NextGenSim</span></div>
+<div class="rec-chips" id="recentChips"><span class="rlabel">Zuletzt:</span><span class="rchip" onclick="launch('MustNo Lab', 'lab-platform')">MustNo Lab</span><span class="rchip" onclick="launch('MustNo Studio', 'coming-soon')">MustNo Studio</span><span class="rchip" onclick="launch('NEXTGENSIM', 'ngs')">NEXTGENSIM</span></div>
     </div>
 
     <div class="projects" id="cards">
 
-      <div class="proj sim" data-k="nextgensim simulation netzwerk cisco dhcp routing" onclick="launch('NextGenSim','ngs')" style="opacity: 1; pointer-events: all;">
+      <div class="proj sim" data-k="nextgensim simulation netzwerk cisco dhcp routing" onclick="launch('NEXTGENSIM','ngs')" style="opacity: 1; pointer-events: all;">
         <div class="pg"></div><div class="pshine"></div>
         <div class="orn otl"></div><div class="orn obr"></div>
         <div class="pver">v13.0</div>
@@ -914,7 +945,7 @@ body.ln-webgl-enabled .proj .pi {
         </div>
       </div>
 
-      <div class="proj academy" data-k="academy lernen ccna cisco labs zertifizierung" onclick="launch('NextGenSim Academy','academy-platform')" style="opacity: 1; pointer-events: all;">
+      <div class="proj academy" data-k="academy lernen ccna cisco labs zertifizierung" onclick="launch('NEXTGENSIM Academy','academy-platform')" style="opacity: 1; pointer-events: all;">
         <div class="pg"></div><div class="pshine"></div>
         <div class="orn otl"></div><div class="orn obr"></div>
         <div class="pver">Alpha ver.</div>
@@ -1731,12 +1762,12 @@ setTimeout(() => {
 // ── PREMIUM AUDIO SYSTEM ──
 // ==========================================
 const AUDIO_CFG = {
-  sfx: { hover: './sfx-hover.mp3', click: './sfx-click.mp3' },
+  sfx: { hover: '/sfx-hover.mp3', click: '/sfx-click.mp3' },
   bgm: {
-    'default':         ['./cyber-1.mp3', './cyber-2.mp3'],
-    'theme-wii':       ['./wii-1.mp3',   './wii-2.mp3'],
-    'theme-retro':     ['./retro-1.mp3', './retro-2.mp3'],
-    'theme-cyberpunk': ['./cyberpunk-1.mp3', './cyberpunk-2.mp3']
+    'default':         ['/cyber-1.mp3', '/cyber-2.mp3'],
+    'theme-wii':       ['/wii-1.mp3',   '/wii-2.mp3'],
+    'theme-retro':     ['/retro-1.mp3', '/retro-2.mp3'],
+    'theme-cyberpunk': ['/cyberpunk-1.mp3', '/cyberpunk-2.mp3']
   }
 };
 // Custom Theme bekommt alle Tracks
@@ -2633,5 +2664,380 @@ body.ln-webgl-enabled .cs-btn::before {
   filter: none !important;
 }
 </style>
-  <script src="theme.js"></script>
+
+
+
+<style id="mustno-index-mobile-nextgensim-fix">
+/* Targeted index.html mobile/responsive fixes. Keeps desktop behavior unchanged. */
+html,
+body {
+  max-width: 100%;
+}
+
+.logo,
+.pname,
+.rchip,
+.ftl,
+.audio-track {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+  html,
+  body {
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body {
+    cursor: auto;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  main {
+    min-height: 100dvh;
+    height: auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  header,
+  footer,
+  .stage,
+  .projects,
+  .proj,
+  .pi {
+    min-width: 0;
+  }
+
+  header {
+    padding: 12px 14px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo {
+    max-width: 42vw;
+    letter-spacing: .16em;
+    padding-left: 0;
+    margin-left: 0;
+  }
+
+  .hdr-r {
+    gap: 8px;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+
+  .theme-select {
+    max-width: 42vw;
+    min-width: 0;
+  }
+
+  #clock,
+  .badge {
+    display: none;
+  }
+
+  .stage {
+    justify-content: flex-start;
+    overflow: visible;
+    gap: 0;
+    padding: 12px 14px 18px;
+  }
+
+  .s-eyebrow {
+    letter-spacing: .2em;
+  }
+
+  .s-title {
+    font-size: clamp(1.55rem, 8vw, 2.25rem);
+    max-width: 100%;
+  }
+
+  .s-sub {
+    max-width: 32rem;
+    margin-bottom: 14px;
+  }
+
+  .search-row,
+  .s-input-wrap,
+  #sInput,
+  .rec-chips {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .rec-chips {
+    justify-content: center;
+  }
+
+  .projects,
+  body.ln-webgl-enabled .projects {
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    height: auto;
+    overflow: visible;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+
+  .proj,
+  body.ln-webgl-enabled .proj,
+  .proj:hover,
+  body.ln-webgl-enabled .proj:hover {
+    width: 100%;
+    min-height: 76px;
+    height: auto;
+    transform: none !important;
+    overflow: hidden;
+  }
+
+  .proj:hover,
+  body.ln-webgl-enabled .proj:hover {
+    min-height: 172px;
+  }
+
+  .pi,
+  body.ln-webgl-enabled .proj .pi {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 7px;
+    padding: 16px !important;
+  }
+
+  .picon-wrap,
+  body.ln-webgl-enabled .picon-wrap {
+    grid-column: 1;
+    grid-row: 1;
+    width: 42px;
+    height: 42px;
+    margin: 0;
+    transform: none;
+  }
+
+  .pname,
+  body.ln-webgl-enabled .pname {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    max-width: 100%;
+    overflow: visible;
+    white-space: normal;
+    word-break: keep-all;
+    font-size: clamp(1.05rem, 5.25vw, 1.38rem);
+    line-height: 1.05;
+    letter-spacing: -.035em;
+    transform: none;
+  }
+
+  .pbody,
+  body.ln-webgl-enabled .pbody {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+    transform: none;
+  }
+
+  .psub {
+    line-height: 1.45;
+    margin-top: 2px;
+  }
+
+  .penter,
+  body.ln-webgl-enabled .penter,
+  body.ln-webgl-enabled .proj:hover .penter {
+    grid-column: 3;
+    grid-row: 1;
+    min-width: max-content;
+    min-height: 32px;
+    padding: 8px 11px;
+    margin-top: 0;
+    transform: none;
+  }
+
+  .pver,
+  .proj .pver,
+  body.ln-webgl-enabled .proj .pver {
+    top: 10px !important;
+    left: 12px !important;
+    font-size: .52rem !important;
+  }
+
+  footer {
+    justify-content: center;
+    text-align: center;
+  }
+
+  #audio-widget {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: calc(100vw - 24px);
+    gap: 9px;
+    padding: 9px 12px 10px 9px;
+  }
+
+  .audio-info {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .audio-header {
+    gap: 8px;
+  }
+
+  .audio-track {
+    max-width: 100%;
+    font-size: .62rem;
+    letter-spacing: .1em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .audio-controls {
+    flex-shrink: 0;
+    gap: 4px;
+    margin-left: 0;
+    padding-left: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .penter-label {
+    display: none;
+  }
+
+  .penter,
+  body.ln-webgl-enabled .penter {
+    padding-inline: 10px;
+  }
+
+  .arr {
+    font-size: 1rem;
+  }
+
+  .theme-select {
+    max-width: 46vw;
+  }
+}
+</style>
+
+
+<style>
+/* Mobile Feinjustierung: "Öffnen" tiefer platzieren, ohne Abschneiden im geöffneten Zustand */
+@media (max-width: 700px) {
+  .proj,
+  body.ln-webgl-enabled .proj,
+  .proj:hover,
+  body.ln-webgl-enabled .proj:hover {
+    min-height: 96px;
+  }
+
+  .proj:hover,
+  body.ln-webgl-enabled .proj:hover {
+    min-height: 210px;
+  }
+
+  .pi,
+  body.ln-webgl-enabled .proj .pi {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-items: start;
+    row-gap: 8px;
+    min-height: inherit;
+    height: 100%;
+    padding-bottom: 18px !important;
+  }
+
+  .picon-wrap,
+  body.ln-webgl-enabled .picon-wrap {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .pname,
+  body.ln-webgl-enabled .pname {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .pbody,
+  body.ln-webgl-enabled .pbody {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    align-self: start;
+    max-height: 92px;
+  }
+
+  .penter,
+  body.ln-webgl-enabled .penter,
+  body.ln-webgl-enabled .proj:hover .penter {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: end;
+    align-self: end;
+    min-width: max-content;
+    min-height: 34px;
+    margin-top: 2px;
+    margin-bottom: 0;
+    z-index: 6;
+  }
+}
+
+@media (max-width: 380px) {
+  .proj:hover,
+  body.ln-webgl-enabled .proj:hover {
+    min-height: 218px;
+  }
+
+  .pbody,
+  body.ln-webgl-enabled .pbody {
+    max-height: 104px;
+  }
+}
+</style>
+
+
+
+<style id="mustno-open-button-transparent-hover-fix">
+/* Fix: Beim Hover auf "Öffnen" bleibt der Hintergrund transparent und der Text gut lesbar. */
+.penter:hover,
+body.ln-webgl-enabled .penter:hover,
+body.ln-webgl-enabled .proj:hover .penter:hover {
+  background: transparent !important;
+  color: color-mix(in srgb, var(--pc, var(--accent)) 92%, white 8%) !important;
+  border-color: color-mix(in srgb, var(--pc, var(--accent)) 62%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.penter:hover::before,
+body.ln-webgl-enabled .penter:hover::before,
+body.ln-webgl-enabled .proj:hover .penter:hover::before {
+  opacity: 0 !important;
+  background: transparent !important;
+  animation: none !important;
+  filter: none !important;
+}
+
+.penter:hover .penter-label,
+body.ln-webgl-enabled .penter:hover .penter-label,
+.penter:hover .arr,
+body.ln-webgl-enabled .penter:hover .arr {
+  color: inherit !important;
+  text-shadow: none !important;
+}
+</style>
 </body></html>
