@@ -337,9 +337,20 @@ const CELESTIAL_DB = {
     'supermassive': { type: TYPES.BLACKHOLE, mass: 800000, color: '#000000', name: 'Supermassives SL', lore: 'Galaktisches Zentrum.', det: 'Millionen bis Milliarden Sonnenmassen. Solche Objekte befinden sich im Zentrum der meisten Galaxien.' },
     'generic_planet': { type: TYPES.PLANET, mass: 10, color: null, name: 'Exoplanet', lore: 'Unbekannter Planet.', det: 'Ein zufällig generierter Himmelskörper. Zusammensetzung und Atmosphäre sind noch nicht analysiert.' },
     // Neue Sonden
-    'voyager1': { type: TYPES.PROBE, mass: 0.0001, color: '#cccccc', name: 'Voyager 1', lore: 'Interstellare Raumsonde.', det: 'Das am weitesten von der Erde entfernte von Menschen gebaute Objekt. Gestartet 1977.' },
-    'jwst': { type: TYPES.PROBE, mass: 0.0001, color: '#ffd700', name: 'James-Webb-Teleskop', lore: 'Infrarot-Teleskop.', det: 'Das größte und leistungsfähigste Teleskop im Weltraum. Befindet sich am Lagrange-Punkt L2.' },
-    'hubble': { type: TYPES.PROBE, mass: 0.0001, color: '#88aaff', name: 'Hubble-Teleskop', lore: 'Optisches Teleskop.', det: 'Umkreist die Erde und liefert seit 1990 atemberaubende Bilder des Kosmos.' }
+    'voyager1': { type: TYPES.PROBE, mass: 0.0001, color: '#cccccc', name: 'Voyager 1', lore: 'Interstellare Raumsonde.', det: 'Das am weitesten von der Erde entfernte von Menschen gebaute Objekt. Gestartet 1977.', orbit: 'Interstellarer Raum' },
+    'voyager2': { type: TYPES.PROBE, mass: 0.0001, color: '#bbbbbb', name: 'Voyager 2', lore: 'Interstellare Raumsonde.', det: 'Die einzige Sonde, die Uranus und Neptun aus der Nähe untersucht hat.', orbit: 'Interstellarer Raum' },
+    'pioneer10': { type: TYPES.PROBE, mass: 0.0001, color: '#999999', name: 'Pioneer 10', lore: 'Erste Jupiter-Sonde.', det: 'Das erste Raumfahrzeug, das den Asteroidengürtel durchquerte und Jupiter erreichte.', orbit: 'Interstellarer Raum' },
+    'newhorizons': { type: TYPES.PROBE, mass: 0.0001, color: '#dddddd', name: 'New Horizons', lore: 'Pluto-Mission.', det: 'Erforschte Pluto und den Kuipergürtel.', orbit: 'Kuipergürtel' },
+    'jwst': { type: TYPES.PROBE, mass: 0.0001, color: '#ffd700', name: 'James-Webb-Teleskop', lore: 'Infrarot-Teleskop.', det: 'Das leistungsfähigste Weltraumteleskop der Menschheit.', orbit: 'Lagrange-Punkt L2' },
+    'hubble': { type: TYPES.PROBE, mass: 0.0001, color: '#88aaff', name: 'Hubble-Teleskop', lore: 'Optisches Weltraumteleskop.', det: 'Liefert seit 1990 detaillierte Bilder von Galaxien und Nebeln.', orbit: 'Niedrige Erdumlaufbahn' },
+    'iss': { type: TYPES.PROBE, mass: 0.0001, color: '#ffffff', name: 'ISS', lore: 'Raumstation.', det: 'Die Internationale Raumstation umkreist die Erde alle 90 Minuten.', orbit: 'Niedrige Erdumlaufbahn' },
+    'gaia': { type: TYPES.PROBE, mass: 0.0001, color: '#99bbff', name: 'Gaia', lore: 'Sternenkartierungs-Sonde.', det: 'Kartiert Milliarden Sterne der Milchstraße mit extremer Präzision.', orbit: 'Lagrange-Punkt L2' },
+    'juno': { type: TYPES.PROBE, mass: 0.0001, color: '#c9a063', name: 'Juno', lore: 'Jupiter-Orbiter.', det: 'Untersucht Atmosphäre, Magnetfeld und Kern des Jupiter.', orbit: 'Jupiter' },
+    'cassini': { type: TYPES.PROBE, mass: 0.0001, color: '#e0d0aa', name: 'Cassini', lore: 'Saturn-Mission.', det: 'Erforschte Saturn und seine Monde bis zum kontrollierten Absturz 2017.', orbit: 'Saturn' },
+    'osirisrex': { type: TYPES.PROBE, mass: 0.0001, color: '#aaaaaa', name: 'OSIRIS-REx', lore: 'Asteroiden-Mission.', det: 'Sammelte erfolgreich Proben vom Asteroiden Bennu.', orbit: 'Sonnenorbit' },
+    'parker': { type: TYPES.PROBE, mass: 0.0001, color: '#ffcc66', name: 'Parker Solar Probe', lore: 'Sonnenmission.', det: 'Die Sonde, die der Sonne am nächsten kommt.', orbit: 'Sonnenorbit' },
+    'bepicolombo': { type: TYPES.PROBE, mass: 0.0001, color: '#bbbbcc', name: 'BepiColombo', lore: 'Merkur-Mission.', det: 'Europäisch-japanische Mission zur Erforschung des Merkur.', orbit: 'Transfer zu Merkur' },
+    'euclid': { type: TYPES.PROBE, mass: 0.0001, color: '#aaccee', name: 'Euclid', lore: 'Kosmologie-Teleskop.', det: 'Untersucht Dunkle Materie und Dunkle Energie.', orbit: 'Lagrange-Punkt L2' },
 };
 
 class Body {
