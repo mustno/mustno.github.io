@@ -924,7 +924,7 @@ body.ln-webgl-enabled .proj.sim .pname {
         <input id="sInput" type="text" placeholder="Suche..." oninput="filter(this.value)" autocomplete="off">
         <button id="sClear" onclick="clearS()">✕</button>
       </div>
-<div class="rec-chips" id="recentChips"><span class="rlabel">Zuletzt:</span><span class="rchip" onclick="launch('MustNo Lab', 'lab-platform')">MustNo Lab</span><span class="rchip" onclick="launch('MustNo Studio', 'coming-soon')">MustNo Studio</span><span class="rchip" onclick="launch('NEXTGENSIM', 'ngs')">NEXTGENSIM</span></div>
+<div class="rec-chips" id="recentChips"><span class="rlabel">Zuletzt:</span><span class="rchip" onclick="launch('MustNo Lab', 'lab-platform')">MustNo Lab</span><span class="rchip" onclick="launch('MustNo Studio', 'studio-platform')">MustNo Studio</span><span class="rchip" onclick="launch('NEXTGENSIM', 'ngs')">NEXTGENSIM</span></div>
     </div>
 
     <div class="projects" id="cards">
@@ -961,7 +961,7 @@ body.ln-webgl-enabled .proj.sim .pname {
         </div>
       </div>
 
-      <div class="proj studio" data-k="studio design editor ui prototyping kreativ" onclick="launch('MustNo Studio','coming-soon')" style="opacity: 1; pointer-events: all;">
+      <div class="proj studio" data-k="studio design editor ui prototyping kreativ" onclick="launch('MustNo Studio','studio-platform')" style="opacity: 1; pointer-events: all;">
         <div class="pg"></div><div class="pshine"></div>
         <div class="orn otl"></div><div class="orn obr"></div>
         <div class="pver">Soon</div>
@@ -1805,7 +1805,7 @@ function updateBgmUI() {
     document.getElementById('icon-pause').style.display = 'none'; 
   }
   
-  const tNameClass = document.body.className || 'default';
+  const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
   const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
   const safeIdx = trackIdx % playlist.length;
   document.getElementById('bgm-track-name').textContent = `TRACK 0${safeIdx + 1}`;
@@ -1821,7 +1821,7 @@ function updateBgmUI() {
 }
 
 function playCurrentTrack() {
-  const tNameClass = document.body.className || 'default';
+  const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
   const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
   const targetUrl = playlist[trackIdx % playlist.length];
   
@@ -1848,7 +1848,7 @@ window.toggleBGM = function() {
 };
 
 window.nextTrack = function() {
-  const tNameClass = document.body.className || 'default';
+  const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
   const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
   trackIdx = (trackIdx + 1) % playlist.length; 
   localStorage.setItem('mustno-track-idx', trackIdx); 

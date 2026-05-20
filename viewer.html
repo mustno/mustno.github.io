@@ -758,16 +758,231 @@
       .custom-theme-modal .ct-actions button { width: 100% !important; }
     }
 
+
+    .head-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .back-lab {
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--panel) 70%, transparent);
+      color: var(--dim);
+      text-decoration: none;
+      font: 700 10px var(--font-mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: border-color .18s ease, color .18s ease, background .18s ease, transform .18s ease;
+    }
+
+    .back-lab:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: color-mix(in srgb, var(--green) 10%, var(--panel));
+      transform: translateY(-1px);
+    }
+
+    .back-lab svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+      flex: 0 0 auto;
+    }
+
+    #audio-widget {
+      position: relative;
+      z-index: 4;
+      flex: 0 1 320px;
+      min-width: 260px;
+      max-width: 340px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: color-mix(in srgb, var(--panel) 84%, transparent);
+      border: 1px solid var(--border);
+      padding: 7px 12px 8px 10px;
+      border-radius: 14px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0,0,0,.16);
+      transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease, background .22s ease;
+      overflow: hidden;
+    }
+
+    #audio-widget:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 30px color-mix(in srgb, var(--accent) 18%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .audio-eq {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      width: 18px;
+      height: 16px;
+      flex: 0 0 auto;
+    }
+
+    .eq-bar {
+      width: 4px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--dim);
+      transition: height .1s ease, background .22s ease;
+    }
+
+    #audio-widget.is-playing .eq-bar {
+      background: var(--green);
+      animation: eq-bounce .8s infinite alternate ease-in-out;
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    #audio-widget.is-playing .eq-bar:nth-child(2) { animation-delay: -.4s; }
+    #audio-widget.is-playing .eq-bar:nth-child(3) { animation-delay: -.2s; }
+    @keyframes eq-bounce { 0%, 20% { height: 4px; } 100% { height: 16px; } }
+
+    .audio-info {
+      min-width: 92px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1 1 auto;
+    }
+
+    .audio-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 3px;
+    }
+
+    .audio-label,
+    .audio-time {
+      font-family: var(--font-mono);
+      font-size: .45rem;
+      line-height: 1;
+      color: var(--dim);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .audio-track {
+      font: 900 .7rem/1 var(--font-mono);
+      color: var(--text);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      transition: color .22s ease;
+    }
+
+    #audio-widget.is-playing .audio-track,
+    #audio-widget.is-playing .audio-time {
+      color: var(--accent);
+    }
+
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 4px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border);
+      flex: 0 0 auto;
+    }
+
+    .audio-btn {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--dim);
+      cursor: pointer;
+      transition: color .18s ease, background .18s ease, transform .18s ease;
+    }
+
+    .audio-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    .audio-btn:hover {
+      color: var(--bg);
+      background: var(--green);
+      transform: scale(1.08);
+    }
+
+    .audio-progress-bg {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      background: color-mix(in srgb, var(--text) 10%, transparent);
+      cursor: pointer;
+      transition: height .18s ease, background .18s ease;
+    }
+
+    #audio-widget:hover .audio-progress-bg {
+      height: 5px;
+      background: color-mix(in srgb, var(--text) 18%, transparent);
+    }
+
+    .audio-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: color-mix(in srgb, var(--text) 40%, transparent);
+      transition: width .1s linear, background .22s ease;
+    }
+
+    #audio-widget.is-playing .audio-progress-fill {
+      background: var(--green);
+      box-shadow: 0 0 8px color-mix(in srgb, var(--green) 50%, transparent);
+    }
+
+    @media (max-width: 1180px) {
+      #audio-widget { flex-basis: 280px; min-width: 240px; }
+      .audio-time { display: none; }
+    }
+
     @media (max-width: 940px) {
       body { overflow: auto; }
       .shell { height: auto; min-height: 100vh; grid-template-rows: auto auto auto; }
-      header { min-height: 72px; align-items: flex-start; padding-top: 12px; padding-bottom: 12px; flex-direction: column; }
+      header { min-height: 72px; align-items: stretch; padding-top: 12px; padding-bottom: 12px; flex-direction: column; }
+      .head-left { width: 100%; justify-content: flex-start; }
+      .brand { flex: 1 1 auto; }
+      #audio-widget { width: 100%; max-width: none; min-width: 0; flex: 0 0 auto; }
       .head-actions { width: 100%; justify-content: flex-start; }
       .workspace { display: flex; flex-direction: column; gap: 12px; }
       .panel { min-height: 520px; }
       .resizer { display: none; }
       footer { min-height: 46px; align-items: flex-start; justify-content: center; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
       .status { flex-wrap: wrap; gap: 8px 12px; }
+    }
+
+    @media (max-width: 560px) {
+      .head-left { flex-direction: column; align-items: stretch; gap: 10px; }
+      .back-lab { width: 100%; justify-content: center; }
+      .brand { justify-content: center; text-align: center; }
+      #audio-widget { padding-right: 10px; gap: 10px; }
+      .audio-controls { padding-left: 8px; margin-left: 0; }
+      .audio-info { min-width: 0; }
+      .audio-label { letter-spacing: .14em; }
+      .audio-track { font-size: .66rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -780,11 +995,40 @@
 
   <main class="shell" id="app">
     <header>
-      <div class="brand">
-        <div class="mark">&lt;/&gt;</div>
-        <div>
-          <h1>HTML Viewer</h1>
-          <span class="sub">MUSTNO Tools / Beautify / Preview / Export</span>
+      <div class="head-left">
+        <a class="back-lab" href="lab-platform.html" aria-label="Zurück zum Lab">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          Zurück zum Lab
+        </a>
+        <div class="brand">
+          <div class="mark">&lt;/&gt;</div>
+          <div>
+            <h1>HTML Viewer</h1>
+            <span class="sub">MUSTNO Tools / Beautify / Preview / Export</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="audio-widget" aria-label="Musik Player">
+        <div class="audio-eq"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
+        <div class="audio-info">
+          <div class="audio-header">
+            <div class="audio-label">AMBIENCE</div>
+            <div class="audio-time" id="bgm-time">0:00 / 0:00</div>
+          </div>
+          <div class="audio-track" id="bgm-track-name">TRACK 01</div>
+        </div>
+        <div class="audio-controls">
+          <button class="audio-btn" type="button" onclick="toggleBGM()" aria-label="Play/Pause">
+            <svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg>
+          </button>
+          <button class="audio-btn" type="button" onclick="nextTrack()" aria-label="Nächster Track">
+            <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          </button>
+        </div>
+        <div class="audio-progress-bg" onclick="seekAudio(event)" aria-hidden="true">
+          <div class="audio-progress-fill" id="bgm-progress"></div>
         </div>
       </div>
 

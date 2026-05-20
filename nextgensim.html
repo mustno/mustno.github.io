@@ -3,7 +3,6 @@
 <head>
     <!-- deine bestehenden meta-tags und styles -->
     <script src="theme-init.js"></script>
-</head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NextGenSim — Network Simulator</title>
@@ -38,6 +37,16 @@ body.theme-cyberpunk {
 }
 .theme-cyberpunk .hero-title .outline { -webkit-text-stroke: 1.5px var(--green); text-shadow: 0 0 15px rgba(0, 240, 255, 0.6); color: transparent; }
 .theme-cyberpunk .feat:hover { border-color: var(--accent); box-shadow: 0 0 40px rgba(255, 0, 124, 0.2); }
+
+body.theme-custom {
+  --dim: color-mix(in srgb, var(--text) 45%, transparent);
+  --muted: color-mix(in srgb, var(--text) 25%, transparent);
+  --bordm: color-mix(in srgb, var(--border) 70%, transparent);
+  --card: color-mix(in srgb, var(--bg) 82%, white 5%);
+  --hdr-bg: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 88%, transparent), transparent);
+  --glass: color-mix(in srgb, var(--bg) 72%, transparent);
+}
+
 
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -144,6 +153,88 @@ body.theme-retro { --bg: #000000 !important; --text: #00ff00 !important; --green
 body.theme-cyberpunk { --bg: #09020f !important; --text: #fcee0a !important; --green: #00ff9f !important; --accent: #ff003c !important; --dim: rgba(252, 238, 10, 0.6) !important; --muted: rgba(255, 0, 60, 0.4) !important; --border: rgba(255, 0, 60, 0.3) !important; --glass: rgba(26, 6, 46, 0.85) !important; }
 </style>
 <script src="theme.js"></script>
+<style id="mustno-snake-cursor-refinement">
+/* MUSTNO hybrid cursor: snake while moving, rotating ring while idle. */
+#orb,
+#webgl-trail {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+#cur {
+  width: 5px !important;
+  height: 5px !important;
+  background: var(--accent) !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 75%, transparent) !important;
+}
+
+.mustno-snake-cursor {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999998;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity .16s ease;
+}
+
+.mustno-snake-letter,
+.mustno-ring-dot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: block;
+  will-change: left, top, transform, opacity;
+}
+
+.mustno-snake-letter {
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 7px color-mix(in srgb, var(--accent) 80%, transparent),
+    0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  opacity: .95;
+  transform-origin: 50% 50%;
+}
+
+.mustno-ring-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 88%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--text) 60%, transparent);
+  opacity: 0;
+}
+
+.mustno-ring-dot.square {
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+}
+
+body.theme-wii .mustno-snake-cursor {
+  mix-blend-mode: multiply;
+}
+body.theme-wii .mustno-snake-letter {
+  color: var(--accent);
+  text-shadow: none;
+}
+body.theme-wii .mustno-ring-dot {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .mustno-snake-cursor { display: none !important; }
+}
+</style>
 </head>
 <body>
 
@@ -242,6 +333,390 @@ const feats=document.querySelectorAll('.feat');
 const fobs=new IntersectionObserver(entries=>{ entries.forEach(e=>{ if(e.isIntersecting){ const i=Array.from(feats).indexOf(e.target); setTimeout(()=>{e.target.style.opacity='1';e.target.style.transform='translateY(0)';},i*80); fobs.unobserve(e.target); } });},{threshold:.1});
 feats.forEach(f=>{ f.style.opacity='0';f.style.transform='translateY(20px)'; f.style.transition='opacity .5s ease,transform .5s ease,border-color .3s,background .3s,box-shadow .3s'; fobs.observe(f); });
 </script>
+
+
+
+(function () {
+  const THEME_KEY = 'mustno-theme';
+  const CUSTOM_KEY = 'mustno-custom-themes';
+  const MAX_CUSTOM_THEMES = 10;
+  const COLOR_KEYS = ['bg', 'accent', 'green', 'text', 'border'];
+  const THEME_CLASSES = ['theme-wii', 'theme-retro', 'theme-cyberpunk', 'theme-custom'];
+  const INLINE_VARS = [
+    '--bg','--bg2','--bg-color','--bg-deep','--bg-mid','--bg-card','--term-bg',
+    '--panel','--panel2','--overlay-bg','--vignette-color','--accent','--accent-color',
+    '--accent-glow','--grid-color','--green','--accent-green','--accent-green-dim',
+    '--text','--text-primary','--dim','--text-dim','--muted','--text-muted','--border',
+    '--border-color','--bordm','--border2','--border-bright','--glass','--glass-border',
+    '--card','--hdr-bg'
+  ];
+  let currentEditId = null;
+
+  function readCustomThemes() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(CUSTOM_KEY));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function writeCustomThemes(themes) {
+    localStorage.setItem(CUSTOM_KEY, JSON.stringify(themes.slice(0, MAX_CUSTOM_THEMES)));
+  }
+
+  function clearThemeColors() {
+    INLINE_VARS.forEach(prop => document.documentElement.style.removeProperty(prop));
+  }
+
+  function setThemeClass(value) {
+    const val = value || '';
+    const cls = val.startsWith('custom-') || val === 'custom-preview' ? 'theme-custom' : val;
+    document.documentElement.classList.remove(...THEME_CLASSES);
+    if (document.body) document.body.classList.remove(...THEME_CLASSES);
+    if (cls) {
+      document.documentElement.classList.add(cls);
+      if (document.body) document.body.classList.add(cls);
+    }
+  }
+
+  function applyThemeColors(colors) {
+    const root = document.documentElement;
+    const c = colors || {};
+    const bg = c.bg || '#050b16';
+    const accent = c.accent || '#4a7aff';
+    const green = c.green || '#5effa8';
+    const text = c.text || '#e4edff';
+    const border = c.border || accent;
+
+    root.style.setProperty('--bg', bg);
+    root.style.setProperty('--bg2', bg);
+    root.style.setProperty('--bg-color', bg);
+    root.style.setProperty('--bg-deep', bg);
+    root.style.setProperty('--bg-mid', bg);
+    root.style.setProperty('--bg-card', bg);
+    root.style.setProperty('--term-bg', bg);
+    root.style.setProperty('--panel', `color-mix(in srgb, ${bg} 88%, white 4%)`);
+    root.style.setProperty('--panel2', `color-mix(in srgb, ${bg} 82%, transparent)`);
+    root.style.setProperty('--overlay-bg', `color-mix(in srgb, ${bg} 85%, transparent)`);
+    root.style.setProperty('--vignette-color', `color-mix(in srgb, ${bg} 40%, transparent)`);
+    root.style.setProperty('--card', `color-mix(in srgb, ${bg} 82%, white 5%)`);
+    root.style.setProperty('--hdr-bg', `linear-gradient(to bottom, color-mix(in srgb, ${bg} 88%, transparent), transparent)`);
+    root.style.setProperty('--glass', `color-mix(in srgb, ${bg} 72%, transparent)`);
+
+    root.style.setProperty('--accent', accent);
+    root.style.setProperty('--accent-color', accent);
+    root.style.setProperty('--accent-glow', `color-mix(in srgb, ${accent} 40%, transparent)`);
+    root.style.setProperty('--grid-color', `color-mix(in srgb, ${accent} 15%, transparent)`);
+
+    root.style.setProperty('--green', green);
+    root.style.setProperty('--accent-green', green);
+    root.style.setProperty('--accent-green-dim', `color-mix(in srgb, ${green} 16%, transparent)`);
+
+    root.style.setProperty('--text', text);
+    root.style.setProperty('--text-primary', text);
+    root.style.setProperty('--dim', `color-mix(in srgb, ${text} 56%, transparent)`);
+    root.style.setProperty('--text-dim', `color-mix(in srgb, ${text} 56%, transparent)`);
+    root.style.setProperty('--muted', `color-mix(in srgb, ${text} 20%, transparent)`);
+    root.style.setProperty('--text-muted', `color-mix(in srgb, ${text} 20%, transparent)`);
+
+    root.style.setProperty('--border', border);
+    root.style.setProperty('--border-color', border);
+    root.style.setProperty('--bordm', `color-mix(in srgb, ${border} 70%, transparent)`);
+    root.style.setProperty('--border2', `color-mix(in srgb, ${green} 32%, transparent)`);
+    root.style.setProperty('--border-bright', `color-mix(in srgb, ${border} 70%, white 10%)`);
+    root.style.setProperty('--glass-border', `color-mix(in srgb, ${border} 32%, transparent)`);
+  }
+
+  function getCurrentThemeColors() {
+    const s = getComputedStyle(document.documentElement);
+    return {
+      bg: s.getPropertyValue('--bg').trim() || '#050b16',
+      accent: s.getPropertyValue('--accent').trim() || '#4a7aff',
+      green: s.getPropertyValue('--green').trim() || '#5effa8',
+      text: s.getPropertyValue('--text').trim() || '#e4edff',
+      border: s.getPropertyValue('--border').trim() || '#3c64f0'
+    };
+  }
+
+  function cssToHex(value) {
+    const probe = cssToHex.probe || (cssToHex.probe = document.createElement('span'));
+    if (!probe.parentNode) document.body.appendChild(probe);
+    probe.style.color = value || '#ffffff';
+    const match = getComputedStyle(probe).color.match(/\d+/g);
+    if (!match || match.length < 3) return '#ffffff';
+    return '#' + match.slice(0, 3).map(n => Number(n).toString(16).padStart(2, '0')).join('');
+  }
+
+  function escapeAttr(value) {
+    return String(value).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  }
+
+  function ensureModal() {
+    if (document.getElementById('custom-theme-modal')) return;
+
+    const style = document.createElement('style');
+    style.id = 'custom-theme-modal-style';
+    style.textContent = `
+      #custom-theme-modal{position:fixed;inset:0;z-index:20000;display:none;align-items:center;justify-content:center;padding:clamp(18px,3vw,32px);background:rgba(0,0,0,.86);backdrop-filter:blur(10px) saturate(1.08);font-family:'Space Mono',monospace}
+      #custom-theme-modal.show{display:flex}
+      #custom-theme-modal .ct-box{width:min(350px,calc(100vw - 32px));max-height:min(88vh,760px);overflow:auto;background:#050b16;border:1px solid #4a7aff;border-radius:12px;padding:25px;box-shadow:0 0 30px rgba(0,0,0,.8),0 0 0 1px rgba(74,122,255,.16) inset;color:#e4edff}
+      #custom-theme-modal h3{margin:0 0 20px;color:#e4edff;text-align:center;font-size:1.02rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+      #custom-theme-modal label{color:#a0beff;font-size:.75rem;line-height:1.2;margin:0 0 5px;font-weight:400;letter-spacing:.02em}
+      #custom-theme-modal input[type="text"]{width:100%;height:38px;padding:8px;background:rgba(255,255,255,.05);border:1px solid #3c64f0;color:#fff;border-radius:4px;outline:none;font:700 .8rem 'Space Mono',monospace;letter-spacing:.02em}
+      #custom-theme-modal input[type="text"]:focus{border-color:#5effa8;box-shadow:0 0 0 1px rgba(94,255,168,.16)}
+      #custom-theme-modal input[type="color"]{width:36px;height:36px;min-width:36px;padding:0;border:1px solid #3c64f0;border-radius:6px;cursor:pointer;background:transparent}
+      #custom-theme-modal button{min-height:34px;padding:8px;border-radius:6px;font:700 .78rem 'Space Mono',monospace;cursor:pointer;transition:transform .18s ease}
+      #custom-theme-modal button:hover{transform:translateY(-1px)}
+      @media(max-width:520px){#custom-theme-modal .ct-box{padding:20px}#custom-theme-modal .ct-actions{flex-direction:column}#custom-theme-modal button{width:100%}}
+    `;
+    document.head.appendChild(style);
+
+    const modal = document.createElement('div');
+    modal.id = 'custom-theme-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.innerHTML = `
+      <div class="ct-box">
+        <h3 id="ctTitle">NEUES THEME ERSTELLEN</h3>
+        <div style="margin-bottom:15px">
+          <label for="ctName" style="display:block">Theme Name</label>
+          <input type="text" id="ctName" placeholder="Mein Neon Theme" maxlength="15" autocomplete="off" spellcheck="false">
+        </div>
+        <div id="ctInputs" style="display:flex;flex-direction:column;gap:12px;margin-bottom:25px"></div>
+        <div class="ct-actions" style="display:flex;gap:10px;align-items:center">
+          <button type="button" id="ctCancelBtn" style="flex:1;background:transparent;border:1px solid #3c64f0;color:#a0beff">Abbrechen</button>
+          <button type="button" id="ctDeleteBtn" style="display:none;background:transparent;border:1px solid #ff4a4a;color:#ff4a4a">Löschen</button>
+          <button type="button" id="ctSaveBtn" style="flex:1;background:#4a7aff;border:none;color:#fff">Speichern</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+
+    modal.addEventListener('click', e => { if (e.target === modal) window.closeCustomThemeModal(); });
+    document.getElementById('ctCancelBtn').addEventListener('click', window.closeCustomThemeModal);
+    document.getElementById('ctSaveBtn').addEventListener('click', window.saveCustomTheme);
+    document.getElementById('ctDeleteBtn').addEventListener('click', window.deleteCustomTheme);
+  }
+
+  function updateThemeDropdowns() {
+    const themes = readCustomThemes();
+    const active = localStorage.getItem(THEME_KEY) || '';
+
+    document.querySelectorAll('.theme-select').forEach(sel => {
+      sel.innerHTML = '';
+      sel.add(new Option('Cyber (Default)', ''));
+      sel.add(new Option('Wii Style', 'theme-wii'));
+      sel.add(new Option('Retro', 'theme-retro'));
+      sel.add(new Option('Cyberpunk', 'theme-cyberpunk'));
+
+      themes.forEach(ct => {
+        const name = ct.name || 'Custom Theme';
+        sel.add(new Option(name, ct.id));
+        sel.add(new Option('✎ Bearbeiten: ' + name, 'edit_' + ct.id));
+      });
+
+      if (themes.length < MAX_CUSTOM_THEMES) sel.add(new Option('+ Neues Custom Theme...', 'new-custom'));
+      sel.value = Array.from(sel.options).some(o => o.value === active) ? active : '';
+      sel.onchange = () => window.changeTheme(sel.value);
+    });
+  }
+
+  function syncSelects(value) {
+    document.querySelectorAll('.theme-select').forEach(sel => {
+      sel.value = Array.from(sel.options).some(o => o.value === value) ? value : '';
+    });
+  }
+
+  function applySavedCustom(id) {
+    const ct = readCustomThemes().find(t => t.id === id);
+    if (ct && ct.colors) applyThemeColors(ct.colors);
+  }
+
+  window.changeTheme = function(value, isInit = false) {
+    const val = value || '';
+    const prev = localStorage.getItem(THEME_KEY) || '';
+
+    if (val === 'new-custom') {
+      window.openCustomThemeModal();
+      syncSelects(prev);
+      return;
+    }
+
+    if (val.startsWith('edit_') || val.startsWith('edit-')) {
+      window.openCustomThemeModal(val.replace(/^edit[_-]/, ''));
+      syncSelects(prev);
+      return;
+    }
+
+    if (!isInit && val === prev && val.startsWith('custom-')) {
+      window.openCustomThemeModal(val);
+      syncSelects(prev);
+      return;
+    }
+
+    localStorage.setItem(THEME_KEY, val);
+    clearThemeColors();
+    setThemeClass(val);
+    if (val.startsWith('custom-')) applySavedCustom(val);
+    syncSelects(val);
+
+    if (!isInit && window.MUSTNO_AUDIO && typeof window.MUSTNO_AUDIO.handleThemeChanged === 'function') {
+      window.MUSTNO_AUDIO.handleThemeChanged(true);
+    } else if (!isInit && typeof window.playCurrentTrack === 'function') {
+      window.trackIdx = 0;
+      localStorage.setItem('mustno-track-idx', '0');
+      localStorage.setItem('mustno-bgm-time', '0');
+      window.playCurrentTrack();
+    }
+  };
+
+  window.openCustomThemeModal = function(editId = null) {
+    ensureModal();
+    currentEditId = editId;
+    const modal = document.getElementById('custom-theme-modal');
+    const title = document.getElementById('ctTitle');
+    const nameInput = document.getElementById('ctName');
+    const deleteBtn = document.getElementById('ctDeleteBtn');
+    const inputs = document.getElementById('ctInputs');
+    const themes = readCustomThemes();
+    const existing = editId ? themes.find(t => t.id === editId) : null;
+    const startColors = existing && existing.colors ? { ...getCurrentThemeColors(), ...existing.colors } : getCurrentThemeColors();
+
+    title.textContent = existing ? 'THEME BEARBEITEN' : 'NEUES THEME ERSTELLEN';
+    nameInput.value = existing ? (existing.name || '') : '';
+    deleteBtn.style.display = existing ? 'block' : 'none';
+    inputs.innerHTML = '';
+
+    const labels = {
+      bg: 'Hintergrund',
+      accent: 'Accent (Primär)',
+      green: 'Highlight (Grün)',
+      text: 'Text Farbe',
+      border: 'Rahmen'
+    };
+
+    COLOR_KEYS.forEach(key => {
+      const value = startColors[key] || getCurrentThemeColors()[key];
+      const field = document.createElement('div');
+      field.style.cssText = 'display:flex;flex-direction:column;gap:4px';
+      field.innerHTML = `
+        <label style="display:flex;justify-content:space-between;gap:10px">
+          <span>${labels[key]}</span><span style="color:#506eb9;font-size:.58rem;white-space:nowrap">HEX / RGB / HSL / NAME</span>
+        </label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="color" id="ctColor-${key}" value="${cssToHex(value)}">
+          <input type="text" id="ctText-${key}" value="${escapeAttr(value)}" placeholder="#hex, rgb(), red..." spellcheck="false">
+        </div>`;
+      inputs.appendChild(field);
+
+      const picker = document.getElementById('ctColor-' + key);
+      const text = document.getElementById('ctText-' + key);
+      picker.addEventListener('input', () => { text.value = picker.value; window.previewCustomTheme(); });
+      text.addEventListener('input', () => { picker.value = cssToHex(text.value); window.previewCustomTheme(); });
+    });
+
+    modal.classList.add('show');
+    requestAnimationFrame(() => nameInput.focus());
+  };
+
+  window.collectCustomThemeColors = function() {
+    const colors = {};
+    COLOR_KEYS.forEach(key => {
+      const input = document.getElementById('ctText-' + key);
+      colors[key] = input ? input.value.trim() : '';
+    });
+    return colors;
+  };
+
+  window.previewCustomTheme = function() {
+    clearThemeColors();
+    setThemeClass('custom-preview');
+    applyThemeColors(window.collectCustomThemeColors());
+  };
+
+  window.saveCustomTheme = function() {
+    const themes = readCustomThemes();
+    const name = (document.getElementById('ctName')?.value || '').trim() || 'Custom Theme';
+    const colors = window.collectCustomThemeColors();
+
+    if (currentEditId) {
+      const idx = themes.findIndex(t => t.id === currentEditId);
+      if (idx !== -1) themes[idx] = { id: currentEditId, name, colors };
+    } else {
+      currentEditId = 'custom-' + Date.now();
+      themes.push({ id: currentEditId, name, colors });
+    }
+
+    writeCustomThemes(themes);
+    document.getElementById('custom-theme-modal').classList.remove('show');
+    updateThemeDropdowns();
+    window.changeTheme(currentEditId, false);
+  };
+
+  window.deleteCustomTheme = function() {
+    if (!currentEditId) return;
+    writeCustomThemes(readCustomThemes().filter(t => t.id !== currentEditId));
+    currentEditId = null;
+    document.getElementById('custom-theme-modal').classList.remove('show');
+    updateThemeDropdowns();
+    window.changeTheme('', false);
+  };
+
+  window.closeCustomThemeModal = function() {
+    const modal = document.getElementById('custom-theme-modal');
+    if (modal) modal.classList.remove('show');
+    const active = localStorage.getItem(THEME_KEY) || '';
+    clearThemeColors();
+    setThemeClass(active);
+    if (active.startsWith('custom-')) applySavedCustom(active);
+    syncSelects(active);
+  };
+
+  function initThemeSystem() {
+    ensureModal();
+    updateThemeDropdowns();
+    window.changeTheme(localStorage.getItem(THEME_KEY) || '', true);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initThemeSystem, { once: true });
+  } else {
+    initThemeSystem();
+  }
+
+  window.addEventListener('storage', e => {
+    if (e.key === THEME_KEY || e.key === CUSTOM_KEY) initThemeSystem();
+  });<div id="custom-theme-modal" style="position:fixed; inset:0; z-index:20000; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px); font-family:'Space Mono', monospace;">
+  <div style="background:#050b16; border:1px solid #4a7aff; padding:25px; border-radius:12px; width:90%; max-width:350px; box-shadow:0 0 30px rgba(0,0,0,0.8);">
+    <h3 id="ct-modal-title" style="color:#e4edff; text-align:center; margin-bottom:20px; font-weight:bold; letter-spacing:0.05em;">NEUES THEME ERSTELLEN</h3>
+    
+    <div style="margin-bottom:15px;">
+        <label style="color:#a0beff; font-size:0.8rem; display:block; margin-bottom:5px;">Theme Name</label>
+        <input type="text" id="ct-name" placeholder="Mein Neon Theme" maxlength="15" style="width:100%; padding:8px; background:rgba(255,255,255,0.05); border:1px solid #3c64f0; color:#fff; border-radius:4px; outline:none; font-family:inherit; font-weight:bold;">
+    </div>
+
+    <div id="ct-inputs" style="display:flex; flex-direction:column; gap:12px; margin-bottom:25px;"></div>
+
+    <div style="display:flex; gap:10px;">
+      <button onclick="closeCustomThemeModal()" style="flex:1; padding:8px; background:transparent; border:1px solid #3c64f0; color:#a0beff; border-radius:6px; cursor:pointer;">Abbrechen</button>
+      <button id="ct-btn-delete" onclick="deleteCustomTheme()" style="display:none; padding:8px; background:transparent; border:1px solid #ff4a4a; color:#ff4a4a; border-radius:6px; cursor:pointer;">Löschen</button>
+      <button onclick="saveCustomTheme()" style="flex:1; padding:8px; background:#4a7aff; border:none; color:#fff; font-weight:bold; border-radius:6px; cursor:pointer;">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script data-mustno-modal-fix="true">
+    // Sicherheitsnetz: Versteckt das Theme-Modal beim Start, damit Knöpfe klickbar bleiben
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            const modal = document.getElementById('custom-theme-modal');
+            if (modal && modal.style.display !== 'none') modal.style.display = 'none';
+        }, 50);
+    });
+</script>
+})();
+</script>
+
 
 <!-- ========================================== -->
 <!-- ── PREMIUM AUDIO SYSTEM (Widget + Logic) ── -->
@@ -365,7 +840,7 @@ function updateBgmUI() {
     document.getElementById('icon-pause').style.display = 'none'; 
   }
   
-  const tNameClass = document.body.className || 'default';
+  const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
   const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
   const safeIdx = trackIdx % playlist.length;
   document.getElementById('bgm-track-name').textContent = `TRACK 0${safeIdx + 1}`;
@@ -380,7 +855,7 @@ function updateBgmUI() {
 }
 
 function playCurrentTrack() {
-  const tNameClass = document.body.className || 'default';
+  const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
   const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
   bgmAudio.src = playlist[trackIdx % playlist.length];
   
@@ -401,7 +876,7 @@ window.toggleBGM = function() {
 };
 
 window.nextTrack = function() {
-  const tNameClass = document.body.className || 'default';
+  const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
   const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
   trackIdx = (trackIdx + 1) % playlist.length; 
   localStorage.setItem('mustno-track-idx', trackIdx); 
@@ -475,6 +950,144 @@ playCurrentTrack();
         // Sicherheitshalber nach 1 Sekunde nochmal ausführen
         setTimeout(bindClickables, 1000); 
     });
+</script>
+<script id="mustno-snake-cursor-script">
+(function () {
+  const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!finePointer || reduceMotion) return;
+
+  const word = 'MUSTNO';
+  const letters = word.split('');
+  const wrap = document.createElement('div');
+  wrap.className = 'mustno-snake-cursor';
+  wrap.setAttribute('aria-hidden', 'true');
+
+  const nodes = letters.map((letter) => {
+    const node = document.createElement('span');
+    node.className = 'mustno-snake-letter';
+    node.textContent = letter;
+    wrap.appendChild(node);
+    return node;
+  });
+
+  const dots = Array.from({ length: 4 }, (_, i) => {
+    const dot = document.createElement('span');
+    dot.className = 'mustno-ring-dot' + (i % 2 ? ' square' : '');
+    wrap.appendChild(dot);
+    return dot;
+  });
+
+  document.body.appendChild(wrap);
+
+  let targetX = window.innerWidth / 2;
+  let targetY = window.innerHeight / 2;
+  let lastMove = performance.now();
+  let visible = false;
+
+  const lineSpacing = 13;
+  const circleRadius = 31;
+  const dotRadius = 17;
+  const idleThreshold = 250;
+
+  const chain = nodes.map((_, i) => ({
+    x: targetX - i * lineSpacing,
+    y: targetY,
+    angle: 0
+  }));
+
+  function setVisible(on) {
+    visible = on;
+    wrap.style.opacity = on ? '1' : '0';
+  }
+
+  document.addEventListener('mousemove', (event) => {
+    targetX = event.clientX;
+    targetY = event.clientY;
+    lastMove = performance.now();
+    setVisible(true);
+  }, { passive: true });
+
+  document.addEventListener('mouseleave', () => setVisible(false));
+
+  function frame(now) {
+    const idle = now - lastMove > idleThreshold;
+
+    if (idle) {
+      const spin = now * 0.00115;
+      chain.forEach((p, i) => {
+        const base = spin + (Math.PI * 2 * i / nodes.length) - Math.PI / 2;
+        const tx = targetX + Math.cos(base) * circleRadius;
+        const ty = targetY + Math.sin(base) * circleRadius;
+        p.x += (tx - p.x) * 0.18;
+        p.y += (ty - p.y) * 0.18;
+        const tangent = base + Math.PI / 2;
+        p.angle += (tangent - p.angle) * 0.18;
+      });
+
+      dots.forEach((dot, i) => {
+        const a = -spin * 0.55 + (Math.PI * 2 * i / dots.length);
+        const x = targetX + Math.cos(a) * dotRadius;
+        const y = targetY + Math.sin(a) * dotRadius;
+        dot.style.left = x + 'px';
+        dot.style.top = y + 'px';
+        dot.style.opacity = visible ? (i % 2 ? '.95' : '.72') : '0';
+        dot.style.transform = 'translate(-50%, -50%) rotate(' + (spin + i) + 'rad)';
+      });
+    } else {
+      chain[0].x += (targetX - chain[0].x) * 0.35;
+      chain[0].y += (targetY - chain[0].y) * 0.35;
+
+      for (let i = 1; i < chain.length; i++) {
+        const prev = chain[i - 1];
+        const cur = chain[i];
+        const dx = prev.x - cur.x;
+        const dy = prev.y - cur.y;
+        const angle = Math.atan2(dy, dx);
+        const desiredX = prev.x - Math.cos(angle) * lineSpacing;
+        const desiredY = prev.y - Math.sin(angle) * lineSpacing;
+
+        cur.x += (desiredX - cur.x) * 0.42;
+        cur.y += (desiredY - cur.y) * 0.42;
+      }
+
+      for (let i = 0; i < chain.length; i++) {
+        const next = chain[Math.min(i + 1, chain.length - 1)];
+        const p = chain[i];
+        const a = Math.atan2(next.y - p.y, next.x - p.x);
+        p.angle += (a - p.angle) * 0.30;
+      }
+
+      dots.forEach((dot) => {
+        dot.style.opacity = '0';
+      });
+    }
+
+    const head = chain[0];
+    const tail = chain[chain.length - 1];
+    const reverseWord = !idle && head.x > tail.x;
+
+    nodes.forEach((node, i) => {
+      const p = chain[i];
+      const letterIndex = reverseWord ? (letters.length - 1 - i) : i;
+      let displayAngle = p.angle;
+
+      /* Keep MUSTNO readable from left to right even when the mouse moves from either side. */
+      if (!idle && displayAngle > Math.PI / 2) displayAngle -= Math.PI;
+      if (!idle && displayAngle < -Math.PI / 2) displayAngle += Math.PI;
+
+      node.textContent = letters[letterIndex];
+      node.style.left = p.x + 'px';
+      node.style.top = p.y + 'px';
+      node.style.opacity = visible ? String(1 - i * 0.055) : '0';
+      node.style.transform = 'translate(-50%, -50%) rotate(' + displayAngle + 'rad)';
+    });
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>
