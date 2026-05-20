@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MustNo Physics - Universe Sandbox</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>
+// Theme-Sync Script (Verhindert FOUC)
+(function() {
+    const activeTheme = localStorage.getItem('mustno-theme') || '';
+    if (activeTheme) {
+        document.documentElement.className = activeTheme;
+        const observer = new MutationObserver((mutations, obs) => {
+            if (document.body) {
+                document.body.className = activeTheme;
+                const sync = () => { document.documentElement.className = document.body.className; };
+                new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                obs.disconnect();
+            }
+        });
+        observer.observe(document.documentElement, { childList: true });
+    }
+    const style = document.createElement('style');
+    style.innerHTML = `
+        :root {
+            --m-bg: var(--bg, #050b16);
+            --m-text: var(--text, #e4edff);
+            --m-accent: var(--accent, #4a7aff);
+        }
+        html.theme-wii, body.theme-wii { --m-bg: #f4f4f4 !important; --m-text: #444444 !important; --m-accent: #00baff !important; }
+        #audio-widget { background-color: var(--m-bg) !important; color: var(--m-text) !important; border-color: color-mix(in srgb, var(--m-accent) 30%, transparent) !important; }
+        .audio-progress-bg { background-color: color-mix(in srgb, var(--m-accent) 25%, transparent) !important; }
+        .audio-progress-fill { background-color: var(--m-accent) !important; }
+        .audio-btn { color: var(--m-text) !important; }
+        .audio-btn:hover { color: var(--m-accent) !important; }
+    `;
+    document.head.appendChild(style);
+})();
+</script>
+<style>
+:root {
+  --bg: #050b16; --accent: #4a7aff; --green: #5effa8; --text: #e4edff;
+  --dim: rgba(160,190,255,.45); --muted: rgba(80,110,185,.38); --border: rgba(60,100,240,.2);
+  --font-main: 'Syne', sans-serif; --font-mono: 'Space Mono', monospace;
+  --hdr-bg: linear-gradient(to bottom, rgba(5,11,22,.85), rgba(5,11,22,0));
+  --panel-bg: rgba(5,11,22,0.75); --glass: rgba(255,255,255,.03);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-main);user-select:none;}
+
+/* Backgrounds */
+.bg-noise{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 60% at 15% 50%,rgba(74,122,255,.055) 0%,transparent 65%),radial-gradient(ellipse 50% 70% at 85% 40%,rgba(94,255,168,.03) 0%,transparent 60%);pointer-events:none;}
+.grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(60,100,240,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(60,100,240,.07) 1px,transparent 1px);background-size:56px 56px;pointer-events:none;}
+
+/* Header */
+header { position: absolute; top: 0; left: 0; width: 100%; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; border-bottom: 1px solid var(--border); background: var(--hdr-bg); backdrop-filter: blur(8px); }
+.logo { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; letter-spacing: .2em; color: var(--text); display:flex; align-items:center; cursor:pointer;}
+.logo span { color: transparent; -webkit-text-stroke: 1px var(--accent); }
+.header-right { display: flex; gap: 20px; align-items: center; }
+.btn-back { font-family: var(--font-mono); font-size: 0.7rem; color: var(--dim); text-decoration: none; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.2s; }
+.btn-back:hover { color: var(--text); border-color: var(--accent); background: var(--glass); }
+
+/* Canvas */
+#sim-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
+canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+
+/* Panels */
+.panel { position: absolute; z-index: 100; background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 8px; padding: 15px; color: var(--text); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+#control-panel { top: 70px; right: 20px; width: 280px; max-height: calc(100vh - 90px); overflow-y: auto; }
+#control-panel::-webkit-scrollbar { width: 4px; }
+#control-panel::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+.section-title { font-family: var(--font-mono); font-size: 0.7rem; color: var(--green); text-transform: uppercase; letter-spacing: .2em; margin-bottom: 10px; margin-top: 15px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.section-title:first-child { margin-top: 0; }
+.btn { background: var(--glass); border: 1px solid var(--border); color: var(--text); font-family: var(--font-mono); font-size: 0.7rem; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: all 0.2s; width: 100%; text-align: center; margin-bottom: 8px; text-transform: uppercase; }
+.btn:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); border-color: var(--accent); }
+.btn.active { background: var(--accent); color: var(--bg); font-weight: bold; }
+.btn-group { display: flex; gap: 5px; margin-bottom: 8px; }
+.btn-group .btn { margin-bottom: 0; }
+
+.slider-group { margin-bottom: 12px; }
+.slider-header { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.65rem; color: var(--dim); margin-bottom: 4px; }
+input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: var(--green); cursor: pointer; margin-top: -5px; }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; background: var(--border); border-radius: 1px; }
+
+.toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-family: var(--font-mono); font-size: 0.7rem; }
+.switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider-toggle { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .3s; border-radius: 18px; }
+.slider-toggle:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: var(--dim); transition: .3s; border-radius: 50%; }
+input:checked + .slider-toggle { background-color: color-mix(in srgb, var(--green) 40%, transparent); border: 1px solid var(--green); }
+input:checked + .slider-toggle:before { transform: translateX(16px); background-color: var(--green); }
+
+/* Search Bar */
+#search-panel { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); z-index: 100; width: 300px; }
+#search-input { width: 100%; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 15px; color: var(--text); font-family: var(--font-mono); font-size: 0.8rem; outline: none; backdrop-filter: blur(10px); }
+#search-input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(74,122,255,0.3); }
+#search-results { position: absolute; top: 110%; left: 0; width: 100%; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; max-height: 200px; overflow-y: auto; display: none; flex-direction: column; }
+.search-item { padding: 10px 15px; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.75rem; cursor: pointer; transition: 0.2s; display:flex; align-items:center; gap:10px; }
+.search-item:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+.search-color-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* Inspector */
+#inspector { display: none; bottom: 80px; left: 20px; width: 320px; padding: 20px; }
+#ins-name { font-size: 1.5rem; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
+.ins-stat { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 4px; color: var(--dim); border-bottom: 1px dashed var(--border); padding-bottom: 2px;}
+.ins-stat span:last-child { color: var(--text); font-weight: bold; }
+.ins-lore-box { margin-top: 15px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border-left: 2px solid var(--accent); }
+#ins-lore { font-size: 0.8rem; line-height: 1.4; color: var(--dim); margin-bottom: 10px; }
+#ins-detailed-lore { font-size: 0.75rem; line-height: 1.5; color: var(--text); display: none; margin-bottom:10px; padding-top:10px; border-top:1px solid var(--border);}
+.btn-text { background: none; border: none; color: var(--accent); font-family: var(--font-mono); font-size: 0.7rem; cursor: pointer; text-decoration: underline; padding: 0; margin-bottom:10px; }
+
+#audio-widget { position: fixed; bottom: 20px; left: 20px; z-index: 10005; display: flex; gap: 14px; align-items: center; background: var(--glass); border: 1px solid var(--border); padding: 10px 18px 10px 10px; border-radius: 12px; backdrop-filter: blur(12px); overflow: hidden; }
+.audio-eq { display: flex; gap: 3px; align-items: flex-end; height: 16px; width: 18px; }
+.eq-bar { width: 4px; background: var(--dim); border-radius: 2px; height: 4px; }
+#audio-widget.is-playing .eq-bar { background: var(--green); animation: eq-bounce 0.8s infinite alternate ease-in-out; }
+#audio-widget.is-playing .eq-bar:nth-child(2) { animation-delay: -0.4s; }
+#audio-widget.is-playing .eq-bar:nth-child(3) { animation-delay: -0.2s; }
+@keyframes eq-bounce { 0%, 20% { height: 4px; } 100% { height: 16px; } }
+.audio-info { display: flex; flex-direction: column; justify-content: center; min-width: 90px; }
+.audio-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3px; gap: 12px; }
+.audio-label { font-family: var(--font-mono); font-size: 0.45rem; color: #888; letter-spacing: 0.25em; text-transform: uppercase; }
+.audio-time { font-family: var(--font-mono); font-size: 0.45rem; color: #888; }
+.audio-track { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; color: var(--text); letter-spacing: 0.15em; }
+.audio-controls { display: flex; gap: 6px; align-items: center; margin-left: 6px; padding-left: 14px; border-left: 1px solid var(--border); }
+.audio-btn { background: transparent; border: none; color: var(--dim); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
+.audio-btn svg { width: 14px; height: 14px; fill: currentColor; }
+.audio-progress-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; cursor: pointer; }
+.audio-progress-fill { height: 100%; width: 0%; pointer-events: none; }
+
+#toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--panel-bg); border: 1px solid var(--accent); color: var(--text); padding: 10px 20px; border-radius: 20px; font-family: var(--font-mono); font-size: 0.8rem; opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 1000; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="bg-noise"></div>
+<div class="grid"></div>
+
+<header>
+  <div class="logo" onclick="window.location.href='index.html'">MUSTNO <span>PHYSICS</span></div>
+  <div class="header-right">
+    <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--green);" id="fps-counter">FPS: 00</div>
+    <a href="index.html" class="btn-back">Zurück zum Hub</a>
+  </div>
+</header>
+
+<div id="search-panel">
+    <input type="text" id="search-input" placeholder="Planeten suchen... (z.B. Erde)" autocomplete="off">
+    <div id="search-results"></div>
+</div>
+
+<div id="sim-container">
+  <canvas id="simCanvas"></canvas>
+</div>
+
+<div class="panel" id="control-panel">
+  <div class="section-title">Erstellen (Slingshot)</div>
+  <div class="btn-group">
+    <button class="btn active" id="tool-planet" onclick="setTool('planet')">Planet</button>
+    <button class="btn" id="tool-star" onclick="setTool('star')">Stern</button>
+    <button class="btn" id="tool-blackhole" onclick="setTool('blackhole')">S.Loch</button>
+  </div>
+  
+  <div class="slider-group">
+    <div class="slider-header"><span>Masse</span><span id="mass-val">1x</span></div>
+    <input type="range" id="mass-slider" min="0.1" max="50" step="0.1" value="1">
+  </div>
+
+  <div class="section-title">Zeit & Physik</div>
+  <div class="slider-group">
+    <div class="slider-header"><span>Zeit-Skalierung</span><span id="time-val">1.0x</span></div>
+    <input type="range" id="time-slider" min="0" max="10" step="0.1" value="1">
+  </div>
+  <div class="slider-group">
+    <div class="slider-header"><span>Gravitation (G)</span><span id="g-val">1x</span></div>
+    <input type="range" id="g-slider" min="0.1" max="5" step="0.1" value="1">
+  </div>
+
+  <div class="toggle-row">
+    <span>Habitable Zone zeigen</span>
+    <label class="switch"><input type="checkbox" id="tog-hz" checked><span class="slider-toggle"></span></label>
+  </div>
+  <div class="toggle-row">
+    <span>Kollisionen erlauben</span>
+    <label class="switch"><input type="checkbox" id="tog-collision" checked><span class="slider-toggle"></span></label>
+  </div>
+  <div class="toggle-row">
+    <span>Kometenschweife</span>
+    <label class="switch"><input type="checkbox" id="tog-trails" checked><span class="slider-toggle"></span></label>
+  </div>
+
+  <div class="section-title">Szenarien</div>
+  <button class="btn" onclick="spawnSolarSystem()">Sonnensystem laden</button>
+  <button class="btn" onclick="spawnBinarySystem()">Doppelstern-System</button>
+  <button class="btn" style="border-color:rgba(255,80,80,0.5); color:#ff8888;" onclick="clearUniverse()">Universum löschen</button>
+  
+  <div style="font-family:var(--font-mono); font-size:0.6rem; color:var(--dim); margin-top:15px; text-align:center;">
+    Nav: Rechtsklick + Ziehen | Zoom: Mausrad<br>
+    Erstellen: Linksklick + Ziehen (Slingshot)
+  </div>
+</div>
+
+<div class="panel" id="inspector">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div id="ins-name">Erde</div>
+        <button onclick="closeInspector()" style="background:none; border:none; color:var(--dim); cursor:pointer;">✕</button>
+    </div>
+    
+    <div class="ins-stat"><span>Masse</span><span id="ins-mass">1 M_Erde</span></div>
+    <div class="ins-stat"><span>Radius</span><span id="ins-radius">6371 km</span></div>
+    <div class="ins-stat"><span>Geschw.</span><span id="ins-vel">29.7 km/s</span></div>
+    <div class="ins-stat"><span>Temperatur</span><span id="ins-temp">288K (+15°C)</span></div>
+    
+    <div class="ins-lore-box">
+        <div id="ins-lore">Heimatwelt.</div>
+        <div id="ins-detailed-lore">Zusätzliche historische oder physikalische Fakten.</div>
+        <button id="btn-read-more" class="btn-text" onclick="toggleDetailedLore()">Weiter lesen ↓</button>
+    </div>
+    
+    <button class="btn" style="border-color:rgba(255,80,80,0.5); color:#ff8888; margin-bottom:0; margin-top:10px;" onclick="deleteSelectedBody()">Objekt zerstören</button>
+</div>
+
+<div id="toast">Nachricht</div>
+
+<div id="audio-widget">
+  <div class="audio-eq"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
+  <div class="audio-info">
+    <div class="audio-header"><div class="audio-label">AMBIENCE</div><div class="audio-time" id="bgm-time">0:00 / 0:00</div></div>
+    <div class="audio-track" id="bgm-track-name">TRACK 01</div>
+  </div>
+  <div class="audio-controls">
+    <button class="audio-btn" onclick="toggleBGM()"><svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg></button>
+    <button class="audio-btn" onclick="nextTrack()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+  </div>
+  <div class="audio-progress-bg" onclick="seekAudio(event)"><div class="audio-progress-fill" id="bgm-progress"></div></div>
+</div>
+
+<script>
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+let width, height;
+
+// Camera & Viewport
+let camera = { x: 0, y: 0, zoom: 0.5, target: null };
+let isPanning = false;
+let panStart = { x: 0, y: 0 };
+let camStart = { x: 0, y: 0 };
+
+// Physics State
+let bodies = [];
+let particles = [];
+let G = 0.5; 
+let timeScale = 1.0;
+let collisionsEnabled = true;
+let trailsEnabled = true;
+let showHZ = true;
+
+// Interaction State
+let currentTool = 'planet';
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
+let currentMouse = { x: 0, y: 0 };
+let selectedBody = null;
+let lastInspectorBody = null;
+let isLoreExpanded = false;
+
+// Types Definition
+const TYPES = {
+    PLANET: { color: '#4a7aff', baseMass: 10, radiusMod: 1 },
+    STAR: { color: '#ffb04a', baseMass: 10000, radiusMod: 3, glow: true },
+    BLACKHOLE: { color: '#000000', baseMass: 50000, radiusMod: 1.5, glow: true },
+    ASTEROID: { color: '#8899aa', baseMass: 0.1, radiusMod: 0.5 }
+};
+
+class Body {
+    constructor(x, y, vx, vy, mass, type, name = null, color = null, lore = null, detailedLore = null) {
+        this.id = Math.random().toString(36).substr(2, 9);
+        this.x = x; this.y = y;
+        this.vx = vx; this.vy = vy;
+        this.mass = mass;
+        this.type = type;
+        this.radius = Math.max(2, Math.pow(this.mass, 1/3) * 1.2 * type.radiusMod);
+        
+        this.color = color || this.generateColor();
+        this.name = name || (type === TYPES.STAR ? "Unbekannter Stern" : (type === TYPES.BLACKHOLE ? "Anomalie" : "Exoplanet"));
+        this.lore = lore || "Ein frisch entdecktes Himmelsobjekt.";
+        this.detailedLore = detailedLore || "Keine detaillierten Scans verfügbar. Die Zusammensetzung ist unbekannt.";
+        
+        this.trail = [];
+        this.temp = type === TYPES.STAR ? 5000 + (mass/1000) : 20 + Math.random()*100;
+    }
+
+    generateColor() {
+        if(this.type === TYPES.BLACKHOLE) return '#000';
+        if(this.type === TYPES.STAR) {
+            const hues = [60, 45, 30, 15, 0];
+            const tempIdx = Math.min(4, Math.floor(this.mass / 20000));
+            return `hsl(${hues[tempIdx]}, 100%, 70%)`;
+        }
+        if(this.type === TYPES.ASTEROID) return '#667788';
+        return `hsl(${Math.random() * 360}, 60%, 60%)`;
+    }
+
+    update(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        
+        // Dynamic Temperature based on distance to stars
+        if (this.type !== TYPES.STAR && this.type !== TYPES.BLACKHOLE) {
+            let heat = 20; // Base space temp (very cold, scaled up for gameplay)
+            for(let b of bodies) {
+                if (b.type === TYPES.STAR) {
+                    let dSq = (this.x - b.x)**2 + (this.y - b.y)**2;
+                    heat += (b.mass * 1000) / (dSq + 100);
+                }
+            }
+            this.temp = Math.min(2000, heat); // Cap temp
+        }
+
+        if (trailsEnabled) {
+            this.trail.push({x: this.x, y: this.y});
+            if (this.trail.length > 80) this.trail.shift();
+        } else {
+            this.trail = [];
+        }
+    }
+
+    draw(ctx) {
+        // Render Trail
+        if (trailsEnabled && this.trail.length > 1) {
+            ctx.beginPath();
+            ctx.moveTo(this.trail[0].x, this.trail[0].y);
+            for (let i = 1; i < this.trail.length; i++) ctx.lineTo(this.trail[i].x, this.trail[i].y);
+            ctx.strokeStyle = this.type === TYPES.BLACKHOLE ? 'rgba(176,108,255,0.3)' : 
+                             (this.type === TYPES.STAR ? 'rgba(255,200,100,0.3)' : 'rgba(74,122,255,0.2)');
+            ctx.lineWidth = Math.max(1, this.radius * 0.2);
+            ctx.stroke();
+        }
+
+        // Render Body
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        
+        if (this.type === TYPES.BLACKHOLE) {
+            ctx.shadowBlur = this.radius * 4;
+            ctx.shadowColor = '#b06cff';
+            ctx.fillStyle = '#000';
+            ctx.fill();
+            ctx.strokeStyle = '#b06cff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        } else if (this.type === TYPES.STAR) {
+            let grad = ctx.createRadialGradient(this.x, this.y, this.radius*0.1, this.x, this.y, this.radius*3);
+            grad.addColorStop(0, '#fff');
+            grad.addColorStop(0.2, this.color);
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
+            ctx.arc(this.x, this.y, this.radius*3, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+        } else {
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+        
+        // Selection Highlight
+        if (selectedBody === this) {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 8, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(94, 255, 168, 0.8)';
+            ctx.lineWidth = 2 / camera.zoom;
+            ctx.stroke();
+        }
+    }
+}
+
+class Particle {
+    constructor(x, y, color, speed) {
+        this.x = x; this.y = y;
+        const a = Math.random() * Math.PI * 2;
+        const v = Math.random() * speed;
+        this.vx = Math.cos(a) * v; this.vy = Math.sin(a) * v;
+        this.life = 1.0; this.decay = Math.random() * 0.02 + 0.01;
+        this.color = color;
+    }
+    update(dt) { this.x += this.vx*dt; this.y += this.vy*dt; this.life -= this.decay*dt; }
+    draw(ctx) {
+        ctx.globalAlpha = Math.max(0, this.life);
+        ctx.fillStyle = this.color;
+        ctx.beginPath(); ctx.arc(this.x, this.y, 2/camera.zoom, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1.0;
+    }
+}
+
+function createExplosion(x, y, color, size) {
+    const count = Math.min(150, Math.floor(size * 4));
+    for(let i=0; i<count; i++) particles.push(new Particle(x, y, color, size * 0.4));
+}
+
+function computeGravity(dt) {
+    const actualG = G * (parseFloat(document.getElementById('g-slider').value) || 1);
+    
+    for (let i = 0; i < bodies.length; i++) {
+        let b1 = bodies[i];
+        for (let j = i + 1; j < bodies.length; j++) {
+            let b2 = bodies[j];
+            let dx = b2.x - b1.x; let dy = b2.y - b1.y;
+            let distSq = dx*dx + dy*dy;
+            
+            if (collisionsEnabled) {
+                let minDist = b1.radius + b2.radius;
+                if (distSq < minDist * minDist) {
+                    handleCollision(b1, b2, i, j);
+                    return; // Break out to avoid array out of bounds, rest computed next frame
+                }
+            }
+
+            let softening = 100; 
+            let dist = Math.sqrt(distSq + softening);
+            let force = (actualG * b1.mass * b2.mass) / (distSq + softening);
+            
+            let ax = (force * dx / dist); let ay = (force * dy / dist);
+            
+            b1.vx += (ax / b1.mass) * dt; b1.vy += (ay / b1.mass) * dt;
+            b2.vx -= (ax / b2.mass) * dt; b2.vy -= (ay / b2.mass) * dt;
+        }
+    }
+}
+
+function handleCollision(b1, b2, idx1, idx2) {
+    let newMass = b1.mass + b2.mass;
+    let newVx = (b1.vx * b1.mass + b2.vx * b2.mass) / newMass;
+    let newVy = (b1.vy * b1.mass + b2.vy * b2.mass) / newMass;
+    let newX = (b1.x * b1.mass + b2.x * b2.mass) / newMass;
+    let newY = (b1.y * b1.mass + b2.y * b2.mass) / newMass;
+    
+    let dominant = b1.mass > b2.mass ? b1 : b2;
+    let newType = dominant.type;
+    if (b1.type === TYPES.BLACKHOLE || b2.type === TYPES.BLACKHOLE) newType = TYPES.BLACKHOLE;
+    else if (newMass > TYPES.STAR.baseMass * 0.8) newType = TYPES.STAR;
+
+    createExplosion(newX, newY, dominant.color, Math.pow(newMass, 1/3));
+
+    let newBody = new Body(newX, newY, newVx, newVy, newMass, newType, dominant.name, dominant.color, dominant.lore, dominant.detailedLore);
+    
+    // Safety check if selected body was destroyed
+    if(selectedBody === b1 || selectedBody === b2) {
+        selectedBody = newBody;
+        lastInspectorBody = null; // force refresh
+    }
+    if(camera.target === b1 || camera.target === b2) camera.target = newBody;
+
+    bodies.splice(Math.max(idx1, idx2), 1);
+    bodies.splice(Math.min(idx1, idx2), 1);
+    bodies.push(newBody);
+}
+
+function toScreen(x, y) { return { x: (x - camera.x) * camera.zoom + width/2, y: (y - camera.y) * camera.zoom + height/2 }; }
+function toWorld(x, y) { return { x: (x - width/2) / camera.zoom + camera.x, y: (y - height/2) / camera.zoom + camera.y }; }
+
+window.addEventListener('resize', () => { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; });
+window.dispatchEvent(new Event('resize'));
+
+canvas.addEventListener('mousedown', (e) => {
+    if (e.button === 1 || e.button === 2) { // Middle or Right click = Pan
+        isPanning = true;
+        panStart = { x: e.clientX, y: e.clientY };
+        camStart = { x: camera.x, y: camera.y };
+        camera.target = null; // Break follow
+    } else if (e.button === 0) { // Left = Slingshot or Select
+        isDragging = true;
+        dragStart = toWorld(e.clientX, e.clientY);
+        currentMouse = { ...dragStart };
+    }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (isPanning) {
+        let dx = (panStart.x - e.clientX) / camera.zoom;
+        let dy = (panStart.y - e.clientY) / camera.zoom;
+        camera.x = camStart.x + dx;
+        camera.y = camStart.y + dy;
+    }
+    if (isDragging) {
+        currentMouse = toWorld(e.clientX, e.clientY);
+    }
+});
+
+canvas.addEventListener('mouseup', (e) => {
+    if (e.button === 1 || e.button === 2) { isPanning = false; return; }
+    if (!isDragging) return;
+    isDragging = false;
+    
+    let endW = toWorld(e.clientX, e.clientY);
+    let dx = dragStart.x - endW.x;
+    let dy = dragStart.y - endW.y;
+    let dist = Math.hypot(dx, dy);
+    
+    // If just clicked (no drag), try to select a body
+    if (dist < 10 / camera.zoom) {
+        let clicked = null;
+        for (let b of bodies) {
+            let d = Math.hypot(b.x - dragStart.x, b.y - dragStart.y);
+            if (d < b.radius + (10 / camera.zoom)) { clicked = b; break; }
+        }
+        selectedBody = clicked;
+        updateInspector();
+        return;
+    }
+
+    // Otherwise, spawn new body via slingshot
+    let typeDef = TYPES[currentTool.toUpperCase()] || TYPES.PLANET;
+    let massMult = parseFloat(document.getElementById('mass-slider').value) || 1;
+    let mass = typeDef.baseMass * massMult;
+    
+    let vx = dx * 0.02; // Sling scale
+    let vy = dy * 0.02;
+    
+    let newB = new Body(dragStart.x, dragStart.y, vx, vy, mass, typeDef);
+    newB.name = "Custom " + (typeDef === TYPES.STAR ? "Stern" : (typeDef === TYPES.BLACKHOLE ? "Anomalie" : "Planet"));
+    newB.lore = "Ein vom Nutzer erschaffenes Objekt.";
+    newB.detailedLore = `Erschaffen durch die Hand des Schöpfers. \nMasse-Multiplikator: ${massMult}x\nInitial-Geschwindigkeit: ${Math.hypot(vx,vy).toFixed(2)}`;
+    bodies.push(newB);
+});
+
+canvas.addEventListener('wheel', (e) => {
+    let zoomFactor = 1.1;
+    if (e.deltaY > 0) camera.zoom /= zoomFactor;
+    else camera.zoom *= zoomFactor;
+    camera.zoom = Math.max(0.01, Math.min(camera.zoom, 10)); // Clamp
+});
+
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+document.querySelectorAll('.btn-group .btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+
+function setTool(tool) { currentTool = tool; }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+
+['mass-slider', 'time-slider', 'g-slider'].forEach(id => {
+    let el = document.getElementById(id);
+    let val = document.getElementById(id.replace('slider', 'val'));
+    if(el && val) el.addEventListener('input', () => val.textContent = el.value + 'x');
+});
+
+document.getElementById('time-slider').addEventListener('input', e => timeScale = parseFloat(e.target.value));
+document.getElementById('tog-collision').addEventListener('change', e => collisionsEnabled = e.target.checked);
+document.getElementById('tog-trails').addEventListener('change', e => trailsEnabled = e.target.checked);
+document.getElementById('tog-hz').addEventListener('change', e => showHZ = e.target.checked);
+
+// Search Feature
+const searchInput = document.getElementById('search-input');
+const searchRes = document.getElementById('search-results');
+
+searchInput.addEventListener('input', (e) => {
+    let q = e.target.value.toLowerCase().trim();
+    searchRes.innerHTML = '';
+    if (!q) { searchRes.style.display = 'none'; return; }
+    
+    let matches = bodies.filter(b => b.name.toLowerCase().includes(q));
+    if (matches.length > 0) {
+        searchRes.style.display = 'flex';
+        matches.forEach(b => {
+            let div = document.createElement('div');
+            div.className = 'search-item';
+            div.innerHTML = `<div class="search-color-dot" style="background:${b.color};"></div><span>${b.name}</span>`;
+            div.onclick = () => {
+                selectedBody = b;
+                camera.target = b;
+                updateInspector();
+                searchInput.value = '';
+                searchRes.style.display = 'none';
+            };
+            searchRes.appendChild(div);
+        });
+    } else {
+        searchRes.style.display = 'none';
+    }
+});
+
+// Fix for Dropdown auto-closing (Inspector Logic)
+function updateInspector() {
+    const inspector = document.getElementById('inspector');
+    if(!selectedBody) {
+        inspector.style.display = 'none';
+        lastInspectorBody = null;
+        return; 
+    }
+    inspector.style.display = 'block';
+    
+    // Live updates (velocity, temp)
+    let vel = Math.hypot(selectedBody.vx, selectedBody.vy).toFixed(1);
+    document.getElementById('ins-vel').innerText = vel + " km/s";
+    let c = Math.floor(selectedBody.temp - 273.15);
+    document.getElementById('ins-temp').innerText = `${Math.floor(selectedBody.temp)}K (${c > 0 ? '+'+c : c}°C)`;
+
+    // Static text updates ONLY if body changed
+    if (lastInspectorBody !== selectedBody) {
+        document.getElementById('ins-name').innerText = selectedBody.name;
+        document.getElementById('ins-name').style.color = selectedBody.color;
+        
+        let mStr = (selectedBody.mass / 10).toFixed(2) + " M_Erde";
+        if (selectedBody.mass >= 1000) mStr = (selectedBody.mass / 10000).toFixed(2) + " M_Sonne";
+        document.getElementById('ins-mass').innerText = mStr;
+        document.getElementById('ins-radius').innerText = Math.floor(selectedBody.radius * 100) + " km";
+        
+        document.getElementById('ins-lore').innerText = selectedBody.lore;
+        document.getElementById('ins-detailed-lore').innerText = selectedBody.detailedLore;
+        
+        // Reset toggle state securely
+        isLoreExpanded = false;
+        document.getElementById('ins-detailed-lore').style.display = 'none';
+        const btnMore = document.getElementById('btn-read-more');
+        if (selectedBody.detailedLore && selectedBody.detailedLore !== "") {
+            btnMore.style.display = 'block';
+            btnMore.innerText = "Weiter lesen ↓";
+        } else {
+            btnMore.style.display = 'none';
+        }
+        
+        lastInspectorBody = selectedBody;
+    }
+}
+
+function toggleDetailedLore() {
+    isLoreExpanded = !isLoreExpanded;
+    document.getElementById('ins-detailed-lore').style.display = isLoreExpanded ? 'block' : 'none';
+    document.getElementById('btn-read-more').innerText = isLoreExpanded ? "Weniger anzeigen ↑" : "Weiter lesen ↓";
+}
+
+function closeInspector() { selectedBody = null; updateInspector(); }
+function deleteSelectedBody() {
+    if(!selectedBody) return;
+    bodies = bodies.filter(b => b !== selectedBody);
+    createExplosion(selectedBody.x, selectedBody.y, selectedBody.color, Math.pow(selectedBody.mass, 1/3));
+    selectedBody = null;
+    updateInspector();
+    showToast("Objekt zerstört.");
+}
+
+function spawnSolarSystem() {
+    clearUniverse();
+    let cx = 0, cy = 0;
+    
+    // Sun
+    let sun = new Body(cx, cy, 0, 0, 10000, TYPES.STAR, "Sonne", "#ffcc00", "Ein Gelber Zwerg (G-Typ Hauptreihenstern).", "Die Sonne enthält 99,86 % der gesamten Masse des Sonnensystems. In ihrem Kern fusioniert Wasserstoff zu Helium bei etwa 15 Millionen Grad Celsius.");
+    bodies.push(sun);
+    
+    // Scale factor for distances to make it playable on screen
+    let distScale = 400; 
+    
+    let planetsData = [
+        { name: "Merkur", dist: 0.39, mass: 0.5, color: "#a8a8a8", lore: "Der kleinste und sonnennächste Planet.", det: "Er hat keine echte Atmosphäre und ist extremen Temperaturschwankungen ausgesetzt (-170°C bis +430°C)." },
+        { name: "Venus", dist: 0.72, mass: 8.1, color: "#e0bb7d", lore: "Unser höllischer Nachbar.", det: "Eine dichte CO2-Atmosphäre sorgt für einen massiven Treibhauseffekt. Die Oberfläche ist heiß genug, um Blei zu schmelzen." },
+        { name: "Erde", dist: 1.0, mass: 10, color: "#4a7aff", lore: "Die Heimat der Menschheit.", det: "Der einzige bekannte Planet mit flüssigem Wasser an der Oberfläche und aktivem Leben. Perfekt platziert in der habitablen Zone." },
+        { name: "Mars", dist: 1.52, mass: 1.1, color: "#ff5533", lore: "Der Rote Planet.", det: "Benannt nach dem römischen Kriegsgott. Seine rote Farbe stammt von Eisenoxid (Rost) auf der Oberfläche. Ehemals besaß er Ozeane." },
+        { name: "Jupiter", dist: 5.2, mass: 3178, color: "#c99a63", lore: "Der Gasriese.", det: "Das größte Objekt im System (nach der Sonne). Ein gigantischer Sturm, der Große Rote Fleck, wütet dort seit Jahrhunderten." }
+    ];
+
+    planetsData.forEach(p => {
+        let actualDist = p.dist * distScale;
+        let speed = Math.sqrt(G * sun.mass / actualDist);
+        let b = new Body(cx + actualDist, cy, 0, speed, p.mass, TYPES.PLANET, p.name, p.color, p.lore, p.det);
+        bodies.push(b);
+    });
+    
+    camera.x = cx; camera.y = cy; camera.zoom = 0.5; camera.target = sun;
+    showToast("Sonnensystem geladen.");
+}
+
+function spawnBinarySystem() {
+    clearUniverse();
+    let s1 = new Body(-200, 0, 0, 3, 8000, TYPES.STAR, "Alpha Centauri A", "#ffcc00", "Hauptstern des Systems.", "G-Typ Stern, sehr ähnlich unserer Sonne.");
+    let s2 = new Body(200, 0, 0, -3, 6000, TYPES.STAR, "Alpha Centauri B", "#ffaa00", "Der etwas kleinere Begleiter.", "K-Typ Stern, orbitiert gemeinsam mit Alpha Centauri A.");
+    bodies.push(s1, s2);
+    
+    for(let i=0; i<3; i++) {
+        let dist = 800 + i*300;
+        let speed = Math.sqrt(G * 14000 / dist);
+        bodies.push(new Body(dist, 0, 0, speed, TYPES.PLANET.baseMass, TYPES.PLANET));
+    }
+    camera.x = 0; camera.y = 0; camera.zoom = 0.3; camera.target = null;
+    showToast("Doppelstern-System generiert.");
+}
+
+function clearUniverse() {
+    bodies = []; particles = [];
+    selectedBody = null; camera.target = null;
+    closeInspector();
+    showToast("Universum gelöscht.");
+}
+
+let lastTime = 0;
+let frameCount = 0;
+let lastFpsTime = 0;
+
+function drawHabitableZone(ctx) {
+    if (!showHZ) return;
+    
+    // Find heaviest star
+    let mainStar = null;
+    let maxMass = 0;
+    for(let b of bodies) {
+        if(b.type === TYPES.STAR && b.mass > maxMass) { maxMass = b.mass; mainStar = b; }
+    }
+    
+    if (mainStar) {
+        // Skalierung basierend auf Sternenmasse (Sonne = 10000)
+        let scale = Math.sqrt(mainStar.mass / 10000); 
+        let innerRadius = 360 * scale;
+        let outerRadius = 450 * scale;
+        
+        ctx.save();
+        
+        // Exakte Donut-Form zeichnen ohne Compositing-Fehler
+        ctx.beginPath();
+        // Äußerer Kreis (Uhrzeigersinn)
+        ctx.arc(mainStar.x, mainStar.y, outerRadius, 0, Math.PI*2, false);
+        // Innerer Kreis (Gegen den Uhrzeigersinn = schneidet den Hohlraum aus)
+        ctx.arc(mainStar.x, mainStar.y, innerRadius, 0, Math.PI*2, true);
+        
+        ctx.fillStyle = 'rgba(94, 255, 168, 0.08)'; 
+        ctx.fill();
+        
+        // Reset und zeichne die Rahmen/Linien
+        ctx.beginPath();
+        ctx.arc(mainStar.x, mainStar.y, innerRadius, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(94, 255, 168, 0.2)';
+        ctx.lineWidth = 1 / camera.zoom; // Linienstärke immer 1px relativ zur Kamera
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(mainStar.x, mainStar.y, outerRadius, 0, Math.PI*2);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+}
+
+function loop(timestamp) {
+    let dt = timestamp - lastTime;
+    if (dt > 100) dt = 16; 
+    lastTime = timestamp;
+
+    frameCount++;
+    if (timestamp - lastFpsTime >= 1000) {
+        document.getElementById('fps-counter').textContent = `FPS: ${frameCount}`;
+        frameCount = 0; lastFpsTime = timestamp;
+        updateInspector(); // Update UI values only once per second
+    }
+
+    if (timeScale > 0) {
+        let steps = Math.ceil(timeScale); 
+        let subDt = (dt * timeScale) / steps;
+        for(let s=0; s<steps; s++) {
+            computeGravity(subDt * 0.1); 
+            for(let b of bodies) b.update(subDt * 0.1);
+        }
+        for (let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update(dt * 0.1);
+            if (particles[i].life <= 0) particles.splice(i, 1);
+        }
+    }
+
+    // Camera follow logic
+    if (camera.target) {
+        camera.x += (camera.target.x - camera.x) * 0.1;
+        camera.y += (camera.target.y - camera.y) * 0.1;
+    }
+
+    // Rendering
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg').trim();
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.save();
+    // Transform to world space
+    ctx.translate(width/2, height/2);
+    ctx.scale(camera.zoom, camera.zoom);
+    ctx.translate(-camera.x, -camera.y);
+
+    drawHabitableZone(ctx);
+
+    for(let p of particles) p.draw(ctx);
+    for(let b of bodies) b.draw(ctx);
+
+    // Draw Slingshot line
+    if (isDragging) {
+        ctx.beginPath();
+        ctx.moveTo(dragStart.x, dragStart.y);
+        ctx.lineTo(currentMouse.x, currentMouse.y);
+        ctx.strokeStyle = 'rgba(94,255,168,0.5)';
+        ctx.setLineDash([5/camera.zoom, 5/camera.zoom]);
+        ctx.lineWidth = 2/camera.zoom;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        let typeDef = TYPES[currentTool.toUpperCase()] || TYPES.PLANET;
+        let massMult = parseFloat(document.getElementById('mass-slider').value) || 1;
+        let previewR = Math.max(2, Math.pow(typeDef.baseMass * massMult, 1/3) * 1.2 * typeDef.radiusMod);
+        ctx.beginPath();
+        ctx.arc(dragStart.x, dragStart.y, previewR, 0, Math.PI*2);
+        ctx.strokeStyle = typeDef.color;
+        ctx.stroke();
+    }
+
+    ctx.restore();
+    requestAnimationFrame(loop);
+}
+
+// Init
+spawnSolarSystem();
+requestAnimationFrame(loop);
+
+let bgmAudio = new Audio();
+let isPlaying = false;
+function toggleBGM() {
+    isPlaying = !isPlaying;
+    const w = document.getElementById('audio-widget');
+    if (isPlaying) { 
+        w.classList.add('is-playing'); 
+        document.getElementById('icon-play').style.display = 'none'; 
+        document.getElementById('icon-pause').style.display = 'block'; 
+    } else { 
+        w.classList.remove('is-playing'); 
+        document.getElementById('icon-play').style.display = 'block'; 
+        document.getElementById('icon-pause').style.display = 'none'; 
+    }
+}
+function nextTrack() { showToast("Audio System Standalone Mock"); }
+function seekAudio(e) { }
+
+</script>
+</body>
+</html>
