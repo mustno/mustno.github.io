@@ -108,6 +108,26 @@
 <link rel="icon" type="image/png" href="/logo.png?v=1">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Syne:wght@400;700;800;900&amp;display=swap" rel="stylesheet">
 <style>
+/* KOMPAKTES CELLIBEAN WIDGET - UNTEN RECHTS */
+#cellibean-widget {
+    position: fixed; bottom: clamp(20px, 4vh, 40px); right: clamp(20px, 4vw, 56px); z-index: 10005;
+    display: flex; gap: 10px; align-items: center;
+    background: var(--glass, rgba(255, 255, 255, 0.05)); border: 1px solid var(--border, rgba(255,255,255,0.1));
+    padding: 8px 14px;
+    border-radius: calc(var(--proj-rad, 0px) / 2 + 12px); backdrop-filter: blur(12px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s ease;
+    text-decoration: none;
+}
+#cellibean-widget:hover { 
+    border-color: var(--accent, #4a7aff); 
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--accent, #4a7aff) 20%, transparent); 
+    transform: translateY(-2px) scale(1.02);
+}
+#cellibean-widget img { height: 28px; width: auto; border-radius: 4px; }
+#cellibean-widget .cbw-info { display: flex; flex-direction: column; }
+#cellibean-widget .cbw-label { font-family: 'Space Mono', monospace; font-size: 0.45rem; color: #888; letter-spacing: 0.25em; text-transform: uppercase; }
+#cellibean-widget .cbw-track { font-family: 'Space Mono', monospace; font-size: 0.65rem; font-weight: 700; color: var(--text, #fff); letter-spacing: 0.1em; line-height: 1.1; }
+</style>
 :root {
   /* Default Theme (Cyber Dark) */
   --bg: #050b16;
@@ -995,7 +1015,18 @@ body.ln-webgl-enabled .proj.sim .pname {
 
     </div>
   </div>
-
+<a href="http://10.3.33.114/" target="_blank" id="cellibean-widget" style="text-decoration: none; cursor: none;">
+  <img src="cellibean.jpg" alt="Cellibean IT Solutions Logo">
+  <div class="cbw-info">
+    <div class="cbw-header">
+      <div class="cbw-label">Cellibean IT Solutions</div>
+    </div>
+    <div class="cbw-track">
+      TICKETING SYSTEM &<br>
+      ASSET MANAGEMENT
+    </div>
+  </div>
+</a>
   <footer>
     <div class="ftl">MUSTNO PLATFORM &nbsp;·&nbsp; <b>4 Projekte</b> &nbsp;·&nbsp; Alle Systeme bereit</div>
     <div class="kbhints">
@@ -1005,7 +1036,15 @@ body.ln-webgl-enabled .proj.sim .pname {
       <div class="kbi"><span class="kbk">/</span>Suche</div>
       <div class="kbi"><span class="kbk">ESC</span>Zurück</div>
     </div>
+<a href="http://10.3.33.114/" target="_blank" id="cellibean-widget">
+  <img src="cellibean.jpg" alt="Logo">
+  <div class="cbw-info">
+    <div class="cbw-label">Cellibean IT Solutions</div>
+    <div class="cbw-track">TICKETING &<br>ASSET MANAGEMENT</div>
+  </div>
+</a>
   </footer>
+
 </main>
 
 <script>
@@ -1026,7 +1065,7 @@ document.querySelectorAll('.proj').forEach(el => {
   el.addEventListener('mouseenter', () => { cur.style.transform = 'scale(1.55)'; const pc = getComputedStyle(el).getPropertyValue('--pc').trim(); cur.style.background = pc; });
   el.addEventListener('mouseleave', () => { cur.style.transform = 'scale(1)'; cur.style.background = 'var(--green)'; });
 });
-document.querySelectorAll('.rchip, #sClear, .kbk, .theme-select, .audio-btn').forEach(el => {
+document.querySelectorAll('.rchip, #sClear, .kbk, .theme-select, .audio-btn, #cellibean-widget').forEach(el => {
   el.addEventListener('mouseenter', () => cur.style.transform = 'scale(1.25)');
   el.addEventListener('mouseleave', () => cur.style.transform = 'scale(1)');
 });
