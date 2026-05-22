@@ -332,6 +332,7 @@ obs.observe(document.querySelector('.stats'));
 const feats=document.querySelectorAll('.feat');
 const fobs=new IntersectionObserver(entries=>{ entries.forEach(e=>{ if(e.isIntersecting){ const i=Array.from(feats).indexOf(e.target); setTimeout(()=>{e.target.style.opacity='1';e.target.style.transform='translateY(0)';},i*80); fobs.unobserve(e.target); } });},{threshold:.1});
 feats.forEach(f=>{ f.style.opacity='0';f.style.transform='translateY(20px)'; f.style.transition='opacity .5s ease,transform .5s ease,border-color .3s,background .3s,box-shadow .3s'; fobs.observe(f); });
+</script>
 
 
 
@@ -712,6 +713,8 @@ feats.forEach(f=>{ f.style.opacity='0';f.style.transform='translateY(20px)'; f.s
             if (modal && modal.style.display !== 'none') modal.style.display = 'none';
         }, 50);
     });
+</script>
+})();
 </script>
 
 
