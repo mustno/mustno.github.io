@@ -166,8 +166,9 @@ input:checked + .slider-toggle:before { transform: translateX(16px); background-
 <div class="grid"></div>
 
 <header>
-  <div class="logo" onclick="window.location.href='index.html'">MUSTNO <span>PHYSICS</span></div>
+  <div class="logo" onclick="window.location.href='index.html'">MUSTNO <span>PHYSICS 2.0</span></div>
   <div class="header-right">
+    <div id="sim-date" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text); font-weight:bold; background:var(--glass); padding:4px 10px; border-radius:4px; border:1px solid var(--border);">22. Mai 2026</div>
     <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--green);" id="fps-counter">FPS: 00</div>
     <a href="index.html" class="btn-back">Zurück zum Hub</a>
   </div>
@@ -185,12 +186,18 @@ input:checked + .slider-toggle:before { transform: translateX(16px); background-
 <div class="panel" id="control-panel">
   <div class="section-title">Erstellen (Slingshot)</div>
   
+  <div class="toggle-row" style="margin-bottom: 12px; background: color-mix(in srgb, var(--accent) 15%, transparent); padding: 8px; border-radius: 4px; border: 1px solid var(--accent);">
+    <span style="color:var(--text); font-weight:bold;">Slingshot-Modus</span>
+    <label class="switch"><input type="checkbox" id="tog-slingshot"><span class="slider-toggle"></span></label>
+  </div>
+  
   <select id="spawn-select" class="theme-select">
       <optgroup label="Sonnensystem">
           <option value="earth">Erde (1x Masse, Blau)</option>
           <option value="mars">Mars (0.1x Masse, Rot)</option>
           <option value="jupiter">Jupiter (317x Masse, Gasriese)</option>
           <option value="saturn">Saturn (95x Masse, Gasriese)</option>
+          <option value="moon">Mond (Erdsatellit)</option>
       </optgroup>
       <optgroup label="Sterne & Exoplaneten">
           <option value="sun">Sonne (Gelber Zwergstern)</option>
@@ -202,6 +209,7 @@ input:checked + .slider-toggle:before { transform: translateX(16px); background-
           <option value="voyager1">Voyager 1 (Raumsonde)</option>
           <option value="jwst">James-Webb-Teleskop</option>
           <option value="hubble">Hubble-Weltraumteleskop</option>
+          <option value="iss">Internationale Raumstation (ISS)</option>
       </optgroup>
       <optgroup label="Anomalien & Generisch">
           <option value="blackhole">Schwarzes Loch</option>
@@ -239,18 +247,18 @@ input:checked + .slider-toggle:before { transform: translateX(16px); background-
     <label class="switch"><input type="checkbox" id="tog-collision" checked><span class="slider-toggle"></span></label>
   </div>
   <div class="toggle-row">
-    <span>Kometenschweife</span>
+    <span>Kometenschweife/Orbits</span>
     <label class="switch"><input type="checkbox" id="tog-trails" checked><span class="slider-toggle"></span></label>
   </div>
 
   <div class="section-title">Szenarien</div>
-  <button class="btn" onclick="spawnSolarSystem()">Sonnensystem laden</button>
+  <button class="btn" onclick="spawnSolarSystem()">Aktuelles Sonnensystem</button>
   <button class="btn" onclick="spawnBinarySystem()">Doppelstern-System</button>
   <button class="btn" style="border-color:rgba(255,80,80,0.5); color:#ff8888;" onclick="clearUniverse()">Universum löschen</button>
   
   <div style="font-family:var(--font-mono); font-size:0.6rem; color:var(--dim); margin-top:15px; text-align:center;">
-    Nav: Rechtsklick + Ziehen | Zoom: Mausrad<br>
-    Spawnen: Linksklick + Ziehen (Slingshot)
+    Nav: Linksklick (Ziehen), Pfeiltasten oder Touch<br>
+    Spawnen: Slingshot aktivieren + Ziehen
   </div>
 </div>
 
@@ -294,7 +302,7 @@ const canvas = document.getElementById('simCanvas');
 const ctx = canvas.getContext('2d', { alpha: false });
 let width, height;
 
-let camera = { x: 0, y: 0, zoom: 0.35, target: null };
+let camera = { x: 0, y: 0, zoom: 0.1, target: null };
 let isPanning = false;
 let panStart = { x: 0, y: 0 };
 let camStart = { x: 0, y: 0 };
@@ -306,10 +314,25 @@ let timeScale = 1.0;
 let collisionsEnabled = true;
 let trailsEnabled = true;
 let showHZ = true;
+let slingshotEnabled = false; // Default: Ausgeschaltet (Kamera-Pan aktiv)
+
+// --- DATUMS-SIMULATION ---
+// 1 Erd-Orbit in der Simulation = 581.83 Zeiteinheiten. 
+// Ein Jahr hat ca. 31557600000 Millisekunden.
+const MS_PER_SIM_UNIT = 31557600000 / 581.83; 
+let simTimeMs = new Date(2026, 4, 22).getTime(); // Startdatum: 22. Mai 2026
+
+// Globale Variablen für den Fixed Timestep (Stabile Physik)
+const FIXED_DT = 1 / 60; 
+let accumulator = 0;
+let lastTime = 0;
+let frameCount = 0;
+let lastFpsTime = 0;
 
 let isDragging = false;
 let dragStart = { x: 0, y: 0 };
 let currentMouse = { x: 0, y: 0 };
+let clickStartScreen = { x: 0, y: 0 }; // Für Klick-Erkennung
 let selectedBody = null;
 let lastInspectorBody = null;
 let isLoreExpanded = false;
@@ -319,50 +342,48 @@ const TYPES = {
     STAR: { baseMass: 10000, radiusMod: 2.5, glow: true },
     BLACKHOLE: { baseMass: 50000, radiusMod: 1.2, glow: true },
     ASTEROID: { baseMass: 0.1, radiusMod: 0.5 },
-    PROBE: { baseMass: 0.0001, radiusMod: 0.4 } // Sehr kleine Masse für Sonden/Teleskope
+    PROBE: { baseMass: 0.0001, radiusMod: 0.4 } 
 };
 
 // Erweiterte Datenbank
 const CELESTIAL_DB = {
-    'sun': { type: TYPES.STAR, mass: 10000, color: '#ffcc00', name: 'Sonne', lore: 'G-Typ Hauptreihenstern.', det: 'Das Zentrum unseres Sonnensystems. Verbrennt 600 Millionen Tonnen Wasserstoff pro Sekunde.' },
-    'sirius': { type: TYPES.STAR, mass: 20000, color: '#aaccff', name: 'Sirius A', lore: 'Hellster Stern am Nachthimmel.', det: 'Ein extrem heißer, bläulich-weißer Hauptreihenstern im Sternbild Großer Hund.' },
-    'betelgeuse': { type: TYPES.STAR, mass: 150000, color: '#ff5500', name: 'Beteigeuze', lore: 'Roter Überriese.', det: 'Befindet sich am Ende seiner Lebensdauer und könnte jederzeit in einer Supernova explodieren.' },
-    'earth': { type: TYPES.PLANET, mass: 10, color: '#4a7aff', name: 'Erde', lore: 'Heimat.', det: 'Der einzige bekannte Himmelskörper mit flüssigem Wasser an der Oberfläche und aktivem Leben. Besitzt eine dichte Stickstoff-Sauerstoff-Atmosphäre.' },
-    'mars': { type: TYPES.PLANET, mass: 1.1, color: '#ff5533', name: 'Mars', lore: 'Roter Planet.', det: 'Die rote Farbe stammt von Eisenoxid (Rost). Besaß in der Vergangenheit flüssiges Wasser und Ozeane.' },
-    'jupiter': { type: TYPES.PLANET, mass: 3178, color: '#c99a63', name: 'Jupiter', lore: 'Gasriese.', det: 'Der größte und massereichste Planet unseres Systems. Bekannt für seinen Großen Roten Fleck (ein gigantischer Sturm).' },
-    'saturn': { type: TYPES.PLANET, mass: 950, color: '#eaddb5', name: 'Saturn', lore: 'Ringplanet.', det: 'Berühmt für sein spektakuläres Ringsystem, bestehend aus unzähligen Eis- und Gesteinsbrocken.' },
-    'kepler186f': { type: TYPES.PLANET, mass: 11, color: '#7799aa', name: 'Kepler-186f', lore: 'Erdgroßer Exoplanet.', det: 'Der erste bestätigte erdgroße Planet, der in der habitablen Zone seines Sterns (einem Roten Zwerg) entdeckt wurde.' },
-    'asteroid': { type: TYPES.ASTEROID, mass: 0.1, color: '#8899aa', name: 'Asteroid', lore: 'Felsiger Brocken.', det: 'Überbleibsel aus der frühen Entstehungszeit von Planetensystemen.' },
-    'blackhole': { type: TYPES.BLACKHOLE, mass: 50000, color: '#000000', name: 'Schwarzes Loch', lore: 'Singularität.', det: 'Ein Objekt mit einer Gravitation so stark, dass nicht einmal Licht entkommen kann (Ereignishorizont).' },
-    'supermassive': { type: TYPES.BLACKHOLE, mass: 800000, color: '#000000', name: 'Supermassives SL', lore: 'Galaktisches Zentrum.', det: 'Millionen bis Milliarden Sonnenmassen. Solche Objekte befinden sich im Zentrum der meisten Galaxien.' },
-    'generic_planet': { type: TYPES.PLANET, mass: 10, color: null, name: 'Exoplanet', lore: 'Unbekannter Planet.', det: 'Ein zufällig generierter Himmelskörper. Zusammensetzung und Atmosphäre sind noch nicht analysiert.' },
-    // Neue Sonden
-    'voyager1': { type: TYPES.PROBE, mass: 0.0001, color: '#cccccc', name: 'Voyager 1', lore: 'Interstellare Raumsonde.', det: 'Das am weitesten von der Erde entfernte von Menschen gebaute Objekt. Gestartet 1977.', orbit: 'Interstellarer Raum' },
-    'voyager2': { type: TYPES.PROBE, mass: 0.0001, color: '#bbbbbb', name: 'Voyager 2', lore: 'Interstellare Raumsonde.', det: 'Die einzige Sonde, die Uranus und Neptun aus der Nähe untersucht hat.', orbit: 'Interstellarer Raum' },
-    'pioneer10': { type: TYPES.PROBE, mass: 0.0001, color: '#999999', name: 'Pioneer 10', lore: 'Erste Jupiter-Sonde.', det: 'Das erste Raumfahrzeug, das den Asteroidengürtel durchquerte und Jupiter erreichte.', orbit: 'Interstellarer Raum' },
-    'newhorizons': { type: TYPES.PROBE, mass: 0.0001, color: '#dddddd', name: 'New Horizons', lore: 'Pluto-Mission.', det: 'Erforschte Pluto und den Kuipergürtel.', orbit: 'Kuipergürtel' },
-    'jwst': { type: TYPES.PROBE, mass: 0.0001, color: '#ffd700', name: 'James-Webb-Teleskop', lore: 'Infrarot-Teleskop.', det: 'Das leistungsfähigste Weltraumteleskop der Menschheit.', orbit: 'Lagrange-Punkt L2' },
-    'hubble': { type: TYPES.PROBE, mass: 0.0001, color: '#88aaff', name: 'Hubble-Teleskop', lore: 'Optisches Weltraumteleskop.', det: 'Liefert seit 1990 detaillierte Bilder von Galaxien und Nebeln.', orbit: 'Niedrige Erdumlaufbahn' },
-    'iss': { type: TYPES.PROBE, mass: 0.0001, color: '#ffffff', name: 'ISS', lore: 'Raumstation.', det: 'Die Internationale Raumstation umkreist die Erde alle 90 Minuten.', orbit: 'Niedrige Erdumlaufbahn' },
-    'gaia': { type: TYPES.PROBE, mass: 0.0001, color: '#99bbff', name: 'Gaia', lore: 'Sternenkartierungs-Sonde.', det: 'Kartiert Milliarden Sterne der Milchstraße mit extremer Präzision.', orbit: 'Lagrange-Punkt L2' },
-    'juno': { type: TYPES.PROBE, mass: 0.0001, color: '#c9a063', name: 'Juno', lore: 'Jupiter-Orbiter.', det: 'Untersucht Atmosphäre, Magnetfeld und Kern des Jupiter.', orbit: 'Jupiter' },
-    'cassini': { type: TYPES.PROBE, mass: 0.0001, color: '#e0d0aa', name: 'Cassini', lore: 'Saturn-Mission.', det: 'Erforschte Saturn und seine Monde bis zum kontrollierten Absturz 2017.', orbit: 'Saturn' },
-    'osirisrex': { type: TYPES.PROBE, mass: 0.0001, color: '#aaaaaa', name: 'OSIRIS-REx', lore: 'Asteroiden-Mission.', det: 'Sammelte erfolgreich Proben vom Asteroiden Bennu.', orbit: 'Sonnenorbit' },
-    'parker': { type: TYPES.PROBE, mass: 0.0001, color: '#ffcc66', name: 'Parker Solar Probe', lore: 'Sonnenmission.', det: 'Die Sonde, die der Sonne am nächsten kommt.', orbit: 'Sonnenorbit' },
-    'bepicolombo': { type: TYPES.PROBE, mass: 0.0001, color: '#bbbbcc', name: 'BepiColombo', lore: 'Merkur-Mission.', det: 'Europäisch-japanische Mission zur Erforschung des Merkur.', orbit: 'Transfer zu Merkur' },
-    'euclid': { type: TYPES.PROBE, mass: 0.0001, color: '#aaccee', name: 'Euclid', lore: 'Kosmologie-Teleskop.', det: 'Untersucht Dunkle Materie und Dunkle Energie.', orbit: 'Lagrange-Punkt L2' },
+    'sun': { type: TYPES.STAR, mass: 10000, color: '#ffcc00', name: 'Sonne', lore: 'G-Typ Hauptreihenstern.', det: 'Das Zentrum unseres Sonnensystems. Verbrennt 600 Millionen Tonnen Wasserstoff pro Sekunde.', realTemp: 5778, realRadius: 696340 },
+    'sirius': { type: TYPES.STAR, mass: 20000, color: '#aaccff', name: 'Sirius A', lore: 'Hellster Stern am Nachthimmel.', det: 'Ein extrem heißer, bläulich-weißer Hauptreihenstern im Sternbild Großer Hund.', realTemp: 9940, realRadius: 1189600 },
+    'betelgeuse': { type: TYPES.STAR, mass: 150000, color: '#ff5500', name: 'Beteigeuze', lore: 'Roter Überriese.', det: 'Befindet sich am Ende seiner Lebensdauer und könnte jederzeit in einer Supernova explodieren.', realTemp: 3500, realRadius: 600000000 },
+    'merkur': { type: TYPES.PLANET, mass: 0.5, color: '#a8a8a8', name: 'Merkur', lore: 'Sonnennächster Planet.', det: 'Keine echte Atmosphäre. Extreme Temperaturschwankungen.', realTemp: 440, realRadius: 2439 },
+    'venus': { type: TYPES.PLANET, mass: 8.1, color: '#e0bb7d', name: 'Venus', lore: 'Höllischer Nachbar.', det: 'Treibhauseffekt macht sie zum heißesten Planeten im System.', realTemp: 737, realRadius: 6051 },
+    'earth': { type: TYPES.PLANET, mass: 10, color: '#4a7aff', name: 'Erde', lore: 'Heimat.', det: 'Der einzige bekannte Himmelskörper mit flüssigem Wasser an der Oberfläche und aktivem Leben.', realTemp: 288, realRadius: 6371 },
+    'mars': { type: TYPES.PLANET, mass: 1.1, color: '#ff5533', name: 'Mars', lore: 'Roter Planet.', det: 'Die rote Farbe stammt von Eisenoxid (Rost). Besaß in der Vergangenheit flüssiges Wasser und Ozeane.', realTemp: 210, realRadius: 3389 },
+    'jupiter': { type: TYPES.PLANET, mass: 3178, color: '#c99a63', name: 'Jupiter', lore: 'Gasriese.', det: 'Der größte und massereichste Planet unseres Systems. Bekannt für seinen Großen Roten Fleck.', realTemp: 165, realRadius: 69911 },
+    'saturn': { type: TYPES.PLANET, mass: 950, color: '#eaddb5', name: 'Saturn', lore: 'Ringplanet.', det: 'Berühmt für sein spektakuläres Ringsystem, bestehend aus unzähligen Eis- und Gesteinsbrocken.', realTemp: 134, realRadius: 58232 },
+    'uranus': { type: TYPES.PLANET, mass: 145, color: '#88ccff', name: 'Uranus', lore: 'Eisriese.', det: 'Rotiert "liegend" auf der Seite.', realTemp: 76, realRadius: 25362 },
+    'neptun': { type: TYPES.PLANET, mass: 171, color: '#4444ff', name: 'Neptun', lore: 'Äußerster Planet.', det: 'Bekannt für extreme Stürme.', realTemp: 72, realRadius: 24622 },
+    'kepler186f': { type: TYPES.PLANET, mass: 11, color: '#7799aa', name: 'Kepler-186f', lore: 'Erdgroßer Exoplanet.', det: 'Der erste bestätigte erdgroße Planet, der in der habitablen Zone seines Sterns entdeckt wurde.', realTemp: 188, realRadius: 7000 },
+    'moon': { type: TYPES.ASTEROID, mass: 0.12, color: '#dddddd', name: 'Mond', lore: 'Natürlicher Erdsatellit.', det: 'Entstand vermutlich durch eine massive Kollision der frühen Erde mit Theia.', realTemp: 250, realRadius: 1737 },
+    'asteroid': { type: TYPES.ASTEROID, mass: 0.1, color: '#8899aa', name: 'Asteroid', lore: 'Felsiger Brocken.', det: 'Überbleibsel aus der frühen Entstehungszeit von Planetensystemen.', realTemp: 150, realRadius: 50 },
+    'blackhole': { type: TYPES.BLACKHOLE, mass: 50000, color: '#000000', name: 'Schwarzes Loch', lore: 'Singularität.', det: 'Ein Objekt mit einer Gravitation so stark, dass nicht einmal Licht entkommen kann (Ereignishorizont).', realTemp: 0, realRadius: 30 },
+    'supermassive': { type: TYPES.BLACKHOLE, mass: 800000, color: '#000000', name: 'Supermassives SL', lore: 'Galaktisches Zentrum.', det: 'Millionen bis Milliarden Sonnenmassen. Befindet sich im Zentrum der meisten Galaxien.', realTemp: 0, realRadius: 10000 },
+    'generic_planet': { type: TYPES.PLANET, mass: 10, color: null, name: 'Exoplanet', lore: 'Unbekannter Planet.', det: 'Ein zufällig generierter Himmelskörper. Zusammensetzung und Atmosphäre sind noch nicht analysiert.', realTemp: null, realRadius: null },
+    'voyager1': { type: TYPES.PROBE, mass: 0.0001, color: '#cccccc', name: 'Voyager 1', lore: 'Interstellare Raumsonde.', det: 'Das am weitesten von der Erde entfernte von Menschen gebaute Objekt. Gestartet 1977.', realTemp: 40, realRadius: 0.002 },
+    'voyager2': { type: TYPES.PROBE, mass: 0.0001, color: '#bbbbbb', name: 'Voyager 2', lore: 'Interstellare Raumsonde.', det: 'Die einzige Sonde, die Uranus und Neptun aus der Nähe untersucht hat.', realTemp: 40, realRadius: 0.002 },
+    'jwst': { type: TYPES.PROBE, mass: 0.0001, color: '#ffd700', name: 'JWST', lore: 'Infrarot-Teleskop.', det: 'Das leistungsfähigste Weltraumteleskop. Geparkt im Lagrange-Punkt L2, ca. 1.5 Mio km hinter der Erde.', realTemp: 40, realRadius: 0.02 },
+    'hubble': { type: TYPES.PROBE, mass: 0.0001, color: '#88aaff', name: 'Hubble-Teleskop', lore: 'Optisches Weltraumteleskop.', det: 'Liefert seit 1990 detaillierte Bilder von Galaxien. Kreist im LEO.', realTemp: 288, realRadius: 0.013 },
+    'iss': { type: TYPES.PROBE, mass: 0.0001, color: '#ffffff', name: 'ISS', lore: 'Raumstation.', det: 'Die Internationale Raumstation umkreist die Erde in etwa 400km Höhe alle 90 Minuten.', realTemp: 293, realRadius: 0.109 }
 };
 
 class Body {
-    constructor(x, y, vx, vy, mass, type, name = null, color = null, lore = null, detailedLore = null, sizeMult = 1) {
+    constructor(x, y, vx, vy, mass, type, name = null, color = null, lore = null, detailedLore = null, sizeMult = 1, realTemp = null, realRadius = null) {
         this.id = Math.random().toString(36).substr(2, 9);
         this.x = x; this.y = y;
         this.vx = vx; this.vy = vy;
+        this.ax = 0; this.ay = 0;
         this.mass = mass;
         this.type = type;
-        this.radius = Math.max(1, Math.pow(this.mass, 1/3) * 1.2 * type.radiusMod) * sizeMult;
         
-        // Verhindere, dass extrem massereiche Schwarze Löcher winzig gerendert werden (Massenskalierung)
+        // Verkleinert den künstlichen Kollisions-Radius für kleine Objekte, um Fake-Crashes zu verhindern
+        let minRadius = (this.type === TYPES.PROBE) ? 0.1 : 0.5;
+        this.radius = Math.max(minRadius, Math.pow(this.mass, 1/3) * 1.2 * type.radiusMod) * sizeMult;
+        
         if(this.type === TYPES.BLACKHOLE && this.radius < 10) this.radius = 10;
         
         this.color = color || this.generateColor();
@@ -371,7 +392,11 @@ class Body {
         this.detailedLore = detailedLore || "Keine weiteren Daten verfügbar.";
         
         this.trail = [];
-        this.temp = type === TYPES.STAR ? 5000 + (mass/1000) : 20 + Math.random()*100;
+        this.trailMax = this.type === TYPES.PLANET ? 400 : 150; 
+        
+        this.realTempFixed = realTemp;
+        this.realRadiusFixed = realRadius;
+        this.temp = realTemp !== null ? realTemp : (type === TYPES.STAR ? 5000 + (mass/1000) : 20 + Math.random()*100);
     }
 
     generateColor() {
@@ -387,10 +412,12 @@ class Body {
     }
 
     update(dt) {
+        // Semi-Implizite Euler Integration Update
         this.x += this.vx * dt;
         this.y += this.vy * dt;
         
-        if (this.type !== TYPES.STAR && this.type !== TYPES.BLACKHOLE) {
+        // Temperatur nur dynamisch berechnen, wenn kein echter Wert aus der DB vorliegt
+        if (this.realTempFixed === null && this.type !== TYPES.STAR && this.type !== TYPES.BLACKHOLE) {
             let heat = 20; 
             for(let b of bodies) {
                 if (b.type === TYPES.STAR) {
@@ -402,8 +429,10 @@ class Body {
         }
 
         if (trailsEnabled) {
-            this.trail.push({x: this.x, y: this.y});
-            if (this.trail.length > 80) this.trail.shift();
+            if(Math.random() < 0.3) {
+                this.trail.push({x: this.x, y: this.y});
+                if (this.trail.length > this.trailMax) this.trail.shift();
+            }
         } else {
             this.trail = [];
         }
@@ -415,18 +444,18 @@ class Body {
             ctx.moveTo(this.trail[0].x, this.trail[0].y);
             for (let i = 1; i < this.trail.length; i++) ctx.lineTo(this.trail[i].x, this.trail[i].y);
             ctx.strokeStyle = this.type === TYPES.BLACKHOLE ? 'rgba(176,108,255,0.3)' : 
-                             (this.type === TYPES.STAR ? 'rgba(255,200,100,0.3)' : 'rgba(74,122,255,0.2)');
-            ctx.lineWidth = Math.max(1, this.radius * 0.2);
+                             (this.type === TYPES.STAR ? 'rgba(255,200,100,0.3)' : 'rgba(74,122,255,0.25)');
+            ctx.lineWidth = Math.max(0.5, this.radius * 0.1);
             ctx.stroke();
         }
 
         if (this.type === TYPES.PROBE) {
-            // Sonden als kleines Dreieck/Diamant zeichnen
             ctx.fillStyle = this.color;
             ctx.beginPath();
-            ctx.moveTo(this.x, this.y - this.radius*2);
-            ctx.lineTo(this.x + this.radius*2, this.y + this.radius*2);
-            ctx.lineTo(this.x - this.radius*2, this.y + this.radius*2);
+            let pR = Math.max(1/camera.zoom, this.radius);
+            ctx.moveTo(this.x, this.y - pR*2);
+            ctx.lineTo(this.x + pR*2, this.y + pR*2);
+            ctx.lineTo(this.x - pR*2, this.y + pR*2);
             ctx.closePath();
             ctx.fill();
         } else {
@@ -459,35 +488,31 @@ class Body {
                 ctx.fillStyle = this.color;
                 ctx.fill();
                 
-                // SATURN RINGE ZEICHNEN
+                // SATURN RINGE
                 if (this.name === 'Saturn') {
                     ctx.save();
                     ctx.translate(this.x, this.y);
-                    ctx.rotate(Math.PI / 8); // Leicht schräg stellen
+                    ctx.rotate(Math.PI / 8);
                     
-                    // Ring 1
                     ctx.beginPath();
                     ctx.ellipse(0, 0, this.radius * 2.5, this.radius * 0.7, 0, 0, Math.PI * 2);
                     ctx.lineWidth = this.radius * 0.4;
                     ctx.strokeStyle = 'rgba(210, 190, 150, 0.7)';
                     ctx.stroke();
                     
-                    // Ring 2
                     ctx.beginPath();
                     ctx.ellipse(0, 0, this.radius * 3.2, this.radius * 0.9, 0, 0, Math.PI * 2);
                     ctx.lineWidth = this.radius * 0.2;
                     ctx.strokeStyle = 'rgba(230, 210, 170, 0.4)';
                     ctx.stroke();
-                    
                     ctx.restore();
                 }
             }
         }
         
-        // Highlight Selected
         if (selectedBody === this) {
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius + 8 + (this.name === 'Saturn' ? this.radius * 2 : 0), 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, this.radius + 8/camera.zoom + (this.name === 'Saturn' ? this.radius * 2 : 0), 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(94, 255, 168, 0.8)';
             ctx.lineWidth = 2 / camera.zoom;
             ctx.stroke();
@@ -518,9 +543,12 @@ function createExplosion(x, y, color, size) {
     for(let i=0; i<count; i++) particles.push(new Particle(x, y, color, size * 0.4));
 }
 
+// Stabile Gravitationsberechnung (wird jetzt über das Fixed Timestep in loop() aufgerufen)
 function computeGravity(dt) {
     const actualG = G * (parseFloat(document.getElementById('g-slider').value) || 1);
     
+    for (let b of bodies) { b.ax = 0; b.ay = 0; }
+
     for (let i = 0; i < bodies.length; i++) {
         let b1 = bodies[i];
         for (let j = i + 1; j < bodies.length; j++) {
@@ -528,23 +556,25 @@ function computeGravity(dt) {
             let dx = b2.x - b1.x; let dy = b2.y - b1.y;
             let distSq = dx*dx + dy*dy;
             
-            if (collisionsEnabled) {
-                let minDist = b1.radius + b2.radius;
-                if (distSq < minDist * minDist) {
-                    handleCollision(b1, b2, i, j);
-                    return; // Schleife abbrechen um Array-Index Fehler nach Löschung zu vermeiden
-                }
+            let minDist = b1.radius + b2.radius;
+            if (collisionsEnabled && distSq < minDist * minDist) {
+                handleCollision(b1, b2, i, j);
+                return; 
             }
 
-            let softening = 100; 
-            let dist = Math.sqrt(distSq + softening);
-            let force = (actualG * b1.mass * b2.mass) / (distSq + softening);
+            let dist = Math.sqrt(distSq + 0.01); 
+            let force = (actualG * b1.mass * b2.mass) / (distSq + 0.01);
             
             let ax = (force * dx / dist); let ay = (force * dy / dist);
             
-            b1.vx += (ax / b1.mass) * dt; b1.vy += (ay / b1.mass) * dt;
-            b2.vx -= (ax / b2.mass) * dt; b2.vy -= (ay / b2.mass) * dt;
+            b1.ax += ax / b1.mass; b1.ay += ay / b1.mass;
+            b2.ax -= ax / b2.mass; b2.ay -= ay / b2.mass;
         }
+    }
+    
+    for (let b of bodies) {
+        b.vx += b.ax * dt;
+        b.vy += b.ay * dt;
     }
 }
 
@@ -563,7 +593,7 @@ function handleCollision(b1, b2, idx1, idx2) {
 
     createExplosion(newX, newY, dominant.color, Math.pow(newMass, 1/3));
 
-    let newBody = new Body(newX, newY, newVx, newVy, newMass, newType, dominant.name, dominant.color, dominant.lore, dominant.detailedLore, 1);
+    let newBody = new Body(newX, newY, newVx, newVy, newMass, newType, dominant.name, dominant.color, dominant.lore, dominant.detailedLore, 1, dominant.realTempFixed, dominant.realRadiusFixed);
     
     if(selectedBody === b1 || selectedBody === b2) {
         selectedBody = newBody;
@@ -582,15 +612,63 @@ function toWorld(x, y) { return { x: (x - width/2) / camera.zoom + camera.x, y: 
 window.addEventListener('resize', () => { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; });
 window.dispatchEvent(new Event('resize'));
 
+// --- TASTATUR STEUERUNG (WASD / Pfeiltasten) ---
+const activeKeys = {};
+window.addEventListener('keydown', e => {
+    // Ignoriere Eingaben, wenn das Suchfeld aktiv ist
+    if(document.activeElement === document.getElementById('search-input')) return;
+    activeKeys[e.code] = true;
+});
+window.addEventListener('keyup', e => activeKeys[e.code] = false);
+
+// Ausgelagerte Logik zum Auswählen und Spawnen
+function handleSelection(endW) {
+    let clicked = null;
+    for (let b of bodies) {
+        let d = Math.hypot(b.x - endW.x, b.y - endW.y);
+        let clickRadius = Math.max(b.radius, 15 / camera.zoom);
+        if (d < clickRadius) { clicked = b; break; }
+    }
+    selectedBody = clicked;
+    updateInspector();
+}
+
+function handleSlingshotSpawn(endW) {
+    let dx = dragStart.x - endW.x;
+    let dy = dragStart.y - endW.y;
+    
+    let spawnKey = document.getElementById('spawn-select').value;
+    let spawnTemplate = CELESTIAL_DB[spawnKey] || CELESTIAL_DB['generic_planet'];
+    let massMult = parseFloat(document.getElementById('mass-slider').value) || 1;
+    let sizeMult = parseFloat(document.getElementById('size-slider').value) || 1;
+    let mass = spawnTemplate.mass * massMult;
+    
+    let vx = dx * 0.02; 
+    let vy = dy * 0.02;
+    
+    let newB = new Body(dragStart.x, dragStart.y, vx, vy, mass, spawnTemplate.type, null, null, null, null, sizeMult, spawnTemplate.realTemp, spawnTemplate.realRadius);
+    newB.name = spawnTemplate.name;
+    newB.color = spawnTemplate.color || newB.generateColor();
+    newB.lore = spawnTemplate.lore;
+    
+    let detailAdd = `\n[Skaliert: ${massMult}x Masse, ${sizeMult}x Größe]`;
+    newB.detailedLore = spawnTemplate.det + (massMult !== 1 || sizeMult !== 1 ? detailAdd : "");
+    
+    bodies.push(newB);
+}
+
+// --- MAUS STEUERUNG ---
 canvas.addEventListener('mousedown', (e) => {
-    if (e.button === 1 || e.button === 2) { 
+    clickStartScreen = { x: e.clientX, y: e.clientY };
+    dragStart = toWorld(e.clientX, e.clientY);
+    
+    if (e.button === 1 || e.button === 2 || (e.button === 0 && !slingshotEnabled)) { 
         isPanning = true;
         panStart = { x: e.clientX, y: e.clientY };
         camStart = { x: camera.x, y: camera.y };
         camera.target = null; 
-    } else if (e.button === 0) { 
+    } else if (e.button === 0 && slingshotEnabled) { 
         isDragging = true;
-        dragStart = toWorld(e.clientX, e.clientY);
         currentMouse = { ...dragStart };
     }
 });
@@ -608,54 +686,133 @@ canvas.addEventListener('mousemove', (e) => {
 });
 
 canvas.addEventListener('mouseup', (e) => {
-    if (e.button === 1 || e.button === 2) { isPanning = false; return; }
+    let distScreen = Math.hypot(e.clientX - clickStartScreen.x, e.clientY - clickStartScreen.y);
+    
+    if (isPanning) { 
+        isPanning = false;
+        // Erlaube Klick-Auswahl im Pan-Modus, wenn Maus kaum bewegt wurde
+        if (e.button === 0 && distScreen < 5) handleSelection(toWorld(e.clientX, e.clientY));
+        return; 
+    }
+    
     if (!isDragging) return;
     isDragging = false;
     
-    let endW = toWorld(e.clientX, e.clientY);
-    let dx = dragStart.x - endW.x;
-    let dy = dragStart.y - endW.y;
-    let dist = Math.hypot(dx, dy);
-    
-    // Klicken (kein Wischen) wählt Planet aus
-    if (dist < 10 / camera.zoom) {
-        let clicked = null;
-        for (let b of bodies) {
-            let d = Math.hypot(b.x - dragStart.x, b.y - dragStart.y);
-            if (d < b.radius + (10 / camera.zoom)) { clicked = b; break; }
-        }
-        selectedBody = clicked;
-        updateInspector();
-        return;
+    if (distScreen < 5) {
+        handleSelection(toWorld(e.clientX, e.clientY));
+    } else {
+        handleSlingshotSpawn(toWorld(e.clientX, e.clientY));
     }
-
-    // Spawnen
-    let spawnKey = document.getElementById('spawn-select').value;
-    let spawnTemplate = CELESTIAL_DB[spawnKey] || CELESTIAL_DB['generic_planet'];
-    let massMult = parseFloat(document.getElementById('mass-slider').value) || 1;
-    let sizeMult = parseFloat(document.getElementById('size-slider').value) || 1;
-    let mass = spawnTemplate.mass * massMult;
-    
-    let vx = dx * 0.02; 
-    let vy = dy * 0.02;
-    
-    let newB = new Body(dragStart.x, dragStart.y, vx, vy, mass, spawnTemplate.type, null, null, null, null, sizeMult);
-    newB.name = spawnTemplate.name;
-    newB.color = spawnTemplate.color || newB.generateColor();
-    newB.lore = spawnTemplate.lore;
-    
-    let detailAdd = `\n[Skaliert: ${massMult}x Masse, ${sizeMult}x Größe]`;
-    newB.detailedLore = spawnTemplate.det + (massMult !== 1 || sizeMult !== 1 ? detailAdd : "");
-    
-    bodies.push(newB);
 });
 
+// --- TOUCHSCREEN STEUERUNG ---
+let initialPinchDist = null;
+let initialCamZoom = null;
+let lastTouchPan = null;
+
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault(); // Verhindert das Scrollen des Browsers
+    if (e.touches.length === 1) {
+        clickStartScreen = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        dragStart = toWorld(e.touches[0].clientX, e.touches[0].clientY);
+        
+        if (slingshotEnabled) {
+            isDragging = true;
+            currentMouse = { ...dragStart };
+        } else {
+            isPanning = true;
+            panStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            camStart = { x: camera.x, y: camera.y };
+            camera.target = null;
+        }
+    } else if (e.touches.length === 2) {
+        isDragging = false; 
+        isPanning = false;
+        camera.target = null; // Verfolgung beenden
+        let dx = e.touches[0].clientX - e.touches[1].clientX;
+        let dy = e.touches[0].clientY - e.touches[1].clientY;
+        initialPinchDist = Math.hypot(dx, dy);
+        initialCamZoom = camera.zoom;
+        lastTouchPan = { x: (e.touches[0].clientX + e.touches[1].clientX)/2, y: (e.touches[0].clientY + e.touches[1].clientY)/2 };
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+        if (isDragging) {
+            currentMouse = toWorld(e.touches[0].clientX, e.touches[0].clientY);
+        } else if (isPanning) {
+            let dx = (panStart.x - e.touches[0].clientX) / camera.zoom;
+            let dy = (panStart.y - e.touches[0].clientY) / camera.zoom;
+            camera.x = camStart.x + dx;
+            camera.y = camStart.y + dy;
+        }
+    } else if (e.touches.length === 2 && initialPinchDist) {
+        let dx = e.touches[0].clientX - e.touches[1].clientX;
+        let dy = e.touches[0].clientY - e.touches[1].clientY;
+        let currentDist = Math.hypot(dx, dy);
+        
+        // Pinch to Zoom
+        camera.zoom = initialCamZoom * (currentDist / initialPinchDist);
+        camera.zoom = Math.max(0.005, Math.min(camera.zoom, 10));
+        
+        // Drag to Pan
+        let cx = (e.touches[0].clientX + e.touches[1].clientX)/2;
+        let cy = (e.touches[0].clientY + e.touches[1].clientY)/2;
+        if (lastTouchPan) {
+            camera.x -= (cx - lastTouchPan.x) / camera.zoom;
+            camera.y -= (cy - lastTouchPan.y) / camera.zoom;
+        }
+        lastTouchPan = { x: cx, y: cy };
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    if (e.touches.length === 0) {
+        let touch = e.changedTouches[0];
+        let distScreen = Math.hypot(touch.clientX - clickStartScreen.x, touch.clientY - clickStartScreen.y);
+        
+        if (isPanning) {
+            isPanning = false;
+            if (distScreen < 10) handleSelection(toWorld(touch.clientX, touch.clientY));
+        } else if (isDragging) {
+            isDragging = false;
+            if (distScreen < 10) {
+                handleSelection(toWorld(touch.clientX, touch.clientY));
+            } else {
+                handleSlingshotSpawn(toWorld(touch.clientX, touch.clientY));
+            }
+        }
+    }
+    if (e.touches.length < 2) {
+        initialPinchDist = null;
+        lastTouchPan = null;
+    }
+}, { passive: false });
+
+// --- TRACKPAD & MAUSRAD STEUERUNG ---
 canvas.addEventListener('wheel', (e) => {
-    let zoomFactor = 1.1;
-    if (e.deltaY > 0) camera.zoom /= zoomFactor;
-    else camera.zoom *= zoomFactor;
+    e.preventDefault(); 
+    
+    // Erkennung ob normales Mausrad oder Trackpad-Pan (kleine delta-Werte / deltaX Nutzung)
+    let isTrackpadPan = Math.abs(e.deltaX) > 0 || (Math.abs(e.deltaY) > 0 && Math.abs(e.deltaY) < 40);
+    
+    // Zoom bei Pinch-Geste (Strg-Taste vom Trackpad) oder echtem Mausrad
+    if (e.ctrlKey || !isTrackpadPan) {
+        let zoomSensitivity = e.ctrlKey ? 0.005 : 0.0015;
+        let zoomFactor = Math.exp(e.deltaY * -zoomSensitivity);
+        camera.zoom *= zoomFactor;
+    } else {
+        // Pan bei Trackpad 2-Finger-Wischen
+        camera.target = null;
+        camera.x += (e.deltaX * 1.5) / camera.zoom;
+        camera.y += (e.deltaY * 1.5) / camera.zoom;
+    }
+    
     camera.zoom = Math.max(0.005, Math.min(camera.zoom, 10)); 
-});
+}, { passive: false });
 
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -667,6 +824,7 @@ function showToast(msg) { const t = document.getElementById('toast'); t.textCont
     if(el && val) el.addEventListener('input', () => val.textContent = el.value + 'x');
 });
 
+document.getElementById('tog-slingshot').addEventListener('change', e => slingshotEnabled = e.target.checked);
 document.getElementById('time-slider').addEventListener('input', e => timeScale = parseFloat(e.target.value));
 document.getElementById('tog-collision').addEventListener('change', e => collisionsEnabled = e.target.checked);
 document.getElementById('tog-trails').addEventListener('change', e => trailsEnabled = e.target.checked);
@@ -720,9 +878,26 @@ function updateInspector() {
         document.getElementById('ins-name').style.color = selectedBody.color;
         
         let mStr = (selectedBody.mass / 10).toFixed(2) + " M_Erde";
-        if (selectedBody.mass >= 1000) mStr = (selectedBody.mass / 10000).toFixed(2) + " M_Sonne";
+        if (selectedBody.type === TYPES.PROBE) {
+            mStr = "Künstliches Objekt";
+        } else if (selectedBody.mass >= 1000) {
+            mStr = (selectedBody.mass / 10000).toFixed(2) + " M_Sonne";
+        } else if (selectedBody.mass < 0.1) {
+            mStr = "< 0.01 M_Erde";
+        }
         document.getElementById('ins-mass').innerText = mStr;
-        document.getElementById('ins-radius').innerText = Math.floor(selectedBody.radius * 100) + " km";
+        
+        let rStr = "";
+        if (selectedBody.realRadiusFixed !== null && selectedBody.realRadiusFixed !== undefined) {
+            if (selectedBody.realRadiusFixed < 1) {
+                rStr = (selectedBody.realRadiusFixed * 1000) + " m";
+            } else {
+                rStr = selectedBody.realRadiusFixed.toLocaleString('de-DE') + " km";
+            }
+        } else {
+            rStr = Math.floor(selectedBody.radius * 100) + " km";
+        }
+        document.getElementById('ins-radius').innerText = rStr;
         
         document.getElementById('ins-lore').innerText = selectedBody.lore;
         document.getElementById('ins-detailed-lore').innerText = selectedBody.detailedLore;
@@ -761,53 +936,121 @@ function spawnSolarSystem() {
     clearUniverse();
     let cx = 0, cy = 0;
     
-    let sun = new Body(cx, cy, 0, 0, 10000, TYPES.STAR, "Sonne", "#ffcc00", "Ein Gelber Zwerg (G-Typ Hauptreihenstern).", "Die Sonne enthält 99,86 % der gesamten Masse des Sonnensystems. In ihrem Kern fusioniert Wasserstoff zu Helium bei etwa 15 Millionen Grad Celsius.");
+    // Setze Datum auf den Startpunkt zurück (22. Mai 2026)
+    simTimeMs = new Date(2026, 4, 22).getTime();
+    
+    let sunDb = CELESTIAL_DB['sun'];
+    let sun = new Body(cx, cy, 0, 0, 10000, TYPES.STAR, "Sonne", "#ffcc00", sunDb.lore, sunDb.det, 1, sunDb.realTemp, sunDb.realRadius);
     bodies.push(sun);
     
-    let distScale = 400; // Skalierung für Entfernungen (Erde = 1 * distScale)
-    
     let planetsData = [
-        { name: "Merkur", dist: 0.39, mass: 0.5, color: "#a8a8a8", lore: "Sonnennächster Planet.", det: "Er hat keine echte Atmosphäre und ist extremen Temperaturschwankungen ausgesetzt (-170°C bis +430°C)." },
-        { name: "Venus", dist: 0.72, mass: 8.1, color: "#e0bb7d", lore: "Unser höllischer Nachbar.", det: "Eine dichte CO2-Atmosphäre sorgt für einen massiven Treibhauseffekt. Die Oberfläche ist heiß genug, um Blei zu schmelzen." },
-        { name: "Erde", dist: 1.0, mass: 10, color: "#4a7aff", lore: "Die Heimat der Menschheit.", det: "Der einzige bekannte Planet mit flüssigem Wasser an der Oberfläche und aktivem Leben. Perfekt platziert in der habitablen Zone." },
-        { name: "Mars", dist: 1.52, mass: 1.1, color: "#ff5533", lore: "Der Rote Planet.", det: "Benannt nach dem römischen Kriegsgott. Seine rote Farbe stammt von Eisenoxid (Rost) auf der Oberfläche. Ehemals besaß er Ozeane." },
-        { name: "Jupiter", dist: 4.2, mass: 3178, color: "#c99a63", lore: "Der Gasriese.", det: "Das größte Objekt im System (nach der Sonne). Ein gigantischer Sturm, der Große Rote Fleck, wütet dort seit Jahrhunderten." },
-        { name: "Saturn", dist: 7.5, mass: 950, color: "#eaddb5", lore: "Der Ringplanet.", det: "Sein auffälliges Ringsystem besteht aus unzähligen Eis- und Gesteinsbrocken. Besitzt 146 bekannte Monde." },
-        { name: "Uranus", dist: 12.0, mass: 145, color: "#88ccff", lore: "Der Eisriese.", det: "Seine Rotationsachse ist so stark geneigt, dass er quasi auf seiner Umlaufbahn 'rollt'." },
-        { name: "Neptun", dist: 16.5, mass: 171, color: "#4444ff", lore: "Äußerster Gasplanet.", det: "Bekannt für extreme Stürme mit Windgeschwindigkeiten von über 2.000 km/h." },
-        { name: "Pluto", dist: 20.0, mass: 0.02, color: "#dddddd", lore: "Zwergplanet.", det: "Einst der neunte Planet, heute der bekannteste Zwergplanet im Kuipergürtel." }
+        { key: 'merkur', dist: 120, mass: 0.5, angle: 1.2, color: "#a8a8a8" },
+        { key: 'venus', dist: 220, mass: 8.1, angle: 4.5, color: "#e0bb7d" },
+        { key: 'earth', dist: 350, mass: 10, angle: 3.8, color: "#4a7aff", id: 'earth' },
+        { key: 'mars', dist: 500, mass: 1.1, angle: 0.5, color: "#ff5533" },
+        { key: 'jupiter', dist: 1200, mass: 3178, angle: 1.8, color: "#c99a63" },
+        { key: 'saturn', dist: 2100, mass: 950, angle: 6.0, color: "#eaddb5", id: 'saturn' },
+        { key: 'uranus', dist: 3200, mass: 145, angle: 2.5, color: "#88ccff" },
+        { key: 'neptun', dist: 4500, mass: 171, angle: 5.9, color: "#4444ff" }
     ];
 
-    planetsData.forEach((p, index) => {
-        let actualDist = p.dist * distScale;
-        let speed = Math.sqrt(G * sun.mass / actualDist);
-        let angle = (index * Math.PI / 3) + Math.random();
+    let earthRef = null;
+
+    planetsData.forEach((p) => {
+        let dbRef = CELESTIAL_DB[p.key] || { name: p.key, lore: "Planet", det: "" };
+        let speed = Math.sqrt(G * sun.mass / p.dist); 
         
-        let vx = Math.sin(angle) * speed * -1;
-        let vy = Math.cos(angle) * speed;
-        let bx = cx + Math.cos(angle) * actualDist;
-        let by = cy + Math.sin(angle) * actualDist;
+        let vx = Math.sin(p.angle) * speed * -1;
+        let vy = Math.cos(p.angle) * speed;
+        let bx = cx + Math.cos(p.angle) * p.dist;
+        let by = cy + Math.sin(p.angle) * p.dist;
         
-        let b = new Body(bx, by, vx, vy, p.mass, TYPES.PLANET, p.name, p.color, p.lore, p.det);
+        let b = new Body(bx, by, vx, vy, p.mass, TYPES.PLANET, dbRef.name, p.color, dbRef.lore, dbRef.det, 1, dbRef.realTemp, dbRef.realRadius);
+        if(p.id === 'saturn') b.name = 'Saturn'; 
         bodies.push(b);
+        if(p.id === 'earth') earthRef = b;
     });
     
-    camera.x = cx; camera.y = cy; camera.zoom = 0.15; camera.target = sun;
-    showToast("Komplettes Sonnensystem geladen.");
+    if(earthRef) {
+        // Mond tief innerhalb der stabilen Hill-Sphäre (Anziehungs-Zone der Erde)
+        let moonDist = 8; 
+        let moonOrbitSpeed = Math.sqrt(G * earthRef.mass / moonDist);
+        let moonAngle = 1.0; 
+        let dbMoon = CELESTIAL_DB['moon'];
+        bodies.push(new Body(
+            earthRef.x + Math.cos(moonAngle) * moonDist,
+            earthRef.y + Math.sin(moonAngle) * moonDist,
+            earthRef.vx + Math.sin(moonAngle) * moonOrbitSpeed * -1,
+            earthRef.vy + Math.cos(moonAngle) * moonOrbitSpeed,
+            dbMoon.mass, TYPES.ASTEROID, "Mond", dbMoon.color, dbMoon.lore, dbMoon.det, 1, dbMoon.realTemp, dbMoon.realRadius
+        ));
+
+        // ISS kreist jetzt extrem eng (Dank dem kleineren Kollisionsradius sicher!)
+        let issDist = 3.5; 
+        let issOrbitSpeed = Math.sqrt(G * earthRef.mass / issDist);
+        let dbIss = CELESTIAL_DB['iss'];
+        bodies.push(new Body(
+            earthRef.x, earthRef.y - issDist,
+            earthRef.vx + issOrbitSpeed, earthRef.vy,
+            dbIss.mass, TYPES.PROBE, "ISS", dbIss.color, dbIss.lore, dbIss.det, 1, dbIss.realTemp, dbIss.realRadius
+        ));
+
+        // Hubble etwas weiter draußen
+        let hubDist = 4.5; 
+        let hubOrbitSpeed = Math.sqrt(G * earthRef.mass / hubDist);
+        let dbHub = CELESTIAL_DB['hubble'];
+        bodies.push(new Body(
+            earthRef.x, earthRef.y + hubDist,
+            earthRef.vx - hubOrbitSpeed, earthRef.vy,
+            dbHub.mass, TYPES.PROBE, "Hubble", dbHub.color, dbHub.lore, dbHub.det, 1, dbHub.realTemp, dbHub.realRadius
+        ));
+
+        // JWST im Lagrange-Punkt L2 (Exakt ausbalanciert, ca. 24.2 Einheiten hinter der Erde)
+        let l2Offset = 24.2;
+        let jwstDist = 350 + l2Offset;
+        let earthAngularVelocity = Math.sqrt(G * sun.mass / 350) / 350;
+        let jwstSpeed = earthAngularVelocity * jwstDist; 
+        let dbJwst = CELESTIAL_DB['jwst'];
+        
+        bodies.push(new Body(
+            cx + Math.cos(3.8) * jwstDist, 
+            cy + Math.sin(3.8) * jwstDist,
+            Math.sin(3.8) * jwstSpeed * -1,
+            Math.cos(3.8) * jwstSpeed,
+            dbJwst.mass, TYPES.PROBE, "JWST", dbJwst.color, dbJwst.lore, dbJwst.det, 1, dbJwst.realTemp, dbJwst.realRadius
+        ));
+    }
+
+    let dbVoy1 = CELESTIAL_DB['voyager1'];
+    bodies.push(new Body(
+        cx + Math.cos(1.0) * 5500, cy + Math.sin(1.0) * 5500,
+        Math.cos(1.0) * 14.5, Math.sin(1.0) * 14.5, // Geschwindigkeit 10x erhöht, damit man sie entfliehen sieht
+        dbVoy1.mass, TYPES.PROBE, "Voyager 1", dbVoy1.color, dbVoy1.lore, dbVoy1.det, 1, dbVoy1.realTemp, dbVoy1.realRadius
+    ));
+    
+    let dbVoy2 = CELESTIAL_DB['voyager2'];
+    bodies.push(new Body(
+        cx + Math.cos(4.0) * 5000, cy + Math.sin(4.0) * 5000,
+        Math.cos(4.0) * 13.5, Math.sin(4.0) * 13.5, // Geschwindigkeit 10x erhöht
+        dbVoy2.mass, TYPES.PROBE, "Voyager 2", dbVoy2.color, dbVoy2.lore, dbVoy2.det, 1, dbVoy2.realTemp, dbVoy2.realRadius
+    ));
+    
+    camera.x = cx; camera.y = cy; camera.zoom = 0.08; camera.target = sun;
+    showToast("Sonnensystem (aktuelle Positionen) geladen.");
 }
 
 function spawnBinarySystem() {
     clearUniverse();
-    let s1 = new Body(-200, 0, 0, 3, 8000, TYPES.STAR, "Alpha Centauri A", "#ffcc00", "Hauptstern des Systems.", "G-Typ Stern, sehr ähnlich unserer Sonne.");
-    let s2 = new Body(200, 0, 0, -3, 6000, TYPES.STAR, "Alpha Centauri B", "#ffaa00", "Der etwas kleinere Begleiter.", "K-Typ Stern, orbitiert gemeinsam mit Alpha Centauri A.");
+    let s1 = new Body(-300, 0, 0, 3, 8000, TYPES.STAR, "Alpha Centauri A", "#ffcc00", "Hauptstern des Systems.", "G-Typ Stern, sehr ähnlich unserer Sonne.", 1, 5790, 851122);
+    let s2 = new Body(300, 0, 0, -3, 6000, TYPES.STAR, "Alpha Centauri B", "#ffaa00", "Der etwas kleinere Begleiter.", "K-Typ Stern, orbitiert gemeinsam mit Alpha Centauri A.", 1, 5260, 601300);
     bodies.push(s1, s2);
     
     for(let i=0; i<3; i++) {
-        let dist = 800 + i*300;
+        let dist = 1200 + i*400;
         let speed = Math.sqrt(G * 14000 / dist);
-        bodies.push(new Body(dist, 0, 0, speed, TYPES.PLANET.baseMass, TYPES.PLANET));
+        bodies.push(new Body(dist, 0, 0, speed, TYPES.PLANET.baseMass, TYPES.PLANET, "Exoplanet", null, "Ein unbekannter Planet im Doppelstern-System.", "", 1, null, null));
     }
-    camera.x = 0; camera.y = 0; camera.zoom = 0.3; camera.target = null;
+    camera.x = 0; camera.y = 0; camera.zoom = 0.2; camera.target = null;
     showToast("Doppelstern-System generiert.");
 }
 
@@ -817,10 +1060,6 @@ function clearUniverse() {
     closeInspector();
     showToast("Universum gelöscht.");
 }
-
-let lastTime = 0;
-let frameCount = 0;
-let lastFpsTime = 0;
 
 function drawHabitableZone(ctx) {
     if (!showHZ) return;
@@ -832,42 +1071,34 @@ function drawHabitableZone(ctx) {
     }
     
     if (mainStar) {
-        // Skalierung ist genau so gewählt, dass die Erde in spawnSolarSystem bei Radius 400 innerhalb des Rings liegt.
         let scale = Math.sqrt(mainStar.mass / 10000); 
-        let innerRadius = 320 * scale; 
-        let outerRadius = 520 * scale;
+        let innerRadius = 280 * scale; 
+        let outerRadius = 450 * scale;
         
         ctx.save();
-        
-        // Zuerst den perfekten Donut zeichnen durch Kombination beider Radien (in gegensätzlicher Zeichenrichtung)
         ctx.beginPath();
         ctx.arc(mainStar.x, mainStar.y, outerRadius, 0, Math.PI*2, false);
         ctx.arc(mainStar.x, mainStar.y, innerRadius, 0, Math.PI*2, true);
-        
-        // Farbe des Rings (transluzentes Grün)
         ctx.fillStyle = 'rgba(94, 255, 168, 0.08)'; 
         ctx.fill();
         
-        // Äußere und innere Grenzlinie
         ctx.strokeStyle = 'rgba(94, 255, 168, 0.2)';
         ctx.lineWidth = 1 / camera.zoom; 
-        
-        ctx.beginPath();
-        ctx.arc(mainStar.x, mainStar.y, innerRadius, 0, Math.PI*2);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(mainStar.x, mainStar.y, outerRadius, 0, Math.PI*2);
-        ctx.stroke();
-        
+        ctx.beginPath(); ctx.arc(mainStar.x, mainStar.y, innerRadius, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(mainStar.x, mainStar.y, outerRadius, 0, Math.PI*2); ctx.stroke();
         ctx.restore();
     }
 }
 
+// Der neue Fixed Timestep Game-Loop
 function loop(timestamp) {
-    let dt = timestamp - lastTime;
-    if (dt > 100) dt = 16; 
+    if (lastTime === 0) lastTime = timestamp;
+    
+    let frameTime = (timestamp - lastTime) / 1000;
     lastTime = timestamp;
+
+    // Verhindert zu große Zeitsprünge, falls das Fenster in den Hintergrund geht (Spiral of Death)
+    if (frameTime > 0.25) frameTime = 0.25;
 
     frameCount++;
     if (timestamp - lastFpsTime >= 1000) {
@@ -877,16 +1108,42 @@ function loop(timestamp) {
     }
 
     if (timeScale > 0) {
-        let steps = Math.ceil(timeScale); 
-        let subDt = (dt * timeScale) / steps;
-        for(let s=0; s<steps; s++) {
-            computeGravity(subDt * 0.1); 
-            for(let b of bodies) b.update(subDt * 0.1);
+        // Zeitakku füllen (inklusive TimeScale Slider Modifikator)
+        accumulator += frameTime * timeScale;
+        
+        // Immer in exakten 60Hz-Schritten updaten
+        while (accumulator >= FIXED_DT) {
+            computeGravity(FIXED_DT);
+            for(let b of bodies) b.update(FIXED_DT);
+            
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update(FIXED_DT);
+                if (particles[i].life <= 0) particles.splice(i, 1);
+            }
+            
+            // Datum fortschreiten lassen
+            simTimeMs += FIXED_DT * MS_PER_SIM_UNIT;
+            accumulator -= FIXED_DT;
         }
-        for (let i = particles.length - 1; i >= 0; i--) {
-            particles[i].update(dt * 0.1);
-            if (particles[i].life <= 0) particles.splice(i, 1);
-        }
+    }
+
+    // UI-Datum updaten
+    const dateDisplay = document.getElementById('sim-date');
+    if (dateDisplay) {
+        const d = new Date(simTimeMs);
+        dateDisplay.textContent = d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    // Kamera per Tastatur bewegen
+    let isPressingArrow = activeKeys['ArrowUp'] || activeKeys['KeyW'] || activeKeys['ArrowDown'] || activeKeys['KeyS'] || activeKeys['ArrowLeft'] || activeKeys['KeyA'] || activeKeys['ArrowRight'] || activeKeys['KeyD'];
+    if (isPressingArrow) camera.target = null; // Verfolgung abbrechen, sobald manuell gesteuert wird
+
+    if (!camera.target) {
+        let panSpeed = 10 / camera.zoom;
+        if (activeKeys['ArrowUp'] || activeKeys['KeyW']) camera.y -= panSpeed;
+        if (activeKeys['ArrowDown'] || activeKeys['KeyS']) camera.y += panSpeed;
+        if (activeKeys['ArrowLeft'] || activeKeys['KeyA']) camera.x -= panSpeed;
+        if (activeKeys['ArrowRight'] || activeKeys['KeyD']) camera.x += panSpeed;
     }
 
     if (camera.target) {
