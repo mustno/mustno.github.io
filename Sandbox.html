@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MustNo Physics - Sandbox </title>
+<link rel="icon" type="image/png" href="/logo.png?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>
+// LOKAL-SAFE: try-catch für alle localStorage Zugriffe, da "file:///" oft von Browsern blockiert wird
+function safeGetStore(key, fallback = '') {
+    try { return localStorage.getItem(key) || fallback; } catch(e) { return fallback; }
+}
+
+(function() {
+    const activeTheme = safeGetStore('mustno-theme', '');
+    if (activeTheme) {
+        document.documentElement.className = activeTheme;
+        const observer = new MutationObserver((mutations, obs) => {
+            if (document.body) {
+                document.body.className = activeTheme;
+                const sync = () => { document.documentElement.className = document.body.className; };
+                new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                obs.disconnect();
+            }
+        });
+        observer.observe(document.documentElement, { childList: true });
+    }
+    if (activeTheme.startsWith('custom-')) {
+        try {
+            const stored = safeGetStore('mustno-custom-themes', '[]');
+            const customThemes = JSON.parse(stored) || [];
+            const ct = customThemes.find(t => t.id === activeTheme);
+            if (ct && ct.colors) {
+                const root = document.documentElement;
+                if (ct.colors.bg) root.style.setProperty('--bg', ct.colors.bg);
+                if (ct.colors.accent) root.style.setProperty('--accent', ct.colors.accent);
+                if (ct.colors.text) root.style.setProperty('--text', ct.colors.text);
+                if (ct.colors.green) root.style.setProperty('--green', ct.colors.green);
+                if (ct.colors.border) root.style.setProperty('--border', ct.colors.border);
+            }
+        } catch(e) { console.error("Theme Load Error", e); }
+    }
+})();
+</script>
+<style>
+:root {
+  --bg: #050b16; --accent: #4a7aff; --green: #5effa8; --text: #e4edff;
+  --dim: rgba(160,190,255,.45); --muted: rgba(80,110,185,.38); --border: rgba(60,100,240,.2);
+  --font-main: 'Syne', sans-serif; --font-mono: 'Space Mono', monospace;
+  --hdr-bg: linear-gradient(to bottom, rgba(5,11,22,.85), rgba(5,11,22,0));
+  --panel-bg: rgba(5,11,22,0.75); --glass: rgba(255,255,255,.03);
+}
+
+/* Theme Overrides */
+html.theme-wii, body.theme-wii {
+  --bg: #f4f4f4; --text: #444444; --accent: #00baff; --green: #00a2e8;
+  --dim: #777777; --muted: #999999; --border: #d0d0d0;
+  --panel-bg: rgba(255,255,255,0.85); --glass: rgba(255,255,255,0.85);
+  --hdr-bg: linear-gradient(to bottom, rgba(244,244,244,.9), rgba(244,244,244,0));
+}
+html.theme-retro, body.theme-retro {
+  --bg: #000000; --text: #00ff00; --accent: #00ff00; --green: #00ff00;
+  --dim: #00cc00; --muted: #007700; --border: #00ff00;
+  --panel-bg: rgba(0,0,0,0.9); --glass: rgba(0,0,0,0.9); --hdr-bg: #000000;
+  --font-main: 'Space Mono', monospace;
+}
+html.theme-cyberpunk, body.theme-cyberpunk {
+  --bg: #090014; --text: #ffffff; --accent: #ff007c; --green: #00f0ff;
+  --dim: #ff99cc; --muted: #b057ff; --border: rgba(255, 0, 124, 0.3);
+  --panel-bg: rgba(22, 0, 36, 0.85); --glass: rgba(9,0,20,0.85);
+  --hdr-bg: linear-gradient(to bottom, rgba(9,0,20,0.85), transparent);
+}
+html.theme-custom, body.theme-custom {
+  --dim: color-mix(in srgb, var(--text) 45%, transparent);
+  --muted: color-mix(in srgb, var(--text) 25%, transparent);
+  --panel-bg: color-mix(in srgb, var(--bg) 85%, transparent);
+  --glass: color-mix(in srgb, var(--bg) 80%, transparent);
+  --hdr-bg: linear-gradient(to bottom, var(--panel-bg), transparent);
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-main);user-select:none;touch-action:none;}
+
+header { position: absolute; top: 0; left: 0; width: 100%; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; border-bottom: 1px solid var(--border); background: var(--hdr-bg); backdrop-filter: blur(8px); }
+.logo { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; letter-spacing: .2em; color: var(--text); display:flex; align-items:center; cursor:pointer;}
+.logo span { color: transparent; -webkit-text-stroke: 1px var(--accent); }
+.header-right { display: flex; gap: 20px; align-items: center; }
+.btn-back { font-family: var(--font-mono); font-size: 0.7rem; color: var(--dim); text-decoration: none; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.2s; }
+.btn-back:hover { color: var(--text); border-color: var(--accent); background: var(--glass); }
+
+#sim-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display:flex; justify-content:center; align-items:center; }
+canvas { image-rendering: pixelated; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+
+.panel { position: absolute; z-index: 100; background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 8px; padding: 15px; color: var(--text); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+#control-panel { top: 75px; right: 20px; width: 320px; max-height: calc(100vh - 100px); overflow-y: auto; }
+#control-panel::-webkit-scrollbar { width: 4px; }
+#control-panel::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+.section-title { font-family: var(--font-mono); font-size: 0.7rem; color: var(--green); text-transform: uppercase; letter-spacing: .2em; margin-bottom: 10px; margin-top: 15px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.section-title:first-child { margin-top: 0; }
+
+.element-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
+.el-btn { background: var(--glass); border: 1px solid var(--border); color: var(--text); font-family: var(--font-mono); font-size: 0.7rem; padding: 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+.el-btn:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); border-color: var(--accent); }
+.el-btn.active { background: color-mix(in srgb, var(--accent) 30%, transparent); border-color: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 40%, transparent); font-weight: bold; }
+.el-color { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3); }
+
+.slider-group { margin-bottom: 12px; }
+.slider-header { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.65rem; color: var(--dim); margin-bottom: 4px; }
+input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--green); cursor: pointer; margin-top: -6px; }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; background: var(--border); border-radius: 1px; }
+
+.btn { background: var(--glass); border: 1px solid var(--border); color: var(--text); font-family: var(--font-mono); font-size: 0.7rem; padding: 10px 12px; border-radius: 4px; cursor: pointer; transition: all 0.2s; width: 100%; text-align: center; text-transform: uppercase; margin-bottom: 8px; }
+.btn:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); border-color: var(--accent); }
+
+/* Audio Widget overrides */
+#audio-widget { position: fixed; bottom: 20px; left: 20px; z-index: 10005; display: flex; gap: 14px; align-items: center; background: var(--glass); border: 1px solid var(--border); padding: 10px 18px 10px 10px; border-radius: 12px; backdrop-filter: blur(12px); overflow: hidden; }
+.audio-eq { display: flex; gap: 3px; align-items: flex-end; height: 16px; width: 18px; }
+.eq-bar { width: 4px; background: var(--dim); border-radius: 2px; height: 4px; }
+#audio-widget.is-playing .eq-bar { background: var(--green); animation: eq-bounce 0.8s infinite alternate ease-in-out; }
+#audio-widget.is-playing .eq-bar:nth-child(2) { animation-delay: -0.4s; }
+#audio-widget.is-playing .eq-bar:nth-child(3) { animation-delay: -0.2s; }
+@keyframes eq-bounce { 0%, 20% { height: 4px; } 100% { height: 16px; } }
+.audio-info { display: flex; flex-direction: column; justify-content: center; min-width: 90px; }
+.audio-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3px; gap: 12px; }
+.audio-label { font-family: var(--font-mono); font-size: 0.45rem; color: var(--dim); letter-spacing: 0.25em; text-transform: uppercase; }
+.audio-time { font-family: var(--font-mono); font-size: 0.45rem; color: var(--dim); }
+.audio-track { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; color: var(--text); letter-spacing: 0.15em; }
+.audio-controls { display: flex; gap: 6px; align-items: center; margin-left: 6px; padding-left: 14px; border-left: 1px solid var(--border); }
+.audio-btn { background: transparent; border: none; color: var(--dim); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
+.audio-btn:hover { color: var(--accent); }
+.audio-btn svg { width: 14px; height: 14px; fill: currentColor; }
+.audio-progress-bg { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; cursor: pointer; background: color-mix(in srgb, var(--accent) 25%, transparent); }
+.audio-progress-fill { height: 100%; width: 0%; pointer-events: none; background: var(--accent); }
+
+.theme-select { width: 100%; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-family: var(--font-mono); font-size: 0.75rem; padding: 8px; outline: none; border-radius: 4px; margin-bottom: 12px; cursor: pointer; }
+.theme-select option { background: var(--bg); color: var(--text); }
+.theme-select optgroup { background: var(--panel-bg); color: var(--dim); font-style: normal; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" onclick="window.location.href='index.html'">MUSTNO <span>SANDBOX</span></div>
+  <div class="header-right">
+    <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--green);" id="fps-counter">FPS: 00</div>
+    <a href="index.html" class="btn-back">Zurück zum Hub</a>
+  </div>
+</header>
+
+<div id="sim-container">
+  <canvas id="sandCanvas"></canvas>
+</div>
+
+<div class="panel" id="control-panel">
+    
+    <select id="theme-override" class="theme-select" onchange="changeThemeOverride()">
+        <option value="">System/Hub Theme</option>
+        <option value="theme-wii">Wii Theme</option>
+        <option value="theme-retro">Retro Green</option>
+        <option value="theme-cyberpunk">Cyberpunk</option>
+    </select>
+
+    <div class="section-title">Elemente</div>
+    <div class="element-grid" id="element-buttons">
+        <!-- Generiert via JS -->
+    </div>
+    
+    <div class="slider-group">
+      <div class="slider-header"><span>Pinselgröße</span><span id="brush-val">4</span></div>
+      <input type="range" id="brush-slider" min="1" max="25" value="4">
+    </div>
+    
+    <div class="section-title">Aktionen</div>
+    <button class="btn" onclick="clearCanvas(true)" style="border-color:rgba(255,80,80,0.5); color:#ff8888;">Welt löschen</button>
+    
+    <div style="font-family:var(--font-mono); font-size:0.6rem; color:var(--dim); margin-top:15px; text-align:center;">
+      Interaktion: Klicken/Tippen und ziehen, um Elemente zu platzieren.
+    </div>
+</div>
+
+<div id="audio-widget">
+  <div class="audio-eq"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
+  <div class="audio-info">
+    <div class="audio-header"><div class="audio-label">AMBIENCE</div><div class="audio-time" id="bgm-time">0:00 / 0:00</div></div>
+    <div class="audio-track" id="bgm-track-name">TRACK 01</div>
+  </div>
+  <div class="audio-controls">
+    <button class="audio-btn" onclick="toggleBGM()"><svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg></button>
+    <button class="audio-btn" onclick="nextTrack()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+  </div>
+  <div class="audio-progress-bg" onclick="seekAudio(event)"><div class="audio-progress-fill" id="bgm-progress"></div></div>
+</div>
+
+<script>
+// --- Hilfsfunktion zum sicheren Speichern ---
+function safeSetStore(key, val) {
+    try { localStorage.setItem(key, val); } catch(e) {}
+}
+
+// --- SANDBOX ENGINE ---
+const canvas = document.getElementById('sandCanvas');
+const ctx = canvas.getContext('2d'); 
+
+// Simulation Resolution Settings
+const PIXEL_SCALE = 4; // Größe der "Pixel" auf dem Bildschirm
+let SIM_WIDTH, SIM_HEIGHT;
+
+let grid = new Uint8Array(0);
+let updateFlag = new Uint8Array(0); 
+let imgData;
+
+let isDrawing = false;
+let lastDraw = null;
+let currentElement = 1; // Default: Sand
+let brushSize = 4;
+
+// Cache für die Hintergrundfarbe, damit das Spiel nicht mehr laggt!
+let cachedBgColor = [5, 11, 22, 255]; 
+
+// Element Definitionen
+const ELEMENTS = {
+    0: { name: 'Radiergummi', color: [0, 0, 0, 0], uiColor: '#222' },
+    1: { name: 'Sand', color: [234, 221, 181, 255], uiColor: '#eaddb5', type: 'powder' },
+    2: { name: 'Wasser', color: [74, 122, 255, 255], uiColor: '#4a7aff', type: 'liquid' },
+    3: { name: 'Stein', color: [136, 153, 170, 255], uiColor: '#8899aa', type: 'solid' },
+    4: { name: 'Holz', color: [139, 90, 43, 255], uiColor: '#8b5a2b', type: 'solid', flammable: true },
+    5: { name: 'Feuer', color: [255, 85, 0, 255], uiColor: '#ff5500', type: 'gas' },
+    6: { name: 'Dampf', color: [200, 200, 200, 255], uiColor: '#cccccc', type: 'gas' },
+    7: { name: 'Säure', color: [0, 255, 0, 255], uiColor: '#00ff00', type: 'liquid' },
+    8: { name: 'Glas', color: [170, 204, 255, 150], uiColor: '#aaccff', type: 'solid', acidResistant: true },
+    9: { name: 'Pflanze', color: [94, 255, 168, 255], uiColor: '#5effa8', type: 'solid', flammable: true },
+    10: { name: 'Lava', color: [255, 34, 0, 255], uiColor: '#ff2200', type: 'liquid' },
+};
+
+// UI Generierung
+const btnContainer = document.getElementById('element-buttons');
+Object.keys(ELEMENTS).forEach(key => {
+    let el = ELEMENTS[key];
+    let btn = document.createElement('button');
+    btn.className = `el-btn ${key == currentElement ? 'active' : ''}`;
+    btn.innerHTML = `<div class="el-color" style="background-color: ${el.uiColor}"></div><span>${el.name}</span>`;
+    btn.onclick = () => {
+        document.querySelectorAll('.el-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentElement = parseInt(key);
+    };
+    btnContainer.appendChild(btn);
+});
+
+document.getElementById('brush-slider').addEventListener('input', (e) => {
+    brushSize = parseInt(e.target.value);
+    document.getElementById('brush-val').innerText = brushSize;
+});
+
+function updateCachedBgColor() {
+    let bgStr = getComputedStyle(document.body).getPropertyValue('--bg').trim();
+    if (!bgStr) bgStr = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    
+    if (bgStr.startsWith('#')) {
+        let hex = bgStr.replace('#', '');
+        if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+        cachedBgColor = [parseInt(hex.substr(0,2),16), parseInt(hex.substr(2,2),16), parseInt(hex.substr(4,2),16), 255];
+    } else if (bgStr.startsWith('rgb')) {
+        let match = bgStr.match(/\d+/g);
+        if (match && match.length >= 3) {
+            cachedBgColor = [parseInt(match[0]), parseInt(match[1]), parseInt(match[2]), 255];
+        }
+    }
+}
+
+function initCanvas() {
+    let rect = canvas.getBoundingClientRect();
+    let w = rect.width || canvas.clientWidth || window.innerWidth;
+    let h = rect.height || canvas.clientHeight || window.innerHeight;
+    
+    // Logisches Grid berechnen (kleinere Auflösung für Retro Look und Performance)
+    SIM_WIDTH = Math.ceil(w / PIXEL_SCALE);
+    SIM_HEIGHT = Math.ceil(h / PIXEL_SCALE);
+    
+    canvas.width = SIM_WIDTH;
+    canvas.height = SIM_HEIGHT;
+    
+    let newGrid = new Uint8Array(SIM_WIDTH * SIM_HEIGHT);
+    let newUpdateFlag = new Uint8Array(SIM_WIDTH * SIM_HEIGHT);
+    
+    // Altes Bild übernehmen falls Resize
+    if (grid && grid.length > 0 && imgData) {
+        let oldW = imgData.width;
+        let oldH = imgData.height;
+        for (let y = 0; y < Math.min(SIM_HEIGHT, oldH); y++) {
+            for (let x = 0; x < Math.min(SIM_WIDTH, oldW); x++) {
+                newGrid[y * SIM_WIDTH + x] = grid[y * oldW + x];
+            }
+        }
+    }
+    
+    grid = newGrid;
+    updateFlag = newUpdateFlag;
+    imgData = ctx.createImageData(SIM_WIDTH, SIM_HEIGHT);
+    
+    updateCachedBgColor(); 
+    drawGridToImgData();
+}
+
+function clearCanvas(full = false) {
+    if(full === true) {
+        grid.fill(0);
+    }
+    drawGridToImgData();
+}
+
+window.addEventListener('resize', initCanvas);
+
+// LOKAL-SAFE: Warten bis das Fenster wirklich komplett geladen ist.
+window.addEventListener('load', () => {
+    setTimeout(initCanvas, 50);
+});
+// Fallback
+setTimeout(initCanvas, 200);
+
+// --- ZELLULÄRER AUTOMAT LOGIK ---
+function getIdx(x, y) { return y * SIM_WIDTH + x; }
+function inBounds(x, y) { return x >= 0 && x < SIM_WIDTH && y >= 0 && y < SIM_HEIGHT; }
+function isEmpty(x, y) { return inBounds(x, y) && grid[getIdx(x, y)] === 0; }
+
+function swap(idx1, idx2) {
+    let temp = grid[idx1];
+    grid[idx1] = grid[idx2];
+    grid[idx2] = temp;
+    updateFlag[idx1] = 1;
+    updateFlag[idx2] = 1;
+}
+
+function tryMove(x, y, dx, dy) {
+    if (!inBounds(x + dx, y + dy)) return false;
+    let targetIdx = getIdx(x + dx, y + dy);
+    let myIdx = getIdx(x, y);
+    
+    if (grid[targetIdx] === 0) {
+        swap(myIdx, targetIdx);
+        return true;
+    }
+    
+    let myEl = ELEMENTS[grid[myIdx]];
+    let targetEl = ELEMENTS[grid[targetIdx]];
+    
+    if (myEl && targetEl) {
+        if (myEl.type === 'powder' && targetEl.type === 'liquid') {
+            swap(myIdx, targetIdx);
+            return true;
+        }
+        if (myEl.type === 'liquid' && targetEl.type === 'liquid' && myEl !== targetEl) {
+            if(grid[myIdx] === 10 && grid[targetIdx] !== 10) { swap(myIdx, targetIdx); return true; }
+        }
+    }
+    return false;
+}
+
+function updatePhysics() {
+    updateFlag.fill(0);
+    
+    // Von unten nach oben aktualisieren (für Schwerkraft)
+    for (let y = SIM_HEIGHT - 1; y >= 0; y--) {
+        // Random Richtung x-Traversal für Symmetrie
+        let dir = Math.random() < 0.5 ? 1 : -1;
+        let startX = dir === 1 ? 0 : SIM_WIDTH - 1;
+        let endX = dir === 1 ? SIM_WIDTH : -1;
+        
+        for (let x = startX; x !== endX; x += dir) {
+            let idx = getIdx(x, y);
+            let elId = grid[idx];
+            if (elId === 0 || updateFlag[idx] === 1) continue;
+            
+            let el = ELEMENTS[elId];
+            
+            // --- SAND (Powder) ---
+            if (el.type === 'powder') {
+                if (tryMove(x, y, 0, 1)) continue; // Unten
+                let rDir = Math.random() < 0.5 ? -1 : 1;
+                if (tryMove(x, y, rDir, 1)) continue;
+                if (tryMove(x, y, -rDir, 1)) continue;
+            }
+            
+            // --- WASSER / SÄURE / LAVA (Liquid) ---
+            else if (el.type === 'liquid') {
+                if (elId === 7) { // Säure
+                    let neighbors = [[0,1], [0,-1], [1,0], [-1,0]];
+                    for(let n of neighbors) {
+                        let nx = x + n[0], ny = y + n[1];
+                        if(inBounds(nx, ny)) {
+                            let nIdx = getIdx(nx, ny);
+                            let nId = grid[nIdx];
+                            if(nId !== 0 && nId !== 7 && nId !== 8) { // 8 = Glas
+                                if(Math.random() < 0.05) { // Ätz-Geschwindigkeit
+                                    grid[nIdx] = 0; 
+                                    grid[idx] = 0; 
+                                    updateFlag[nIdx] = 1;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if(grid[idx] === 0) continue; 
+                }
+                
+                if (elId === 10) { // Lava
+                    let neighbors = [[0,1], [0,-1], [1,0], [-1,0]];
+                    for(let n of neighbors) {
+                        let nx = x + n[0], ny = y + n[1];
+                        if(inBounds(nx, ny)) {
+                            let nIdx = getIdx(nx, ny);
+                            let nId = grid[nIdx];
+                            if (ELEMENTS[nId] && ELEMENTS[nId].flammable && Math.random() < 0.1) {
+                                grid[nIdx] = 5; 
+                                updateFlag[nIdx] = 1;
+                            } else if (nId === 2) { 
+                                grid[nIdx] = 6; 
+                                grid[idx] = 3; 
+                                updateFlag[nIdx] = 1;
+                                break;
+                            } else if (nId === 3 && Math.random() < 0.005) { 
+                                grid[nIdx] = 10;
+                                updateFlag[nIdx] = 1;
+                            }
+                        }
+                    }
+                    if(grid[idx] === 3) continue; 
+                }
+
+                if (tryMove(x, y, 0, 1)) continue;
+                
+                let rDir = Math.random() < 0.5 ? -1 : 1;
+                if (tryMove(x, y, rDir, 1)) continue;
+                if (tryMove(x, y, -rDir, 1)) continue;
+                
+                // Verbessertes, realistisches Flüssigkeits-Fließen
+                let spread = Math.floor(Math.random() * 4) + 1;
+                let moved = false;
+                let currX = x;
+                for(let i=0; i<spread; i++) {
+                    if (tryMove(currX, y, rDir, 0)) { currX += rDir; moved = true; }
+                    else break;
+                }
+                if(!moved) {
+                    currX = x;
+                    for(let i=0; i<spread; i++) {
+                        if (tryMove(currX, y, -rDir, 0)) { currX -= rDir; }
+                        else break;
+                    }
+                }
+            }
+            
+            // --- FEUER (Gas/Ephermal) ---
+            else if (elId === 5) {
+                if (Math.random() < 0.08) {
+                    grid[idx] = 0;
+                    continue;
+                }
+                let neighbors = [[0,1], [0,-1], [1,0], [-1,0]];
+                for(let n of neighbors) {
+                    let nx = x + n[0], ny = y + n[1];
+                    if(inBounds(nx, ny)) {
+                        let nIdx = getIdx(nx, ny);
+                        let nId = grid[nIdx];
+                        if (ELEMENTS[nId] && ELEMENTS[nId].flammable) {
+                            if (Math.random() < 0.1) { 
+                                grid[nIdx] = 5;
+                                updateFlag[nIdx] = 1;
+                            }
+                        } else if (nId === 2) { 
+                            grid[idx] = 0;
+                            if(Math.random() < 0.5) { grid[nIdx] = 6; updateFlag[nIdx] = 1; }
+                            break;
+                        }
+                    }
+                }
+                if(grid[idx] === 0) continue;
+
+                let rDir = Math.random() < 0.5 ? -1 : 1;
+                if (tryMove(x, y, 0, -1)) continue;
+                if (tryMove(x, y, rDir, -1)) continue;
+            }
+            
+            // --- DAMPF (Gas) ---
+            else if (elId === 6) {
+                if (Math.random() < 0.02) { 
+                    grid[idx] = Math.random() < 0.2 ? 2 : 0; 
+                    updateFlag[idx] = 1;
+                    continue;
+                }
+                let rDir = Math.random() < 0.5 ? -1 : 1;
+                if (tryMove(x, y, 0, -1)) continue;
+                if (tryMove(x, y, rDir, -1)) continue;
+                if (tryMove(x, y, -rDir, -1)) continue;
+                if (tryMove(x, y, rDir, 0)) continue;
+                if (tryMove(x, y, -rDir, 0)) continue;
+            }
+            
+            // --- PFLANZE (Wachstum) ---
+            else if (elId === 9) {
+                if (Math.random() < 0.01) {
+                    let nearWater = false;
+                    for(let nx = x-2; nx <= x+2; nx++) {
+                        for(let ny = y-2; ny <= y+2; ny++) {
+                            if(inBounds(nx, ny) && grid[getIdx(nx, ny)] === 2) nearWater = true;
+                        }
+                    }
+                    if (nearWater) {
+                        let dirs = [[0,-1], [1,0], [-1,0]]; 
+                        for(let d of dirs) {
+                            if (Math.random() < 0.3 && isEmpty(x+d[0], y+d[1])) {
+                                grid[getIdx(x+d[0], y+d[1])] = 9;
+                                updateFlag[getIdx(x+d[0], y+d[1])] = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+function drawGridToImgData() {
+    if (!imgData) return;
+    
+    let data = imgData.data;
+    let baseBg = cachedBgColor; 
+    
+    for (let i = 0; i < grid.length; i++) {
+        let elId = grid[i];
+        let baseColor = elId === 0 ? baseBg : ELEMENTS[elId].color;
+        
+        let pIdx = i * 4;
+        
+        if (elId !== 0 && (ELEMENTS[elId].type === 'solid' || ELEMENTS[elId].type === 'powder' || elId === 9)) {
+            let noise = ((i % 17) + ((i/SIM_WIDTH)%23) - 20) * 0.5;
+            data[pIdx] = Math.floor(Math.max(0, Math.min(255, baseColor[0] + noise)));
+            data[pIdx+1] = Math.floor(Math.max(0, Math.min(255, baseColor[1] + noise)));
+            data[pIdx+2] = Math.floor(Math.max(0, Math.min(255, baseColor[2] + noise)));
+        } else if (elId === 5) {
+            let flicker = Math.random() * 50;
+            data[pIdx] = 255;
+            data[pIdx+1] = Math.floor(Math.max(0, baseColor[1] - flicker));
+            data[pIdx+2] = 0;
+        } else {
+            data[pIdx] = baseColor[0];
+            data[pIdx+1] = baseColor[1];
+            data[pIdx+2] = baseColor[2];
+        }
+        
+        if (elId === 8 || elId === 2) {
+            let alpha = elId === 8 ? 0.3 : 0.8;
+            data[pIdx] = Math.floor(data[pIdx]*alpha + baseBg[0]*(1-alpha));
+            data[pIdx+1] = Math.floor(data[pIdx+1]*alpha + baseBg[1]*(1-alpha));
+            data[pIdx+2] = Math.floor(data[pIdx+2]*alpha + baseBg[2]*(1-alpha));
+        }
+        
+        data[pIdx+3] = 255;
+    }
+    ctx.putImageData(imgData, 0, 0);
+}
+
+// LOKAL-SAFE: Exakte Berechnung der Maus-Position mit Fallbacks, egal wie der Browser rendert.
+function getGridCoords(evt) {
+    let rect = canvas.getBoundingClientRect();
+    let rWidth = rect.width || canvas.clientWidth || window.innerWidth;
+    let rHeight = rect.height || canvas.clientHeight || window.innerHeight;
+    
+    let clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    let clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    
+    let scaleX = canvas.width / rWidth;
+    let scaleY = canvas.height / rHeight;
+    
+    let x = Math.floor((clientX - (rect.left || 0)) * scaleX);
+    let y = Math.floor((clientY - (rect.top || 0)) * scaleY);
+    
+    return {x, y};
+}
+
+function drawLine(x0, y0, x1, y1) {
+    let dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    let dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1; 
+    let err = (dx > dy ? dx : -dy)/2;
+ 
+    while (true) {
+        drawBrush(x0, y0);
+        if (x0 === x1 && y0 === y1) break;
+        let e2 = err;
+        if (e2 > -dx) { err -= dy; x0 += sx; }
+        if (e2 < dy) { err += dx; y0 += sy; }
+    }
+}
+
+function drawBrush(cx, cy) {
+    let r = Math.floor(brushSize/2);
+    for(let y = cy - r; y <= cy + r; y++) {
+        for(let x = cx - r; x <= cx + r; x++) {
+            if((x-cx)*(x-cx) + (y-cy)*(y-cy) <= r*r) {
+                if(inBounds(x, y)) {
+                    if ((currentElement === 1 || currentElement === 2 || currentElement === 10) && Math.random() > 0.6) continue;
+                    grid[getIdx(x, y)] = currentElement;
+                }
+            }
+        }
+    }
+}
+
+function handleInputDown(e) {
+    isDrawing = true;
+    let pos = getGridCoords(e);
+    lastDraw = pos;
+    drawBrush(pos.x, pos.y);
+}
+
+function handleInputMove(e) {
+    if(!isDrawing) return;
+    let pos = getGridCoords(e);
+    if(lastDraw) drawLine(lastDraw.x, lastDraw.y, pos.x, pos.y);
+    else drawBrush(pos.x, pos.y);
+    lastDraw = pos;
+}
+
+function handleInputUp() {
+    isDrawing = false;
+    lastDraw = null;
+}
+
+canvas.addEventListener('mousedown', handleInputDown);
+canvas.addEventListener('mousemove', handleInputMove);
+window.addEventListener('mouseup', handleInputUp);
+
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleInputDown(e); }, {passive: false});
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleInputMove(e); }, {passive: false});
+window.addEventListener('touchend', handleInputUp);
+
+// --- MAIN LOOP ---
+let frameCount = 0;
+let lastFpsTime = 0;
+
+function loop(timestamp) {
+    frameCount++;
+    if (timestamp - lastFpsTime >= 1000) {
+        document.getElementById('fps-counter').textContent = `FPS: ${frameCount}`;
+        frameCount = 0; lastFpsTime = timestamp;
+    }
+
+    if (SIM_WIDTH && SIM_HEIGHT) {
+        updatePhysics();
+        drawGridToImgData();
+    }
+
+    requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+
+// --- THEME SELECTOR ---
+function changeThemeOverride() {
+    const override = document.getElementById('theme-override').value;
+    const body = document.body;
+    body.classList.remove('theme-wii', 'theme-retro', 'theme-cyberpunk', 'theme-custom');
+    if (override) body.classList.add(override);
+    
+    // Hintergrundfarbe für den Sandbox-Renderer aktualisieren
+    setTimeout(updateCachedBgColor, 50); 
+}
+
+// --- AUDIO SYSTEM ---
+let bgmAudio = new Audio();
+let isPlaying = false;
+let trackIdx = 0;
+let initialBgmTime = 0;
+
+// LOKAL-SAFE: Werte abrufen
+try {
+    isPlaying = safeGetStore('mustno-bgm-play') === 'true';
+    trackIdx = parseInt(safeGetStore('mustno-track-idx', '0'));
+    initialBgmTime = parseFloat(safeGetStore('mustno-bgm-time', '0'));
+} catch(e) {}
+
+const AUDIO_CFG = {
+  bgm: {
+    'default':         ['/cyber-1.mp3', '/cyber-2.mp3'],
+    'theme-wii':       ['/wii-1.mp3',   '/wii-2.mp3'],
+    'theme-retro':     ['/retro-1.mp3', '/retro-2.mp3'],
+    'theme-cyberpunk': ['/cyberpunk-1.mp3', '/cyberpunk-2.mp3']
+  }
+};
+AUDIO_CFG.bgm['theme-custom'] = [...new Set(Object.values(AUDIO_CFG.bgm).flat())];
+
+function formatTime(seconds) {
+  if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+  return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+}
+
+function updateBgmUI() {
+  const w = document.getElementById('audio-widget');
+  if (!w) return;
+  if (isPlaying) { 
+    w.classList.add('is-playing'); 
+    document.getElementById('icon-play').style.display = 'none'; 
+    document.getElementById('icon-pause').style.display = 'block'; 
+  } else { 
+    w.classList.remove('is-playing'); 
+    document.getElementById('icon-play').style.display = 'block'; 
+    document.getElementById('icon-pause').style.display = 'none'; 
+  }
+  
+  const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
+  const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
+  const safeIdx = trackIdx % playlist.length;
+  document.getElementById('bgm-track-name').textContent = `TRACK 0${safeIdx + 1}`;
+  
+  if (bgmAudio.duration) {
+    const percent = (bgmAudio.currentTime / bgmAudio.duration) * 100;
+    const prog = document.getElementById('bgm-progress');
+    const timeDisp = document.getElementById('bgm-time');
+    if (prog) prog.style.width = percent + '%';
+    if (timeDisp) timeDisp.innerText = `${formatTime(bgmAudio.currentTime)} / ${formatTime(bgmAudio.duration)}`;
+  }
+}
+
+function playCurrentTrack() {
+  const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
+  const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
+  const targetUrl = playlist[trackIdx % playlist.length];
+  
+  if (!bgmAudio.src.includes(targetUrl)) {
+      bgmAudio.src = targetUrl;
+      bgmAudio.currentTime = initialBgmTime;
+  }
+  
+  if (isPlaying) {
+    bgmAudio.play().catch(() => {
+      const resumePlay = () => { bgmAudio.play(); updateBgmUI(); window.removeEventListener('click', resumePlay); };
+      window.addEventListener('click', resumePlay);
+    });
+  }
+}
+
+window.toggleBGM = function() {
+  if (bgmAudio.paused) { 
+    bgmAudio.play().then(() => { 
+        isPlaying = true; 
+        safeSetStore('mustno-bgm-play', 'true'); 
+        updateBgmUI(); 
+    }); 
+  } else { 
+    bgmAudio.pause(); 
+    isPlaying = false; 
+    safeSetStore('mustno-bgm-play', 'false'); 
+    updateBgmUI(); 
+  }
+};
+
+window.nextTrack = function() {
+  const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
+  const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
+  trackIdx = (trackIdx + 1) % playlist.length; 
+  safeSetStore('mustno-track-idx', trackIdx); 
+  safeSetStore('mustno-bgm-time', '0');
+  initialBgmTime = 0;
+  playCurrentTrack(); 
+  if (!isPlaying) toggleBGM();
+};
+
+bgmAudio.addEventListener('ended', window.nextTrack);
+bgmAudio.addEventListener('timeupdate', updateBgmUI);
+bgmAudio.addEventListener('loadedmetadata', () => {
+  if(initialBgmTime > 0 && initialBgmTime < bgmAudio.duration) {
+    bgmAudio.currentTime = initialBgmTime;
+    initialBgmTime = 0; 
+  }
+  updateBgmUI();
+});
+
+window.seekAudio = function(e) {
+  if (!bgmAudio.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  bgmAudio.currentTime = percent * bgmAudio.duration;
+  safeSetStore('mustno-bgm-time', bgmAudio.currentTime);
+  updateBgmUI(); 
+};
+
+setInterval(() => { 
+  if (!bgmAudio.paused && bgmAudio.readyState >= 1) {
+    safeSetStore('mustno-bgm-time', bgmAudio.currentTime); 
+  }
+}, 1000);
+
+playCurrentTrack();
+</script>
+</body>
+</html>
