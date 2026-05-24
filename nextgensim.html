@@ -334,8 +334,7 @@ const fobs=new IntersectionObserver(entries=>{ entries.forEach(e=>{ if(e.isInter
 feats.forEach(f=>{ f.style.opacity='0';f.style.transform='translateY(20px)'; f.style.transition='opacity .5s ease,transform .5s ease,border-color .3s,background .3s,box-shadow .3s'; fobs.observe(f); });
 </script>
 
-
-
+<script>
 (function () {
   const THEME_KEY = 'mustno-theme';
   const CUSTOM_KEY = 'mustno-custom-themes';
@@ -686,7 +685,11 @@ feats.forEach(f=>{ f.style.opacity='0';f.style.transform='translateY(20px)'; f.s
 
   window.addEventListener('storage', e => {
     if (e.key === THEME_KEY || e.key === CUSTOM_KEY) initThemeSystem();
-  });<div id="custom-theme-modal" style="position:fixed; inset:0; z-index:20000; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px); font-family:'Space Mono', monospace;">
+  });
+})();
+</script>
+
+<div id="custom-theme-modal" style="position:fixed; inset:0; z-index:20000; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px); font-family:'Space Mono', monospace;">
   <div style="background:#050b16; border:1px solid #4a7aff; padding:25px; border-radius:12px; width:90%; max-width:350px; box-shadow:0 0 30px rgba(0,0,0,0.8);">
     <h3 id="ct-modal-title" style="color:#e4edff; text-align:center; margin-bottom:20px; font-weight:bold; letter-spacing:0.05em;">NEUES THEME ERSTELLEN</h3>
     
@@ -714,14 +717,10 @@ feats.forEach(f=>{ f.style.opacity='0';f.style.transform='translateY(20px)'; f.s
         }, 50);
     });
 </script>
-})();
-</script>
-
 
 <!-- ========================================== -->
 <!-- ── PREMIUM AUDIO SYSTEM (Widget + Logic) ── -->
-<!-- ========================================== -->
-<style>
+<!-- ========================================== --><style>
   #cur, #cursor, .cursor { z-index: 999999 !important; }
 
   #audio-widget {
