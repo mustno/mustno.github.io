@@ -275,6 +275,88 @@
       .audio-progress-fill { height: 100%; width: 0%; background: color-mix(in srgb, var(--text) 40%, transparent); pointer-events: none; transition: width 0.1s linear, background 0.3s; }
       #audio-widget.is-playing .audio-progress-fill { background: var(--green, #5effa8); box-shadow: 0 0 8px color-mix(in srgb, var(--green, #5effa8) 50%, transparent); }
     </style>
+    
+    <style id="mustno-snake-cursor-refinement">
+    /* MUSTNO hybrid cursor: snake while moving, rotating ring while idle. */
+    #glowOrb {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
+    #cursor {
+      width: 5px !important;
+      height: 5px !important;
+      background: var(--accent) !important;
+      box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 75%, transparent) !important;
+    }
+
+    .mustno-snake-cursor {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999998;
+      mix-blend-mode: screen;
+      opacity: 0;
+      transition: opacity .16s ease;
+    }
+
+    .mustno-snake-letter,
+    .mustno-ring-dot {
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: block;
+      will-change: left, top, transform, opacity;
+    }
+
+    .mustno-snake-letter {
+      color: var(--text-primary);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      line-height: 1;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow:
+        0 0 7px color-mix(in srgb, var(--accent) 80%, transparent),
+        0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+      opacity: .95;
+      transform-origin: 50% 50%;
+    }
+
+    .mustno-ring-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--text-primary) 88%, transparent);
+      box-shadow: 0 0 8px color-mix(in srgb, var(--text-primary) 60%, transparent);
+      opacity: 0;
+    }
+
+    .mustno-ring-dot.square {
+      width: 5px;
+      height: 5px;
+      border-radius: 1px;
+    }
+
+    body.theme-wii .mustno-snake-cursor {
+      mix-blend-mode: multiply;
+    }
+    body.theme-wii .mustno-snake-letter {
+      color: var(--accent);
+      text-shadow: none;
+    }
+    body.theme-wii .mustno-ring-dot {
+      background: var(--accent);
+      box-shadow: none;
+    }
+
+    @media (pointer: coarse), (prefers-reduced-motion: reduce) {
+      .mustno-snake-cursor { display: none !important; }
+    }
+    </style>
 </head>
 <body>
 <div class="cursor" id="cursor"></div>
@@ -774,6 +856,145 @@ document.addEventListener('DOMContentLoaded', () => {
 // Save audio progress every second
 setInterval(() => { if (!bgmAudio.paused) localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime); }, 1000);
 
+</script>
+
+<script id="mustno-snake-cursor-script">
+(function () {
+  const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!finePointer || reduceMotion) return;
+
+  const word = 'MUSTNO';
+  const letters = word.split('');
+  const wrap = document.createElement('div');
+  wrap.className = 'mustno-snake-cursor';
+  wrap.setAttribute('aria-hidden', 'true');
+
+  const nodes = letters.map((letter) => {
+    const node = document.createElement('span');
+    node.className = 'mustno-snake-letter';
+    node.textContent = letter;
+    wrap.appendChild(node);
+    return node;
+  });
+
+  const dots = Array.from({ length: 4 }, (_, i) => {
+    const dot = document.createElement('span');
+    dot.className = 'mustno-ring-dot' + (i % 2 ? ' square' : '');
+    wrap.appendChild(dot);
+    return dot;
+  });
+
+  document.body.appendChild(wrap);
+
+  let targetX = window.innerWidth / 2;
+  let targetY = window.innerHeight / 2;
+  let lastMove = performance.now();
+  let visible = false;
+
+  const lineSpacing = 13;
+  const circleRadius = 31;
+  const dotRadius = 17;
+  const idleThreshold = 250;
+
+  const chain = nodes.map((_, i) => ({
+    x: targetX - i * lineSpacing,
+    y: targetY,
+    angle: 0
+  }));
+
+  function setVisible(on) {
+    visible = on;
+    wrap.style.opacity = on ? '1' : '0';
+  }
+
+  document.addEventListener('mousemove', (event) => {
+    targetX = event.clientX;
+    targetY = event.clientY;
+    lastMove = performance.now();
+    setVisible(true);
+  }, { passive: true });
+
+  document.addEventListener('mouseleave', () => setVisible(false));
+
+  function frame(now) {
+    const idle = now - lastMove > idleThreshold;
+
+    if (idle) {
+      const spin = now * 0.00115;
+      chain.forEach((p, i) => {
+        const base = spin + (Math.PI * 2 * i / nodes.length) - Math.PI / 2;
+        const tx = targetX + Math.cos(base) * circleRadius;
+        const ty = targetY + Math.sin(base) * circleRadius;
+        p.x += (tx - p.x) * 0.18;
+        p.y += (ty - p.y) * 0.18;
+        const tangent = base + Math.PI / 2;
+        p.angle += (tangent - p.angle) * 0.18;
+      });
+
+      dots.forEach((dot, i) => {
+        const a = -spin * 0.55 + (Math.PI * 2 * i / dots.length);
+        const x = targetX + Math.cos(a) * dotRadius;
+        const y = targetY + Math.sin(a) * dotRadius;
+        dot.style.left = x + 'px';
+        dot.style.top = y + 'px';
+        dot.style.opacity = visible ? (i % 2 ? '.95' : '.72') : '0';
+        dot.style.transform = 'translate(-50%, -50%) rotate(' + (spin + i) + 'rad)';
+      });
+    } else {
+      chain[0].x += (targetX - chain[0].x) * 0.35;
+      chain[0].y += (targetY - chain[0].y) * 0.35;
+
+      for (let i = 1; i < chain.length; i++) {
+        const prev = chain[i - 1];
+        const cur = chain[i];
+        const dx = prev.x - cur.x;
+        const dy = prev.y - cur.y;
+        const angle = Math.atan2(dy, dx);
+        const desiredX = prev.x - Math.cos(angle) * lineSpacing;
+        const desiredY = prev.y - Math.sin(angle) * lineSpacing;
+
+        cur.x += (desiredX - cur.x) * 0.42;
+        cur.y += (desiredY - cur.y) * 0.42;
+      }
+
+      for (let i = 0; i < chain.length; i++) {
+        const next = chain[Math.min(i + 1, chain.length - 1)];
+        const p = chain[i];
+        const a = Math.atan2(next.y - p.y, next.x - p.x);
+        p.angle += (a - p.angle) * 0.30;
+      }
+
+      dots.forEach((dot) => {
+        dot.style.opacity = '0';
+      });
+    }
+
+    const head = chain[0];
+    const tail = chain[chain.length - 1];
+    const reverseWord = !idle && head.x > tail.x;
+
+    nodes.forEach((node, i) => {
+      const p = chain[i];
+      const letterIndex = reverseWord ? (letters.length - 1 - i) : i;
+      let displayAngle = p.angle;
+
+      /* Keep MUSTNO readable from left to right even when the mouse moves from either side. */
+      if (!idle && displayAngle > Math.PI / 2) displayAngle -= Math.PI;
+      if (!idle && displayAngle < -Math.PI / 2) displayAngle += Math.PI;
+
+      node.textContent = letters[letterIndex];
+      node.style.left = p.x + 'px';
+      node.style.top = p.y + 'px';
+      node.style.opacity = visible ? String(1 - i * 0.055) : '0';
+      node.style.transform = 'translate(-50%, -50%) rotate(' + displayAngle + 'rad)';
+    });
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
 </script>
 
 <script src="theme.js"></script>
