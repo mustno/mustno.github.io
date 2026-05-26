@@ -676,11 +676,25 @@ window.playCurrentTrack = function() {
   if (!bgmAudio.src || !bgmAudio.src.endsWith(newSrc)) {
     bgmAudio.src = newSrc;
     lastLoadedSrc = ''; 
-    bgmAudio.load(); // Läd die Daten (kann ohne Klick blockiert werden)
+    // Bug-Fix: Kein .load() mehr! Stattdessen stellen wir sicher, dass die 
+    // gespeicherte Zeit geladen wird (für das seitenübergreifende Feature).
+    bgmAudio.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
   }
   
   if (isPlaying) {
-    bgmAudio.play().catch(e => console.warn("Auto-Play blockiert:", e));
+    // Sicheres Abfangen des Play-Befehls, damit der Browser sich nicht verschluckt
+    const playPromise = bgmAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(e => {
+        console.warn("Auto-Play blockiert:", e);
+        const resumePlay = () => { 
+            bgmAudio.play(); 
+            updateBgmUI();
+            window.removeEventListener('click', resumePlay); 
+        };
+        window.addEventListener('click', resumePlay);
+      });
+    }
   }
   updateBgmUI();
 }
