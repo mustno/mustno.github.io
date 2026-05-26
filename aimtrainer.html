@@ -1121,7 +1121,7 @@
             isShuffle: false,
             
             init: function() {
-                this.audio.volume = 0.2; 
+                this.audio.volume = 1.0; 
                 this.audio.addEventListener('timeupdate', () => {
                     if (this.audio.duration) {
                         const pct = (this.audio.currentTime / this.audio.duration) * 100;
