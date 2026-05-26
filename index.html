@@ -106,15 +106,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MustNo — Select Project</title>
 <link rel="icon" type="image/png" href="/logo.png?v=1">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Syne:wght@400;700;800;900&amp;display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet"></noscript>
 <style>
 /* KOMPAKTES CELLIBEAN WIDGET - UNTEN RECHTS */
 #cellibean-widget {
     position: fixed; bottom: clamp(20px, 4vh, 40px); right: clamp(20px, 4vw, 56px); z-index: 10005;
     display: flex; gap: 10px; align-items: center;
-    background: var(--glass, rgba(255, 255, 255, 0.05)); border: 1px solid var(--border, rgba(255,255,255,0.1));
+    background: color-mix(in srgb, var(--bg, #0a1628) 88%, transparent); border: 1px solid var(--border, rgba(255,255,255,0.1));
     padding: 8px 14px;
-    border-radius: calc(var(--proj-rad, 0px) / 2 + 12px); backdrop-filter: blur(12px);
+    border-radius: calc(var(--proj-rad, 0px) / 2 + 12px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s ease;
     text-decoration: none;
 }
@@ -167,7 +170,12 @@ body.theme-wii {
   --glass: #f9f9f9;
   --glass-border: #e0e0e0;
 }
-.theme-wii .bg-noise, .theme-wii .grid, .theme-wii .scan, .theme-wii .vig, .theme-wii #pts { display: none; }
+.theme-wii header  { background: rgba(244,244,244,.96) !important; }
+.theme-wii footer  { background: rgba(244,244,244,.94) !important; }
+.theme-retro header, .theme-retro footer { background: rgba(0,0,0,.97) !important; }
+.theme-cyberpunk header { background: rgba(9,0,20,.94) !important; }
+.theme-cyberpunk footer { background: rgba(9,0,20,.92) !important; }
+
 .theme-wii .proj { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 .theme-wii .proj:hover { box-shadow: 0 0 0 4px rgba(0, 162, 232, 0.3), 0 8px 25px rgba(0,0,0,0.1); }
 .theme-wii .s-title span { -webkit-text-stroke: 0; color: var(--accent); }
@@ -238,7 +246,7 @@ body.theme-wii #cur { mix-blend-mode: normal; }
 
 main{position:relative;z-index:10;width:100%;height:100vh;display:grid;grid-template-rows:auto 1fr auto;}
 
-header{display:flex;align-items:center;justify-content:space-between;padding:clamp(14px,2vh,24px) clamp(20px,4vw,56px);border-bottom:1px solid var(--border);background: var(--hdr-bg);backdrop-filter:blur(16px);position:relative;opacity:0;animation:fadeDown .6s .05s ease forwards;gap:12px;}
+header{display:flex;align-items:center;justify-content:space-between;padding:clamp(14px,2vh,24px) clamp(20px,4vw,56px);border-bottom:1px solid var(--border);background:rgba(5,11,22,.92);position:relative;opacity:0;animation:fadeDown .6s .05s ease forwards;gap:12px;}
 .logo{font-family:'Space Mono',monospace;font-size:clamp(.7rem,.9vw,.95rem);font-weight:700;letter-spacing:.22em;color:var(--text);display:flex;align-items:center;gap:2px;flex-shrink:0;}
 .logo-cursor{display:inline-block;width:2px;height:1em;background:var(--green);margin-left:1px;vertical-align:middle;animation:blink 1.4s step-end infinite;box-shadow:0 0 6px var(--green);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
@@ -321,7 +329,7 @@ body.theme-wii .picon { filter:saturate(1) brightness(0.8); }
 .arr{display:inline-block;transition:transform .42s cubic-bezier(0.34,1.4,.64,1);}
 .proj:hover .arr{transform:translateX(5px);}
 
-footer{display:flex;align-items:center;justify-content:space-between;padding:clamp(10px,1.5vh,16px) clamp(20px,4vw,56px);border-top:1px solid var(--border);background: var(--ftr-bg);backdrop-filter:blur(12px);opacity:0;animation:fadeUp .55s .68s ease forwards;gap:12px;flex-wrap:wrap;}
+footer{display:flex;align-items:center;justify-content:space-between;padding:clamp(10px,1.5vh,16px) clamp(20px,4vw,56px);border-top:1px solid var(--border);background:rgba(5,11,22,.88);opacity:0;animation:fadeUp .55s .68s ease forwards;gap:12px;flex-wrap:wrap;}
 .ftl{font-family:'Space Mono',monospace;font-size:clamp(.48rem,.55vw,.58rem);letter-spacing:.1em;color:var(--muted);}
 .ftl b{color:var(--green);font-weight:400;}
 .kbhints{display:flex;gap:clamp(8px,1vw,14px);flex-wrap:wrap;}
@@ -810,7 +818,7 @@ body.ln-webgl-enabled .proj.sim .pname {
 </div>
 
 <!-- ── MULTI CUSTOM THEME EDITOR ── -->
-<div id="custom-theme-modal" style="position: fixed; inset: 0px; z-index: 20000; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); font-family: &quot;Space Mono&quot;, monospace;">
+<div id="custom-theme-modal" style="position: fixed; inset: 0px; z-index: 20000; background: rgba(0, 0, 0, 0.88); display: none; align-items: center; justify-content: center; font-family: &quot;Space Mono&quot;, monospace;">
   <div style="background:#050b16; border:1px solid #4a7aff; padding:25px; border-radius:12px; width:90%; max-width:350px; box-shadow:0 0 30px rgba(0,0,0,0.8);">
     <h3 id="ct-modal-title" style="color:#e4edff; text-align:center; margin-bottom:20px; font-weight:bold; letter-spacing:0.05em;">NEUES THEME ERSTELLEN</h3>
     
@@ -1070,7 +1078,7 @@ const tick = () => { clk.textContent = new Date().toLocaleTimeString('de-AT', {h
 if(clk) { tick(); setInterval(tick, 1000); }
 
 const ptc = document.getElementById('pts');
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < 15; i++) {
   const p = document.createElement('div'); p.className = 'pt';
   const g = Math.random() > .5, s = .6 + Math.random() * 1.8;
   p.style.cssText = `left:${Math.random()*100}%;width:${s}px;height:${s}px;background:${g?'var(--green)':'var(--accent)'};--dx:${(Math.random()-.5)*150}px;animation-duration:${14+Math.random()*22}s;animation-delay:${Math.random()*26}s;`;
@@ -1394,9 +1402,9 @@ function eeKeyHandler(e) {
   #audio-widget {
     position: fixed; bottom: clamp(20px, 4vh, 40px); left: clamp(20px, 4vw, 56px); z-index: 10005;
     display: flex; gap: 14px; align-items: center;
-    background: var(--glass, rgba(255, 255, 255, 0.05)); border: 1px solid var(--border, rgba(255,255,255,0.1));
+    background: color-mix(in srgb, var(--bg, #0a1628) 88%, transparent); border: 1px solid var(--border, rgba(255,255,255,0.1));
     padding: 10px 18px 10px 10px;
-    border-radius: calc(var(--proj-rad, 0px) / 2 + 12px); backdrop-filter: blur(12px);
+    border-radius: calc(var(--proj-rad, 0px) / 2 + 12px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
     overflow: hidden;
   }
@@ -1803,9 +1811,12 @@ AUDIO_CFG.bgm['theme-custom'] = [...new Set(Object.values(AUDIO_CFG.bgm).flat())
 
 const sfxHover = new Audio(AUDIO_CFG.sfx.hover); sfxHover.volume = 0.15;
 const sfxClick = new Audio(AUDIO_CFG.sfx.click); sfxClick.volume = 0.3;
-document.querySelectorAll('a, button, .proj, .app-card:not(.locked), .rchip, select, .feat, .nav-back, .cs-btn, .btn-primary, .btn-secondary, .audio-btn').forEach(el => {
-  el.addEventListener('mouseenter', () => { sfxHover.currentTime = 0; sfxHover.play().catch(()=>{}); });
-  el.addEventListener('click', () => { sfxClick.currentTime = 0; sfxClick.play().catch(()=>{}); });
+const _sfxSelector = 'a, button, .proj, .app-card:not(.locked), .rchip, select, .feat, .nav-back, .cs-btn, .btn-primary, .btn-secondary, .audio-btn';
+document.addEventListener('mouseover', e => {
+  if (e.target.closest && e.target.closest(_sfxSelector)) { sfxHover.currentTime = 0; sfxHover.play().catch(()=>{}); }
+});
+document.addEventListener('click', e => {
+  if (e.target.closest && e.target.closest(_sfxSelector)) { sfxClick.currentTime = 0; sfxClick.play().catch(()=>{}); }
 });
 
 const bgmAudio = new Audio(); bgmAudio.volume = 1; bgmAudio.loop = false;
@@ -2101,27 +2112,35 @@ setTimeout(() => {
       if (el.dataset.lnParallaxBound) return;
       el.dataset.lnParallaxBound = 'true';
 
+      // Pre-compute type once — el type never changes during hover
+      const isCard = el.matches('.proj, .app-card:not(.locked)');
+      const isBtn  = !isCard && el.matches(START_BUTTON_SELECTOR);
+      let _rafPx = false;
+
       el.addEventListener('mousemove', (event) => {
-        const rect = el.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        const px = Math.max(0, Math.min(1, x / rect.width));
-        const py = Math.max(0, Math.min(1, y / rect.height));
-        const nx = px - 0.5;
-        const ny = py - 0.5;
+        if (_rafPx) return;
+        _rafPx = true;
+        requestAnimationFrame(() => {
+          _rafPx = false;
+          const rect = el.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          const px = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+          const py = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+          const nx = px - 0.5;
+          const ny = py - 0.5;
 
-        el.style.setProperty('--ln-mx', `${(px * 100).toFixed(2)}%`);
-        el.style.setProperty('--ln-my', `${(py * 100).toFixed(2)}%`);
-        el.style.setProperty('--ln-angle', `${Math.atan2(ny, nx) * 57.2958 + 90}deg`);
+          el.style.setProperty('--ln-mx', `${(px * 100).toFixed(2)}%`);
+          el.style.setProperty('--ln-my', `${(py * 100).toFixed(2)}%`);
+          el.style.setProperty('--ln-angle', `${Math.atan2(ny, nx) * 57.2958 + 90}deg`);
 
-        if (el.matches('.proj, .app-card:not(.locked)')) {
-          el.style.setProperty('--ln-rx', `${(-ny * 11).toFixed(2)}deg`);
-          el.style.setProperty('--ln-ry', `${(nx * 13).toFixed(2)}deg`);
-        } else if (el.matches(START_BUTTON_SELECTOR)) {
-          el.style.setProperty('--ln-rx-small', `${(-ny * 7).toFixed(2)}deg`);
-          el.style.setProperty('--ln-ry-small', `${(nx * 9).toFixed(2)}deg`);
-        }
+          if (isCard) {
+            el.style.setProperty('--ln-rx', `${(-ny * 11).toFixed(2)}deg`);
+            el.style.setProperty('--ln-ry', `${(nx * 13).toFixed(2)}deg`);
+          } else if (isBtn) {
+            el.style.setProperty('--ln-rx-small', `${(-ny * 7).toFixed(2)}deg`);
+            el.style.setProperty('--ln-ry-small', `${(nx * 9).toFixed(2)}deg`);
+          }
+        });
       }, { passive: true });
 
       el.addEventListener('mouseleave', () => {
@@ -2148,7 +2167,7 @@ setTimeout(() => {
       });
     };
     const observer = new MutationObserver(schedule);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ['class'] });
   }
 
   function initWebGLTrail() {
@@ -2278,6 +2297,8 @@ setTimeout(() => {
     resize();
 
     const pointData = new Float32Array(MAX_POINTS * 4);
+    // Snake cursor CSS (#mustno-snake-cursor-refinement) hides the WebGL trail — skip loop entirely
+    if (document.getElementById('mustno-snake-cursor-refinement')) return;
     const render = (time) => {
       if (time - colorTimer > 350) {
         colors = readThemeColors();
@@ -2441,6 +2462,7 @@ setTimeout(() => {
   mix-blend-mode: screen;
   opacity: 0;
   transition: opacity .16s ease;
+  will-change: opacity;
 }
 
 .mustno-snake-letter,
@@ -2449,7 +2471,6 @@ setTimeout(() => {
   left: 0;
   top: 0;
   display: block;
-  will-change: left, top, transform, opacity;
 }
 
 .mustno-snake-letter {
@@ -2560,6 +2581,7 @@ body.theme-wii .mustno-ring-dot {
   document.addEventListener('mouseleave', () => setVisible(false));
 
   function frame(now) {
+    if (!visible) { requestAnimationFrame(frame); return; }
     const idle = now - lastMove > idleThreshold;
 
     if (idle) {
