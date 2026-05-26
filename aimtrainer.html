@@ -1094,15 +1094,16 @@
         requestAnimationFrame(mmpSpinLoop);
 
         // --- Music Player Logic ---
+        // Einheitliche & Copyright-Sichere Tracklist (Pfade synchronisiert mit Lab/Index)
         const ALL_TRACKS = [
-            { title: "Neon Override", artist: "System", url: "cyber-2.mp3", theme: "", length: "2:58" },
-            { title: "Data Stream", artist: "System", url: "cyber-3.mp3", theme: "", length: "3:15" },
-            { title: "Wii Shop Channel", artist: "Nintendo", url: "wii-shop.mp3", theme: "theme-wii", length: "4:20" },
-            { title: "Mii Plaza", artist: "Nintendo", url: "mii-plaza.mp3", theme: "theme-wii", length: "3:45" },
-            { title: "8-Bit Dream", artist: "Retro", url: "retro-2.mp3", theme: "theme-retro", length: "3:10" },
-            { title: "Arcade Final Boss", artist: "Retro", url: "arcade-boss.mp3", theme: "theme-retro", length: "2:30" },
-            { title: "Night City", artist: "Cyberpunk", url: "cyberpunk-1.mp3", theme: "theme-cyberpunk", length: "4:05" },
-            { title: "Arasaka Tower", artist: "Cyberpunk", url: "cyberpunk-3.mp3", theme: "theme-cyberpunk", length: "3:50" }
+            { title: "TRACK 01", artist: "SYSTEM", url: "/cyber-1.mp3", theme: "", length: "2:58" },
+            { title: "TRACK 02", artist: "SYSTEM", url: "/cyber-2.mp3", theme: "", length: "3:15" },
+            { title: "TRACK 01", artist: "WII THEME", url: "/wii-1.mp3", theme: "theme-wii", length: "4:20" },
+            { title: "TRACK 02", artist: "WII THEME", url: "/wii-2.mp3", theme: "theme-wii", length: "3:45" },
+            { title: "TRACK 01", artist: "RETRO", url: "/retro-1.mp3", theme: "theme-retro", length: "3:10" },
+            { title: "TRACK 02", artist: "RETRO", url: "/retro-2.mp3", theme: "theme-retro", length: "2:30" },
+            { title: "TRACK 01", artist: "CYBERPUNK", url: "/cyberpunk-1.mp3", theme: "theme-cyberpunk", length: "4:05" },
+            { title: "TRACK 02", artist: "CYBERPUNK", url: "/cyberpunk-2.mp3", theme: "theme-cyberpunk", length: "3:50" }
         ];
 
         function formatTime(seconds) {
@@ -1114,12 +1115,13 @@
             audio: new Audio(),
             playlist: [],
             shuffledIndices: [],
-            index: 0,
-            isPlaying: false,
+            // Index aus dem Speicher holen (Seitenübergreifend)
+            index: parseInt(localStorage.getItem('mustno-track-idx')) || 0,
+            isPlaying: localStorage.getItem('mustno-bgm-play') === 'true',
             isShuffle: false,
             
             init: function() {
-                this.audio.volume = 0.2;
+                this.audio.volume = 0.2; 
                 this.audio.addEventListener('timeupdate', () => {
                     if (this.audio.duration) {
                         const pct = (this.audio.currentTime / this.audio.duration) * 100;
@@ -1136,6 +1138,11 @@
                 
                 const activeTheme = localStorage.getItem('mustno-theme') || '';
                 this.setTheme(activeTheme, true);
+
+                // Laufende Speicherung der Zeit für sauberes seitenübergreifendes Playback
+                setInterval(() => { 
+                    if (!this.audio.paused) localStorage.setItem('mustno-bgm-time', this.audio.currentTime); 
+                }, 1000);
             },
             setTheme: function(themeName, isInit = false) {
                 let newPlaylist;
@@ -1159,6 +1166,7 @@
 
                 if (resetTrack) {
                     this.index = 0;
+                    localStorage.setItem('mustno-track-idx', '0');
                     this.loadAndPlay(isInit ? false : this.isPlaying);
                 } else {
                     this.updateUI(); 
@@ -1176,8 +1184,14 @@
                 if (this.isShuffle) this.shufflePlaylist();
             },
             toggle: function() {
-                if(this.isPlaying) { this.audio.pause(); this.isPlaying = false; }
-                else { this.audio.play(); this.isPlaying = true; }
+                if(this.isPlaying) { 
+                    this.audio.pause(); 
+                    this.isPlaying = false; 
+                } else { 
+                    this.audio.play().catch(e => console.warn("Auto-Play blockiert:", e)); 
+                    this.isPlaying = true; 
+                }
+                localStorage.setItem('mustno-bgm-play', this.isPlaying);
                 const ps = document.getElementById('playStatus');
                 if (ps) ps.checked = this.isPlaying;
             },
@@ -1191,6 +1205,8 @@
                 } else {
                     this.index = (this.index + 1) % this.playlist.length;
                 }
+                localStorage.setItem('mustno-track-idx', this.index);
+                localStorage.setItem('mustno-bgm-time', '0'); // Bei Skip Time auf 0!
                 this.loadAndPlay(true);
             },
             prev: function() {
@@ -1203,32 +1219,53 @@
                 } else {
                     this.index = (this.index - 1 + this.playlist.length) % this.playlist.length;
                 }
+                localStorage.setItem('mustno-track-idx', this.index);
+                localStorage.setItem('mustno-bgm-time', '0'); // Bei Skip Time auf 0!
                 this.loadAndPlay(true);
             },
             playIndex: function(idx) {
                 this.index = idx;
+                localStorage.setItem('mustno-track-idx', this.index);
+                localStorage.setItem('mustno-bgm-time', '0');
                 this.loadAndPlay(true);
             },
             seekTo: function(val) {
                 if (this.audio.duration) {
                     this.audio.currentTime = (val / 100) * this.audio.duration;
+                    localStorage.setItem('mustno-bgm-time', this.audio.currentTime);
                 }
             },
             loadAndPlay: function(forcePlay = false) {
                 if(this.playlist.length === 0) return;
                 const track = this.playlist[this.index];
                 
-                if(!this.audio.src.includes(track.url)) {
+                if(!this.audio.src.endsWith(track.url)) {
                     this.audio.src = track.url;
+                    // FIX: Zeit sicher aus dem Cache holen
+                    this.audio.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
                 }
                 
                 this.updateUI();
                 
                 if(forcePlay || this.isPlaying) {
-                    this.audio.play().catch(e => console.log('Audio play error:', e));
+                    // FIX: Promise Error Handling, verhindert "The play() request was interrupted" Fehler
+                    const playPromise = this.audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(e => {
+                            console.warn("Auto-Play blockiert:", e);
+                            const resumePlay = () => { 
+                                this.audio.play(); 
+                                this.updateUI();
+                                window.removeEventListener('click', resumePlay); 
+                            };
+                            window.addEventListener('click', resumePlay);
+                        });
+                    }
                     this.isPlaying = true;
+                    localStorage.setItem('mustno-bgm-play', 'true');
                 } else {
                     this.isPlaying = false;
+                    localStorage.setItem('mustno-bgm-play', 'false');
                 }
                 
                 const ps = document.getElementById('playStatus');
