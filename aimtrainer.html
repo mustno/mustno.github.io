@@ -7,13 +7,7 @@
     <link rel="icon" type="image/png" href="/logo.png?v=1">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS (Preflight disabled to protect existing layout) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        corePlugins: { preflight: false }
-      }
-    </script>
+
 
     <script>
     (function() {
@@ -449,6 +443,66 @@
         .ch-preview-grid { position: absolute; inset: 0; background-image: linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px); background-size: 20px 20px; opacity: 0.5;}
         .ch-canvas { position: relative; z-index: 2; width: 100px; height: 100px;}
         .ch-val { font-family: 'Space Mono'; font-size: 0.8rem; color: var(--accent); width: 30px; text-align: right; }
+/* VANILLA CSS MUSIC PLAYER (TAILWIND REPLACEMENT) */
+        #mustno-music-player {
+            position: fixed; bottom: 20px; left: 20px; z-index: 105;
+            display: flex; align-items: flex-end; justify-content: flex-start;
+            width: 64px; height: 64px; user-select: none;
+            transition: width 0.3s, height 0.3s, opacity 0.3s, transform 0.3s;
+        }
+        body.in-game #mustno-music-player, body.in-reaction #mustno-music-player { 
+            opacity: 0 !important; transform: translateY(20px); pointer-events: none; 
+        }
+
+        #mustno-music-player:hover { width: 288px; height: 160px; }
+
+        .mmp-compact {
+            position: absolute; bottom: 0; left: 0;
+            width: 64px; height: 64px;
+            transition: all 0.3s; transform-origin: bottom left;
+        }
+        #mustno-music-player:hover .mmp-compact {
+            opacity: 0; transform: scale(0.5); pointer-events: none;
+        }
+
+        .mmp-expanded {
+            position: absolute; bottom: 0; left: 0;
+            width: 288px; height: 160px;
+            background: var(--bg); border: 1px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); border-radius: 16px;
+            display: flex; flex-direction: column;
+            transition: all 0.3s; transform-origin: bottom left;
+            opacity: 0; transform: scale(0.9); pointer-events: none;
+        }
+        #mustno-music-player:hover .mmp-expanded {
+            opacity: 1; transform: scale(1); pointer-events: auto;
+        }
+
+        .mmp-header { display: flex; width: 100%; height: 80px; align-items: center; padding: 8px 0 0 16px; }
+        .mmp-cover { position: relative; display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; flex-shrink: 0; }
+        .mmp-cover svg, .mmp-compact svg { width: 100%; height: 100%; border: 3px solid var(--accent); border-radius: 50%; background: var(--bg); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .mmp-cover-dot { position: absolute; z-index: 10; width: 16px; height: 16px; border: 3px solid var(--accent); border-radius: 50%; background: var(--bg); top: 24px; left: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+        .mmp-info { display: flex; flex-direction: column; justify-content: center; width: 100%; padding: 0 16px; overflow: hidden; white-space: nowrap; }
+        .mmp-title { font-size: 1.1rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; color: var(--text); margin-bottom: 4px; }
+        .mmp-artist { font-size: 0.75rem; color: var(--dim); overflow: hidden; text-overflow: ellipsis; }
+
+        .mmp-progress { display: flex; align-items: center; margin: 4px 12px 0 12px; background: var(--glass); border-radius: 6px; min-height: 24px; }
+        .mmp-progress span { font-size: 0.75rem; color: var(--dim); }
+        .mmp-time-c { padding-left: 12px; }
+        .mmp-time-t { padding-right: 12px; }
+	#mmp-progress-bar { flex-grow: 1; width: auto !important; margin: 0 10px; }
+
+        .mmp-controls { display: flex; align-items: center; justify-content: center; flex-grow: 1; margin: 0 12px; gap: 16px; color: var(--text); }
+        .mmp-btn { display: flex; align-items: center; justify-content: center; height: 100%; cursor: none; transition: color 0.2s; }
+        .mmp-btn:hover { color: var(--accent); }
+        .mmp-btn-sm { width: 32px; }
+        .mmp-btn-md { width: 40px; }
+
+        .mmp-toggle { display: none; }
+        .mmp-icon-on, .mmp-icon-off { display: block; }
+        .mmp-toggle:checked ~ .mmp-icon-off { display: none !important; }
+        .mmp-toggle:not(:checked) ~ .mmp-icon-on { display: none !important; }
     </style>
 </head>
 <body>
@@ -754,9 +808,9 @@
     </main>
 
     <!-- MUSIK-PLAYER WURDE HIERHER VERSCHOBEN (Außerhalb von <main>) -->
-    <div id="mustno-music-player" class="group/he w-16 h-16 hover:w-72 hover:h-40 select-none">
-        <div class="absolute bottom-0 left-0 w-16 h-16 transition-all duration-300 origin-bottom-left group-hover/he:opacity-0 group-hover/he:scale-50 group-hover/he:pointer-events-none">
-             <svg viewBox="0 0 128 128" class="mmp-disc-rot w-full h-full border-[3px] rounded-full shadow-md" style="border-color: var(--accent); background: var(--bg);">
+    <div id="mustno-music-player">
+        <div class="mmp-compact">
+             <svg viewBox="0 0 128 128" class="mmp-disc-rot">
                 <rect width="128" height="128" fill="var(--bg)"></rect>
                 <circle cx="20" cy="20" r="2" fill="var(--text)"></circle>
                 <circle cx="40" cy="30" r="2" fill="var(--text)"></circle>
@@ -772,13 +826,13 @@
                 <path d="M0 128 Q16 64 32 128 T64 128" fill="color-mix(in srgb, var(--accent) 50%, transparent)" stroke="var(--border)" stroke-width="1"></path>
                 <path d="M64 128 Q80 64 96 128 T128 128" fill="color-mix(in srgb, var(--accent) 70%, transparent)" stroke="var(--border)" stroke-width="1"></path>
              </svg>
-             <div class="absolute z-10 w-4 h-4 border-[3px] rounded-full shadow-sm top-[24px] left-[24px]" style="background: var(--bg); border-color: var(--accent);"></div>
+             <div class="mmp-cover-dot"></div>
         </div>
 
-        <div class="absolute bottom-0 left-0 w-72 h-40 transition-all duration-300 origin-bottom-left opacity-0 scale-90 pointer-events-none group-hover/he:opacity-100 group-hover/he:scale-100 group-hover/he:pointer-events-auto rounded-2xl flex flex-col shadow-xl" style="background: var(--bg); border: 1px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.6);">
-           <div class="flex flex-row w-full h-20 items-center pl-4 pt-2">
-               <div class="relative flex items-center justify-center w-16 h-16 flex-shrink-0">
-                   <svg viewBox="0 0 128 128" class="mmp-disc-rot w-full h-full border-[3px] rounded-full shadow-md" style="border-color: var(--accent); background: var(--bg);">
+        <div class="mmp-expanded">
+           <div class="mmp-header">
+               <div class="mmp-cover">
+                   <svg viewBox="0 0 128 128" class="mmp-disc-rot">
                        <rect width="128" height="128" fill="var(--bg)"></rect>
                        <circle cx="20" cy="20" r="2" fill="var(--text)"></circle>
                        <circle cx="40" cy="30" r="2" fill="var(--text)"></circle>
@@ -794,42 +848,42 @@
                        <path d="M0 128 Q16 64 32 128 T64 128" fill="color-mix(in srgb, var(--accent) 50%, transparent)" stroke="var(--border)" stroke-width="1"></path>
                        <path d="M64 128 Q80 64 96 128 T128 128" fill="color-mix(in srgb, var(--accent) 70%, transparent)" stroke="var(--border)" stroke-width="1"></path>
                    </svg>
-                   <div class="absolute z-10 w-4 h-4 border-[3px] rounded-full shadow-sm top-[24px] left-[24px]" style="background: var(--bg); border-color: var(--accent);"></div>
+                   <div class="mmp-cover-dot"></div>
                </div>
-               <div class="flex flex-col justify-center w-full pl-4 pr-4 overflow-hidden text-nowrap">
-                   <p class="text-[1.1rem] font-bold truncate" id="mmp-title" style="color: var(--text);">Music Name</p>
-                   <p class="text-xs truncate mt-1" id="mmp-artist" style="color: var(--dim);">Singer &amp; artist</p>
+               <div class="mmp-info">
+                   <div class="mmp-title" id="mmp-title">Music Name</div>
+                   <div class="mmp-artist" id="mmp-artist">Singer &amp; artist</div>
                </div>
            </div>
 
-           <div class="flex flex-row mx-3 mt-1 rounded-md min-h-6 items-center" style="background: var(--glass);">
-               <span id="mmp-time-current" class="pl-3 text-xs" style="color: var(--dim);">0:00</span>
-               <input type="range" id="mmp-progress-bar" min="0" max="100" value="0" oninput="mustnoMusic.seekTo(this.value)" class="flex-grow mx-2 h-1 cursor-none"/>
-               <span id="mmp-time-total" class="pr-3 text-xs" style="color: var(--dim);">--:--</span>
+           <div class="mmp-progress">
+               <span id="mmp-time-current" class="mmp-time-c">0:00</span>
+               <input type="range" id="mmp-progress-bar" min="0" max="100" value="0" oninput="mustnoMusic.seekTo(this.value)"/>
+               <span id="mmp-time-total" class="mmp-time-t">--:--</span>
            </div>
 
-           <div class="flex flex-row items-center justify-center flex-grow mx-3 space-x-4" style="color: var(--text);">
-               <label for="playMode" class="flex items-center justify-center w-8 h-full cursor-none transition-colors hover:text-[var(--accent)]">
-                   <input type="checkbox" id="playMode" class="hidden peer/playMode" onchange="mustnoMusic.toggleShuffle(this)" />
-                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-repeat peer-checked/playMode:hidden"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden feather feather-shuffle peer-checked/playMode:inline-block"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+           <div class="mmp-controls">
+               <label for="playMode" class="mmp-btn mmp-btn-sm">
+                   <input type="checkbox" id="playMode" class="mmp-toggle" onchange="mustnoMusic.toggleShuffle(this)" />
+                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mmp-icon-off feather feather-repeat"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mmp-icon-on feather feather-shuffle"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
                </label>
                
-               <div class="flex items-center justify-center w-10 h-full cursor-none transition-colors hover:text-[var(--accent)]" onclick="mustnoMusic.prev()">
+               <div class="mmp-btn mmp-btn-md" onclick="mustnoMusic.prev()">
                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-back"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
                </div>
                
-               <label for="playStatus" class="flex items-center justify-center w-10 h-full cursor-none transition-colors hover:text-[var(--accent)]">
-                   <input type="checkbox" name="playStatus" id="playStatus" class="hidden peer/playStatus" onchange="mustnoMusic.toggle()" />
-                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play peer-checked/playStatus:hidden"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden feather feather-pause peer-checked/playStatus:inline-block"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+               <label for="playStatus" class="mmp-btn mmp-btn-md">
+                   <input type="checkbox" name="playStatus" id="playStatus" class="mmp-toggle" onchange="mustnoMusic.toggle()" />
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mmp-icon-off feather feather-play"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mmp-icon-on feather feather-pause"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
                </label>
                
-               <div class="flex items-center justify-center w-10 h-full cursor-none transition-colors hover:text-[var(--accent)]" onclick="mustnoMusic.next()">
+               <div class="mmp-btn mmp-btn-md" onclick="mustnoMusic.next()">
                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-forward"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
                </div>
                
-               <div class="flex items-center justify-center w-8 h-full cursor-none transition-colors hover:text-[var(--accent)]" onclick="openPlaylistModal()">
+               <div class="mmp-btn mmp-btn-sm" onclick="openPlaylistModal()">
                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                </div>
            </div>
@@ -1094,7 +1148,6 @@
         requestAnimationFrame(mmpSpinLoop);
 
         // --- Music Player Logic ---
-        // Einheitliche & Copyright-Sichere Tracklist (Pfade synchronisiert mit Lab/Index)
         const ALL_TRACKS = [
             { title: "TRACK 01", artist: "CYBER", url: "/cyber-1.mp3", theme: "", length: "2:58" },
             { title: "TRACK 02", artist: "CYBER", url: "/cyber-2.mp3", theme: "", length: "3:15" },
@@ -1115,13 +1168,12 @@
             audio: new Audio(),
             playlist: [],
             shuffledIndices: [],
-            // Index aus dem Speicher holen (Seitenübergreifend)
-            index: parseInt(localStorage.getItem('mustno-track-idx')) || 0,
-            isPlaying: localStorage.getItem('mustno-bgm-play') === 'true',
+            index: 0,
+            isPlaying: false,
             isShuffle: false,
             
             init: function() {
-                this.audio.volume = 1.0; 
+                this.audio.volume = 0.2;
                 this.audio.addEventListener('timeupdate', () => {
                     if (this.audio.duration) {
                         const pct = (this.audio.currentTime / this.audio.duration) * 100;
@@ -1138,11 +1190,6 @@
                 
                 const activeTheme = localStorage.getItem('mustno-theme') || '';
                 this.setTheme(activeTheme, true);
-
-                // Laufende Speicherung der Zeit für sauberes seitenübergreifendes Playback
-                setInterval(() => { 
-                    if (!this.audio.paused) localStorage.setItem('mustno-bgm-time', this.audio.currentTime); 
-                }, 1000);
             },
             setTheme: function(themeName, isInit = false) {
                 let newPlaylist;
@@ -1166,7 +1213,6 @@
 
                 if (resetTrack) {
                     this.index = 0;
-                    localStorage.setItem('mustno-track-idx', '0');
                     this.loadAndPlay(isInit ? false : this.isPlaying);
                 } else {
                     this.updateUI(); 
@@ -1184,14 +1230,8 @@
                 if (this.isShuffle) this.shufflePlaylist();
             },
             toggle: function() {
-                if(this.isPlaying) { 
-                    this.audio.pause(); 
-                    this.isPlaying = false; 
-                } else { 
-                    this.audio.play().catch(e => console.warn("Auto-Play blockiert:", e)); 
-                    this.isPlaying = true; 
-                }
-                localStorage.setItem('mustno-bgm-play', this.isPlaying);
+                if(this.isPlaying) { this.audio.pause(); this.isPlaying = false; }
+                else { this.audio.play(); this.isPlaying = true; }
                 const ps = document.getElementById('playStatus');
                 if (ps) ps.checked = this.isPlaying;
             },
@@ -1205,8 +1245,6 @@
                 } else {
                     this.index = (this.index + 1) % this.playlist.length;
                 }
-                localStorage.setItem('mustno-track-idx', this.index);
-                localStorage.setItem('mustno-bgm-time', '0'); // Bei Skip Time auf 0!
                 this.loadAndPlay(true);
             },
             prev: function() {
@@ -1219,53 +1257,32 @@
                 } else {
                     this.index = (this.index - 1 + this.playlist.length) % this.playlist.length;
                 }
-                localStorage.setItem('mustno-track-idx', this.index);
-                localStorage.setItem('mustno-bgm-time', '0'); // Bei Skip Time auf 0!
                 this.loadAndPlay(true);
             },
             playIndex: function(idx) {
                 this.index = idx;
-                localStorage.setItem('mustno-track-idx', this.index);
-                localStorage.setItem('mustno-bgm-time', '0');
                 this.loadAndPlay(true);
             },
             seekTo: function(val) {
                 if (this.audio.duration) {
                     this.audio.currentTime = (val / 100) * this.audio.duration;
-                    localStorage.setItem('mustno-bgm-time', this.audio.currentTime);
                 }
             },
             loadAndPlay: function(forcePlay = false) {
                 if(this.playlist.length === 0) return;
                 const track = this.playlist[this.index];
                 
-                if(!this.audio.src.endsWith(track.url)) {
+                if(!this.audio.src.includes(track.url)) {
                     this.audio.src = track.url;
-                    // FIX: Zeit sicher aus dem Cache holen
-                    this.audio.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
                 }
                 
                 this.updateUI();
                 
                 if(forcePlay || this.isPlaying) {
-                    // FIX: Promise Error Handling, verhindert "The play() request was interrupted" Fehler
-                    const playPromise = this.audio.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(e => {
-                            console.warn("Auto-Play blockiert:", e);
-                            const resumePlay = () => { 
-                                this.audio.play(); 
-                                this.updateUI();
-                                window.removeEventListener('click', resumePlay); 
-                            };
-                            window.addEventListener('click', resumePlay);
-                        });
-                    }
+                    this.audio.play().catch(e => console.log('Audio play error:', e));
                     this.isPlaying = true;
-                    localStorage.setItem('mustno-bgm-play', 'true');
                 } else {
                     this.isPlaying = false;
-                    localStorage.setItem('mustno-bgm-play', 'false');
                 }
                 
                 const ps = document.getElementById('playStatus');
