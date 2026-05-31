@@ -79,6 +79,12 @@ html.theme-custom, body.theme-custom {
   --hdr-bg: linear-gradient(to bottom, var(--panel-bg), transparent);
 }
 
+@keyframes tntShake {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: translate(-15px, -15px) rotate(-1deg); }
+    20%, 40%, 60%, 80% { transform: translate(15px, 15px) rotate(1deg); }
+}
+
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-main);user-select:none;touch-action:none;}
 
@@ -89,16 +95,76 @@ header { position: absolute; top: 0; left: 0; width: 100%; z-index: 100; display
 .btn-back { font-family: var(--font-mono); font-size: 0.7rem; color: var(--dim); text-decoration: none; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.2s; }
 .btn-back:hover { color: var(--text); border-color: var(--accent); background: var(--glass); }
 
-#sim-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display:flex; justify-content:center; align-items:center; }
-canvas { image-rendering: pixelated; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+/* Container Setup: Panning wird auf world-wrap angewendet */
+#sim-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; overflow: hidden; }
+#world-wrap { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+canvas { image-rendering: pixelated; touch-action: none; position: absolute; left: 0; top: 0; }
+
+/* In-World "Erweitern" Boxen */
+.expand-zone {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed color-mix(in srgb, var(--accent) 40%, transparent);
+    color: color-mix(in srgb, var(--accent) 60%, transparent);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+    z-index: 5;
+    user-select: none;
+}
+.expand-zone span { font-size: 3rem; margin-bottom: 5px; line-height: 1; }
+.expand-zone:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 20%, var(--bg));
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Menü und Toggle Button CSS */
+#control-panel { top: 75px; right: 20px; width: 380px; max-height: calc(100vh - 100px); overflow-y: auto; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+#control-panel.collapsed { transform: translateX(calc(100% + 30px)); }
+
+#menu-toggle-btn {
+    position: absolute;
+    top: 85px;
+    right: 400px;
+    width: 32px;
+    height: 40px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    z-index: 101;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#menu-toggle-btn.collapsed { right: 0px; border-right: 1px solid var(--border); border-radius: 8px 0 0 8px; }
 
 .panel { position: absolute; z-index: 100; background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 8px; padding: 15px; color: var(--text); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-#control-panel { top: 75px; right: 20px; width: 380px; max-height: calc(100vh - 100px); overflow-y: auto; }
 #control-panel::-webkit-scrollbar { width: 4px; }
 #control-panel::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
 
-.section-title { font-family: var(--font-mono); font-size: 0.7rem; color: var(--green); text-transform: uppercase; letter-spacing: .2em; margin-bottom: 10px; margin-top: 15px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.section-title { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: .2em; margin-bottom: 10px; margin-top: 15px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
 .section-title:first-child { margin-top: 0; }
+
+/* Werkzeug Toolbar */
+.tool-flex { display: flex; gap: 8px; margin-bottom: 15px; }
+.tool-btn { margin-bottom: 0; font-size: 0.65rem; padding: 8px; }
+.tool-btn.active { background: color-mix(in srgb, var(--accent) 30%, transparent); border-color: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 40%, transparent); font-weight: bold; }
 
 .element-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 15px; }
 .el-btn { background: var(--glass); border: 1px solid var(--border); color: var(--text); font-family: var(--font-mono); font-size: 0.65rem; padding: 6px; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
@@ -109,23 +175,38 @@ canvas { image-rendering: pixelated; width: 100%; height: 100%; cursor: crosshai
 .slider-group { margin-bottom: 12px; }
 .slider-header { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.65rem; color: var(--dim); margin-bottom: 4px; }
 input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--green); cursor: pointer; margin-top: -6px; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; margin-top: -6px; }
+input[type=range]::-moz-range-thumb { height: 14px; width: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
 input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; background: var(--border); border-radius: 1px; }
+input[type=range]::-moz-range-track { width: 100%; height: 2px; background: var(--border); border-radius: 1px; }
 
 .btn { background: var(--glass); border: 1px solid var(--border); color: var(--text); font-family: var(--font-mono); font-size: 0.7rem; padding: 10px 12px; border-radius: 4px; cursor: pointer; transition: all 0.2s; width: 100%; text-align: center; text-transform: uppercase; margin-bottom: 8px; }
 .btn:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); border-color: var(--accent); }
+
+/* Modals for Custom Theme */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 20000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+.pm-box { background: var(--bg); border: 1px solid var(--border); padding: 30px; border-radius: 8px; width: 90%; max-width: 440px; box-shadow: 0 0 40px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 20px; }
+.modal-title { font-family: var(--font-mono); font-size: 1rem; color: var(--text); font-weight: bold; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 5px; text-transform: uppercase; }
+.pm-input { background: var(--glass); border: 1px solid var(--border); color: var(--text); padding: 14px; font-family: var(--font-mono); font-size: 1rem; outline: none; border-radius: 6px; transition: border-color 0.3s; width: 100%; box-sizing: border-box; }
+.pm-input:focus { border-color: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 20%, transparent); }
+.pm-btn { background: var(--accent); color: var(--bg); border: 1px solid var(--accent); padding: 12px; font-weight: bold; font-family: var(--font-mono); border-radius: 6px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; text-align: center; }
+.pm-btn:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent); }
+.pm-btn.btn-ghost { background: transparent; border-color: rgba(255,255,255,0.1); color: var(--text); }
+.pm-btn.btn-ghost:hover { border-color: var(--text); background: var(--glass); box-shadow: none; }
+.pm-btn.btn-danger { background: transparent; border-color: #ff4a4a; color: #ff4a4a; }
+.pm-btn.btn-danger:hover { background: #ff4a4a; color: #fff; box-shadow: 0 0 15px rgba(255,74,74,0.4); }
 
 /* Audio Widget overrides */
 #audio-widget { position: fixed; bottom: 20px; left: 20px; z-index: 10005; display: flex; gap: 14px; align-items: center; background: var(--glass); border: 1px solid var(--border); padding: 10px 18px 10px 10px; border-radius: 12px; backdrop-filter: blur(12px); overflow: hidden; }
 .audio-eq { display: flex; gap: 3px; align-items: flex-end; height: 16px; width: 18px; }
 .eq-bar { width: 4px; background: var(--dim); border-radius: 2px; height: 4px; }
-#audio-widget.is-playing .eq-bar { background: var(--green); animation: eq-bounce 0.8s infinite alternate ease-in-out; }
+#audio-widget.is-playing .eq-bar { background: var(--accent); animation: eq-bounce 0.8s infinite alternate ease-in-out; }
 #audio-widget.is-playing .eq-bar:nth-child(2) { animation-delay: -0.4s; }
 #audio-widget.is-playing .eq-bar:nth-child(3) { animation-delay: -0.2s; }
 @keyframes eq-bounce { 0%, 20% { height: 4px; } 100% { height: 16px; } }
 .audio-info { display: flex; flex-direction: column; justify-content: center; min-width: 90px; }
 .audio-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3px; gap: 12px; }
-.audio-label { font-family: var(--font-mono); font-size: 0.45rem; color: var(--dim); letter-spacing: 0.25em; text-transform: uppercase; }
+.audio-label { font-family: var(--font-mono); font-size: 0.45rem; color: var(--accent); letter-spacing: 0.25em; text-transform: uppercase; }
 .audio-time { font-family: var(--font-mono); font-size: 0.45rem; color: var(--dim); }
 .audio-track { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; color: var(--text); letter-spacing: 0.15em; }
 .audio-controls { display: flex; gap: 6px; align-items: center; margin-left: 6px; padding-left: 14px; border-left: 1px solid var(--border); }
@@ -143,25 +224,51 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; bac
 <body>
 
 <header>
-  <div class="logo" onclick="window.location.href='index.html'">MUSTNO <span>SANDBOX</span></div>
+  <div class="logo" onclick="window.location.href='/'">MUSTNO <span>SANDBOX</span></div>
   <div class="header-right">
-    <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--green);" id="fps-counter">FPS: 00</div>
-    <a href="index.html" class="btn-back">Zurück zum Hub</a>
+    <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--dim);" id="fps-counter">FPS: 00</div>
+    <a href="lab-platform" class="btn-back">Zurück zum Lab</a>
   </div>
 </header>
 
 <div id="sim-container">
-  <canvas id="sandCanvas"></canvas>
+  <div id="world-wrap">
+    <div id="expand-left" class="expand-zone" onclick="expandWorld('left')"><span>+</span>Erweitern</div>
+    <div id="expand-top" class="expand-zone" onclick="expandWorld('top')"><span>+</span>Erweitern</div>
+    <div id="expand-right" class="expand-zone" onclick="expandWorld('right')"><span>+</span>Erweitern</div>
+    <canvas id="sandCanvas"></canvas>
+  </div>
 </div>
+
+<!-- Toggle Button für das Menü -->
+<button id="menu-toggle-btn" onclick="toggleMenu()" title="Menü einklappen">▶</button>
 
 <div class="panel" id="control-panel">
     
-    <select id="theme-override" class="theme-select" onchange="changeThemeOverride()">
-        <option value="">System/Hub Theme</option>
-        <option value="theme-wii">Wii Theme</option>
-        <option value="theme-retro">Retro Green</option>
-        <option value="theme-cyberpunk">Cyberpunk</option>
+    <select id="theme-dropdown" class="theme-select" onchange="changeTheme(this.value)">
     </select>
+
+    <div class="section-title">Werkzeuge</div>
+    <div class="tool-flex">
+        <button class="btn tool-btn active" id="tool-draw" onclick="setTool('draw')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+            Zeichnen
+        </button>
+        <button class="btn tool-btn" id="tool-pan" onclick="setTool('pan')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M18 11V6a2 2 0 0 0-4 0v4"/><path d="M14 10V5a2 2 0 0 0-4 0v5"/><path d="M10 10.5V4a2 2 0 0 0-4 0v7"/><path d="M6 14v-1.5a2 2 0 0 0-4 0v4.5c0 4.418 3.582 8 8 8h2c4.418 0 8-3.582 8-8V11a2 2 0 0 0-4 0v4"/></svg>
+            Verschieben
+        </button>
+        <button class="btn tool-btn" style="flex: 0 0 auto; width: 36px; padding: 8px; display: flex; justify-content: center; align-items: center;" onclick="resetPan()" title="Ansicht zentrieren">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+        </button>
+    </div>
+
+    <div class="section-title">Welt verkleinern</div>
+    <div class="tool-flex">
+        <button class="btn tool-btn" onclick="shrinkWorld('left')" style="color:#ff8888; border-color:rgba(255,100,100,0.3); flex:1;">- Links</button>
+        <button class="btn tool-btn" onclick="shrinkWorld('top')" style="color:#ff8888; border-color:rgba(255,100,100,0.3); flex:1;">- Oben</button>
+        <button class="btn tool-btn" onclick="shrinkWorld('right')" style="color:#ff8888; border-color:rgba(255,100,100,0.3); flex:1;">- Rechts</button>
+    </div>
 
     <div class="section-title">Elemente</div>
     <div class="element-grid" id="element-buttons">
@@ -174,7 +281,10 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; bac
     </div>
     
     <div class="section-title">Aktionen</div>
-    <button class="btn" onclick="clearCanvas(true)" style="border-color:rgba(255,80,80,0.5); color:#ff8888;">Welt löschen</button>
+    <button class="btn" onclick="tntClearWorld()" style="border-color:rgba(255,80,80,0.5); color:#ff8888; display:flex; align-items:center; justify-content:center; gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        Welt löschen
+    </button>
     
     <div style="font-family:var(--font-mono); font-size:0.6rem; color:var(--dim); margin-top:15px; text-align:center;">
       Interaktion: Klicken/Tippen und ziehen, um Elemente zu platzieren.
@@ -200,12 +310,117 @@ function safeSetStore(key, val) {
     try { localStorage.setItem(key, val); } catch(e) {}
 }
 
+// --- MENÜ TOGGLE ---
+function toggleMenu() {
+    const panel = document.getElementById('control-panel');
+    const btn = document.getElementById('menu-toggle-btn');
+    panel.classList.toggle('collapsed');
+    btn.classList.toggle('collapsed');
+    
+    if (panel.classList.contains('collapsed')) {
+        btn.innerHTML = '◀';
+        btn.title = "Menü ausklappen";
+    } else {
+        btn.innerHTML = '▶';
+        btn.title = "Menü einklappen";
+    }
+}
+
+// --- WERKZEUGE & VERSCHIEBEN ---
+const worldWrap = document.getElementById('world-wrap');
+let currentTool = 'draw';
+let panX = 0, panY = 0;
+let zoom = 1;
+let isPanningView = false;
+let lastPanClientX = 0, lastPanClientY = 0;
+
+function setTool(tool) {
+    currentTool = tool;
+    document.getElementById('tool-draw').classList.toggle('active', tool === 'draw');
+    document.getElementById('tool-pan').classList.toggle('active', tool === 'pan');
+    worldWrap.style.cursor = tool === 'pan' ? 'grab' : 'default';
+    canvas.style.cursor = tool === 'pan' ? 'grab' : 'crosshair';
+}
+
+function clampCamera() {
+    let CW = window.innerWidth;
+    let CH = window.innerHeight;
+
+    // Erlaubt extrem weites Rausscrollen in die Leere
+    if (zoom < 0.05) zoom = 0.05;
+
+    // Berechne die visuelle Größe der Welt genau
+    let canvasVisualWidth = SIM_WIDTH * PIXEL_SCALE * zoom;
+    let canvasVisualHeight = SIM_HEIGHT * PIXEL_SCALE * zoom;
+
+    // --- Y-Achse (Höhe) ---
+    // Der Boden der Welt (panY + canvasVisualHeight) darf nicht höher als der Bildschirmrand (CH) sein.
+    // So schaust du niemals "unter" die Welt.
+    let minY = CH - canvasVisualHeight;
+    if (panY < minY) panY = minY;
+
+    // Damit man die Welt nicht nach unten komplett verliert, begrenzen wir panY nach oben.
+    // CH * 0.2 sorgt dafür, dass immer noch etwas Platz für den "Himmel" bleibt.
+    let maxY = CH - Math.min(200, canvasVisualHeight * 0.2); 
+    if (panY > maxY) panY = maxY;
+
+    // --- X-Achse (Breite) ---
+    // Frei verschiebbar, aber mit lockerem Limit, damit man sie nicht komplett im Void verliert
+    let minX = CW - canvasVisualWidth - (CW * 0.5);
+    let maxX = CW * 0.5;
+    if (panX < minX) panX = minX;
+    if (panX > maxX) panX = maxX;
+}
+
+function resetPan() {
+    // Smart Center: Berechnet den Schwerpunkt aller platzierten Blöcke
+    let sumX = 0, sumY = 0, count = 0;
+    let idx = 0;
+    
+    for (let y = 0; y < SIM_HEIGHT; y++) {
+        for (let x = 0; x < SIM_WIDTH; x++) {
+            if (grid[idx] !== 0) { // Ignoriere leeren Raum (Luft)
+                sumX += x;
+                sumY += y;
+                count++;
+            }
+            idx++;
+        }
+    }
+
+    let targetGridX = SIM_WIDTH / 2;
+    let targetGridY = SIM_HEIGHT / 2;
+
+    // Wenn Blöcke existieren, nimm den Durchschnitt (Schwerpunkt)
+    if (count > 0) {
+        targetGridX = sumX / count;
+        targetGridY = sumY / count;
+    }
+
+    // Rechne Raster-Koordinaten in Pixel um
+    let targetPixelX = targetGridX * PIXEL_SCALE;
+    let targetPixelY = targetGridY * PIXEL_SCALE;
+
+    zoom = 1; // Setze den Zoom zurück auf Normalgröße
+    
+    // Verschiebe panX und panY so, dass der Schwerpunkt exakt in der Mitte des Bildschirms liegt
+    panX = (window.innerWidth / 2) - (targetPixelX * zoom);
+    panY = (window.innerHeight / 2) - (targetPixelY * zoom);
+
+    clampCamera();
+    worldWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+}
+
 // --- SANDBOX ENGINE ---
 const canvas = document.getElementById('sandCanvas');
 const ctx = canvas.getContext('2d'); 
 
 const PIXEL_SCALE = 4;
-let SIM_WIDTH, SIM_HEIGHT;
+let INITIAL_SIM_WIDTH = 0;
+let INITIAL_SIM_HEIGHT = 0;
+let SIM_WIDTH = 0; 
+let SIM_HEIGHT = 0;
+let isWorldInitialized = false;
 
 let grid = new Uint8Array(0);
 let updateFlag = new Uint8Array(0); 
@@ -253,6 +468,7 @@ Object.keys(ELEMENTS).forEach(key => {
         document.querySelectorAll('.el-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentElement = parseInt(key);
+        setTool('draw'); // Wechselt automatisch zurück auf Zeichnen
     };
     btnContainer.appendChild(btn);
 });
@@ -265,48 +481,197 @@ document.getElementById('brush-slider').addEventListener('input', (e) => {
 function updateCachedBgColor() {
     let bgStr = getComputedStyle(document.body).getPropertyValue('--bg').trim();
     if (!bgStr) bgStr = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    if (!bgStr) bgStr = '#050b16'; // Fallback
     
-    if (bgStr.startsWith('#')) {
-        let hex = bgStr.replace('#', '');
+    // Canvas Engine Trick: Evaluiert absolut JEDES valides CSS-Farbformat robust in ein RGB Array!
+    const testCtx = document.createElement("canvas").getContext("2d");
+    testCtx.fillStyle = bgStr;
+    let computed = testCtx.fillStyle; 
+    
+    if (computed.startsWith('#')) {
+        let hex = computed.replace('#', '');
         if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+        if (hex.length === 8) hex = hex.substring(0, 6); // Sandbox Canvas Background braucht kein Alpha
         cachedBgColor = [parseInt(hex.substr(0,2),16), parseInt(hex.substr(2,2),16), parseInt(hex.substr(4,2),16), 255];
-    } else if (bgStr.startsWith('rgb')) {
-        let match = bgStr.match(/\d+/g);
+    } else if (computed.startsWith('rgb')) {
+        let match = computed.match(/\d+/g);
         if (match && match.length >= 3) {
             cachedBgColor = [parseInt(match[0]), parseInt(match[1]), parseInt(match[2]), 255];
         }
     }
 }
 
+function updateExpandZones() {
+    let CW = INITIAL_SIM_WIDTH * PIXEL_SCALE;
+    let CH = INITIAL_SIM_HEIGHT * PIXEL_SCALE;
+    let currentW = SIM_WIDTH * PIXEL_SCALE;
+    let currentH = SIM_HEIGHT * PIXEL_SCALE;
+
+    // Linke Box (Wächst mit der Höhe der Welt)
+    let elL = document.getElementById('expand-left');
+    elL.style.width = CW + 'px';
+    elL.style.height = currentH + 'px';
+    elL.style.left = -CW + 'px';
+    elL.style.top = '0px';
+
+    // Rechte Box (Wächst mit der Höhe der Welt)
+    let elR = document.getElementById('expand-right');
+    elR.style.width = CW + 'px';
+    elR.style.height = currentH + 'px';
+    elR.style.left = currentW + 'px';
+    elR.style.top = '0px';
+
+    // Obere Box (Wächst mit der Breite der Welt)
+    let elT = document.getElementById('expand-top');
+    elT.style.width = currentW + 'px';
+    elT.style.height = CH + 'px';
+    elT.style.left = '0px';
+    elT.style.top = -CH + 'px';
+}
+
 function initCanvas() {
-    let rect = canvas.getBoundingClientRect();
-    let w = rect.width || canvas.clientWidth || window.innerWidth;
-    let h = rect.height || canvas.clientHeight || window.innerHeight;
+    // Die Größe wird exakt 1x berechnet, um das Spielfeld fix zu halten.
+    if (isWorldInitialized) return; 
+    isWorldInitialized = true;
+
+    let w = window.innerWidth;
+    let h = window.innerHeight;
     
     SIM_WIDTH = Math.ceil(w / PIXEL_SCALE);
     SIM_HEIGHT = Math.ceil(h / PIXEL_SCALE);
+    INITIAL_SIM_WIDTH = SIM_WIDTH;
+    INITIAL_SIM_HEIGHT = SIM_HEIGHT;
     
     canvas.width = SIM_WIDTH;
     canvas.height = SIM_HEIGHT;
+    canvas.style.width = (SIM_WIDTH * PIXEL_SCALE) + 'px';
+    canvas.style.height = (SIM_HEIGHT * PIXEL_SCALE) + 'px';
     
-    let newGrid = new Uint8Array(SIM_WIDTH * SIM_HEIGHT);
-    let newUpdateFlag = new Uint8Array(SIM_WIDTH * SIM_HEIGHT);
-    
-    if (grid && grid.length > 0 && imgData) {
-        let oldW = imgData.width;
-        let oldH = imgData.height;
-        for (let y = 0; y < Math.min(SIM_HEIGHT, oldH); y++) {
-            for (let x = 0; x < Math.min(SIM_WIDTH, oldW); x++) {
-                newGrid[y * SIM_WIDTH + x] = grid[y * oldW + x];
-            }
-        }
-    }
-    
-    grid = newGrid;
-    updateFlag = newUpdateFlag;
+    grid = new Uint8Array(SIM_WIDTH * SIM_HEIGHT);
+    updateFlag = new Uint8Array(SIM_WIDTH * SIM_HEIGHT);
     imgData = ctx.createImageData(SIM_WIDTH, SIM_HEIGHT);
     
     updateCachedBgColor(); 
+    drawGridToImgData();
+    updateExpandZones();
+    clampCamera();
+    worldWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+}
+
+function shrinkWorld(dir) {
+    let chunkW = INITIAL_SIM_WIDTH;
+    let chunkH = INITIAL_SIM_HEIGHT;
+    
+    let newW = SIM_WIDTH;
+    let newH = SIM_HEIGHT;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (dir === 'right') {
+        if (SIM_WIDTH <= chunkW) return; // Kann nicht kleiner als die Startgröße werden
+        newW -= chunkW;
+    } else if (dir === 'left') {
+        if (SIM_WIDTH <= chunkW) return;
+        newW -= chunkW;
+        offsetX = chunkW;
+    } else if (dir === 'top') {
+        if (SIM_HEIGHT <= chunkH) return;
+        newH -= chunkH;
+        offsetY = chunkH;
+    }
+
+    let newGrid = new Uint8Array(newW * newH);
+    let newUpdateFlag = new Uint8Array(newW * newH);
+
+    for (let y = 0; y < newH; y++) {
+        for (let x = 0; x < newW; x++) {
+            let oldIdx = (y + offsetY) * SIM_WIDTH + (x + offsetX);
+            let newIdx = y * newW + x;
+            newGrid[newIdx] = grid[oldIdx];
+        }
+    }
+
+    SIM_WIDTH = newW;
+    SIM_HEIGHT = newH;
+    grid = newGrid;
+    updateFlag = newUpdateFlag;
+    
+    canvas.width = SIM_WIDTH;
+    canvas.height = SIM_HEIGHT;
+    canvas.style.width = (SIM_WIDTH * PIXEL_SCALE) + 'px';
+    canvas.style.height = (SIM_HEIGHT * PIXEL_SCALE) + 'px';
+    
+    imgData = ctx.createImageData(SIM_WIDTH, SIM_HEIGHT);
+
+    // View-Verschiebung gegensteuern, um die Kamera am selben Ort zu halten
+    let renderedChunkW = chunkW * PIXEL_SCALE * zoom;
+    let renderedChunkH = chunkH * PIXEL_SCALE * zoom;
+    
+    if (dir === 'left') panX += renderedChunkW;
+    if (dir === 'top')  panY += renderedChunkH;
+    
+    updateExpandZones();
+    clampCamera();
+    worldWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+
+    drawGridToImgData();
+}
+
+function expandWorld(dir) {
+    let chunkW = INITIAL_SIM_WIDTH;
+    let chunkH = INITIAL_SIM_HEIGHT;
+    
+    let newW = SIM_WIDTH;
+    let newH = SIM_HEIGHT;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (dir === 'right') {
+        newW += chunkW;
+    } else if (dir === 'left') {
+        newW += chunkW;
+        offsetX = chunkW;
+    } else if (dir === 'top') {
+        newH += chunkH;
+        offsetY = chunkH;
+    }
+
+    let newGrid = new Uint8Array(newW * newH);
+    let newUpdateFlag = new Uint8Array(newW * newH);
+
+    // Bisheriges Spielfeld ins neue kopieren (mit Offset, je nach Richtung)
+    for (let y = 0; y < SIM_HEIGHT; y++) {
+        for (let x = 0; x < SIM_WIDTH; x++) {
+            let oldIdx = y * SIM_WIDTH + x;
+            let newIdx = (y + offsetY) * newW + (x + offsetX);
+            newGrid[newIdx] = grid[oldIdx];
+        }
+    }
+
+    SIM_WIDTH = newW;
+    SIM_HEIGHT = newH;
+    grid = newGrid;
+    updateFlag = newUpdateFlag;
+    canvas.width = SIM_WIDTH;
+    canvas.height = SIM_HEIGHT;
+    
+    // Physische Größe des Canvas updaten
+    canvas.style.width = (SIM_WIDTH * PIXEL_SCALE) + 'px';
+    canvas.style.height = (SIM_HEIGHT * PIXEL_SCALE) + 'px';
+    
+    imgData = ctx.createImageData(SIM_WIDTH, SIM_HEIGHT);
+
+    // View-Verschiebung kompensieren, damit das Bild für den User nicht "wegspringt"
+    let renderedChunkW = chunkW * PIXEL_SCALE * zoom;
+    let renderedChunkH = chunkH * PIXEL_SCALE * zoom;
+    
+    if (dir === 'left') panX -= renderedChunkW;
+    if (dir === 'top')  panY -= renderedChunkH;
+    
+    updateExpandZones();
+    clampCamera();
+    worldWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+
     drawGridToImgData();
 }
 
@@ -317,12 +682,59 @@ function clearCanvas(full = false) {
     drawGridToImgData();
 }
 
-window.addEventListener('resize', initCanvas);
+function tntClearWorld() {
+    // 1. Screen Shake
+    const container = document.getElementById('sim-container');
+    container.style.animation = 'tntShake 0.6s cubic-bezier(.36,.07,.19,.97) both';
+    setTimeout(() => { container.style.animation = ''; }, 600);
+
+    // 2. Flash Effect
+    const flash = document.createElement('div');
+    flash.style.position = 'fixed';
+    flash.style.inset = '0';
+    flash.style.backgroundColor = '#fff';
+    flash.style.zIndex = '99999';
+    flash.style.opacity = '1';
+    flash.style.pointerEvents = 'none';
+    flash.style.transition = 'opacity 0.8s ease-out';
+    document.body.appendChild(flash);
+    
+    requestAnimationFrame(() => {
+        flash.style.opacity = '0';
+        setTimeout(() => flash.remove(), 800);
+    });
+
+    // 3. Welt komplett wipen und Größe zurücksetzen (Nach dem kurzen Flash-Delay)
+    setTimeout(() => {
+        SIM_WIDTH = INITIAL_SIM_WIDTH;
+        SIM_HEIGHT = INITIAL_SIM_HEIGHT;
+        
+        canvas.width = SIM_WIDTH;
+        canvas.height = SIM_HEIGHT;
+        canvas.style.width = (SIM_WIDTH * PIXEL_SCALE) + 'px';
+        canvas.style.height = (SIM_HEIGHT * PIXEL_SCALE) + 'px';
+        
+        grid = new Uint8Array(SIM_WIDTH * SIM_HEIGHT);
+        updateFlag = new Uint8Array(SIM_WIDTH * SIM_HEIGHT);
+        imgData = ctx.createImageData(SIM_WIDTH, SIM_HEIGHT);
+
+        resetPan();
+        updateExpandZones();
+        drawGridToImgData();
+    }, 150);
+}
 
 window.addEventListener('load', () => {
     setTimeout(initCanvas, 50);
 });
-setTimeout(initCanvas, 200);
+
+// Update der Kamera & Verankerung bei Window Resize (Spielfeld bleibt fix!)
+window.addEventListener('resize', () => {
+    if (isWorldInitialized) {
+        clampCamera();
+        worldWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    }
+});
 
 // --- ZELLULÄRER AUTOMAT LOGIK ---
 function getIdx(x, y) { return y * SIM_WIDTH + x; }
@@ -751,17 +1163,15 @@ function drawGridToImgData() {
 
 function getGridCoords(evt) {
     let rect = canvas.getBoundingClientRect();
-    let rWidth = rect.width || canvas.clientWidth || window.innerWidth;
-    let rHeight = rect.height || canvas.clientHeight || window.innerHeight;
-    
     let clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
     let clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
     
-    let scaleX = canvas.width / rWidth;
-    let scaleY = canvas.height / rHeight;
+    // EXAKTE BERECHNUNG für Zooms und Pannings (unabhängig von Containern!)
+    let fractionX = (clientX - rect.left) / rect.width;
+    let fractionY = (clientY - rect.top) / rect.height;
     
-    let x = Math.floor((clientX - (rect.left || 0)) * scaleX);
-    let y = Math.floor((clientY - (rect.top || 0)) * scaleY);
+    let x = Math.floor(fractionX * SIM_WIDTH);
+    let y = Math.floor(fractionY * SIM_HEIGHT);
     
     return {x, y};
 }
@@ -797,31 +1207,96 @@ function drawBrush(cx, cy) {
 }
 
 function handleInputDown(e) {
-    isDrawing = true;
-    let pos = getGridCoords(e);
-    lastDraw = pos;
-    drawBrush(pos.x, pos.y);
+    // Ignoriere Klicks, die auf einen "Erweitern" Button gehen
+    if (e.target.classList.contains('expand-zone') || e.target.closest('.expand-zone')) {
+        return; 
+    }
+
+    if (currentTool === 'pan') {
+        isPanningView = true;
+        lastPanClientX = e.touches ? e.touches[0].clientX : e.clientX;
+        lastPanClientY = e.touches ? e.touches[0].clientY : e.clientY;
+        worldWrap.style.cursor = 'grabbing';
+        return;
+    }
+
+    // Zeichnen nur erlauben, wenn auch wirklich der Canvas getroffen wurde
+    if (e.target === canvas) {
+        isDrawing = true;
+        let pos = getGridCoords(e);
+        lastDraw = pos;
+        drawBrush(pos.x, pos.y);
+    }
 }
 
 function handleInputMove(e) {
-    if(!isDrawing) return;
-    let pos = getGridCoords(e);
-    if(lastDraw) drawLine(lastDraw.x, lastDraw.y, pos.x, pos.y);
-    else drawBrush(pos.x, pos.y);
-    lastDraw = pos;
+    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    if (currentTool === 'pan' && isPanningView) {
+        let dx = clientX - lastPanClientX;
+        let dy = clientY - lastPanClientY;
+        panX += dx;
+        panY += dy;
+        
+        clampCamera();
+
+        lastPanClientX = clientX;
+        lastPanClientY = clientY;
+        worldWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+        return;
+    }
+
+    if(isDrawing) {
+        let pos = getGridCoords(e);
+        if(lastDraw) drawLine(lastDraw.x, lastDraw.y, pos.x, pos.y);
+        else drawBrush(pos.x, pos.y);
+        lastDraw = pos;
+    }
 }
 
 function handleInputUp() {
+    if (currentTool === 'pan') {
+        isPanningView = false;
+        worldWrap.style.cursor = 'grab';
+    }
     isDrawing = false;
     lastDraw = null;
 }
 
-canvas.addEventListener('mousedown', handleInputDown);
-canvas.addEventListener('mousemove', handleInputMove);
+worldWrap.addEventListener('mousedown', handleInputDown);
+window.addEventListener('mousemove', handleInputMove);
 window.addEventListener('mouseup', handleInputUp);
 
-canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleInputDown(e); }, {passive: false});
-canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleInputMove(e); }, {passive: false});
+// Zoom per Mausrad direkt auf den gesamten Container binden
+document.getElementById('sim-container').addEventListener('wheel', (e) => {
+    e.preventDefault();
+    
+    // Zoom in der Leere etwas weicher machen
+    const zoomSpeed = zoom <= 1 ? 0.05 : 0.1; 
+    const delta = e.deltaY < 0 ? zoomSpeed : -zoomSpeed;
+    let newZoom = Math.max(0.1, Math.min(10, zoom + delta)); // Minimaler Zoom ist extrem weit (0.1x)
+
+    if (newZoom !== zoom) {
+        let zoomRatio = newZoom / zoom;
+        panX = e.clientX - (e.clientX - panX) * zoomRatio;
+        panY = e.clientY - (e.clientY - panY) * zoomRatio;
+
+        zoom = newZoom;
+        clampCamera();
+        
+        worldWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    }
+}, {passive: false});
+
+worldWrap.addEventListener('touchstart', (e) => { 
+    if (e.target.classList.contains('expand-zone')) return;
+    e.preventDefault(); handleInputDown(e); 
+}, {passive: false});
+window.addEventListener('touchmove', (e) => { 
+    if (isPanningView || isDrawing) e.preventDefault(); 
+    handleInputMove(e); 
+}, {passive: false});
 window.addEventListener('touchend', handleInputUp);
 
 // --- MAIN LOOP ---
@@ -846,13 +1321,176 @@ function loop(timestamp) {
 requestAnimationFrame(loop);
 
 // --- THEME SELECTOR ---
-function changeThemeOverride() {
-    const override = document.getElementById('theme-override').value;
-    const body = document.body;
-    body.classList.remove('theme-wii', 'theme-retro', 'theme-cyberpunk', 'theme-custom');
-    if (override) body.classList.add(override);
+const MAX_CUSTOM_THEMES = 10;
+let customThemes = JSON.parse(localStorage.getItem('mustno-custom-themes')) || [];
+let currentEditId = null;
+
+function updateThemeDropdowns() {
+    const sel = document.getElementById('theme-dropdown');
+    sel.innerHTML = '';
+    sel.add(new Option('Cyber (Default)', ''));
+    sel.add(new Option('Wii Style', 'theme-wii'));
+    sel.add(new Option('Retro', 'theme-retro'));
+    sel.add(new Option('Cyberpunk', 'theme-cyberpunk'));
     
-    setTimeout(updateCachedBgColor, 50); 
+    customThemes.forEach(ct => {
+        sel.add(new Option(ct.name, ct.id));
+        sel.add(new Option('✎ Bearbeiten: ' + ct.name, 'edit_' + ct.id));
+    });
+    if(customThemes.length < MAX_CUSTOM_THEMES) sel.add(new Option('+ Neues Custom Theme...', 'new-custom'));
+    sel.value = localStorage.getItem('mustno-theme') || '';
+}
+
+function applyThemeColors(colors) {
+    const root = document.documentElement;
+    if(colors.bg) root.style.setProperty('--bg', colors.bg);
+    if(colors.accent) root.style.setProperty('--accent', colors.accent);
+    if(colors.text) root.style.setProperty('--text', colors.text);
+    if(colors.green) root.style.setProperty('--green', colors.green);
+    if(colors.border) root.style.setProperty('--border', colors.border);
+    // Hier wurde früher fälschlicherweise --glass im JS per String+80 gesetzt. 
+    // Das machen wir nun rein über das saubere CSS (Color-Mix).
+}
+
+function clearThemeColors() {
+    const root = document.documentElement;
+    ['--bg', '--accent', '--green', '--text', '--border', '--glass', '--panel-bg'].forEach(p => root.style.removeProperty(p));
+}
+
+function robustColorToHex(colorStr) {
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.fillStyle = colorStr;
+    return ctx.fillStyle; 
+}
+
+window.changeTheme = function(val, isInit = false) {
+    const prev = localStorage.getItem('mustno-theme') || '';
+    if (val.startsWith('edit_')) {
+        openCustomThemeModal(val.replace('edit_', ''));
+        document.getElementById('theme-dropdown').value = prev;
+        return;
+    }
+    if (val === 'new-custom') {
+        openCustomThemeModal();
+        document.getElementById('theme-dropdown').value = prev;
+        return;
+    }
+
+    localStorage.setItem('mustno-theme', val);
+    document.getElementById('theme-dropdown').value = val;
+
+    if (val.startsWith('custom-')) {
+        document.body.className = 'theme-custom';
+        const ct = customThemes.find(t => t.id === val);
+        if (ct) applyThemeColors(ct.colors);
+    } else {
+        document.body.className = val;
+        clearThemeColors();
+    }
+    
+    // Sandbox physics & bg updates
+    setTimeout(() => {
+        updateCachedBgColor();
+        drawGridToImgData();
+        updateBgmUI();
+    }, 50); 
+};
+
+window.openCustomThemeModal = function(editId = null) {
+    currentEditId = editId;
+    const container = document.getElementById('ct-inputs');
+    container.innerHTML = '';
+    
+    let startColors = { bg: '#050b16', accent: '#4a7aff', green: '#5effa8', text: '#e4edff', border: '#3c64f0' };
+    let startName = '';
+
+    if (editId) {
+        const existing = customThemes.find(t => t.id === editId);
+        if (existing) { startColors = existing.colors; startName = existing.name; }
+        document.getElementById('ct-btn-delete').style.display = 'block';
+        document.getElementById('ct-modal-title').innerText = 'THEME BEARBEITEN';
+    } else {
+        document.getElementById('ct-btn-delete').style.display = 'none';
+        document.getElementById('ct-modal-title').innerText = 'NEUES THEME ERSTELLEN';
+    }
+
+    document.getElementById('ct-name').value = startName;
+    const labels = { bg: 'HINTERGRUND', accent: 'ACCENT (PRIMÄR)', green: 'HIGHLIGHT (GRÜN)', text: 'TEXT FARBE', border: 'RAHMEN' };
+    
+    Object.keys(startColors).forEach(key => {
+        container.innerHTML += `
+        <div style="display:flex; flex-direction:column; gap:4px; margin-bottom: 12px;">
+            <label style="color:var(--dim); font-size:0.75rem; display:flex; justify-content:space-between; font-family:'Space Mono', monospace; text-transform:uppercase; letter-spacing:0.1em;">
+                <span>${labels[key]}</span>
+                <span style="color:var(--accent); font-size:0.6rem;">HEX / RGB / NAME</span>
+            </label>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input type="color" id="ct-col-${key}" value="${robustColorToHex(startColors[key])}" oninput="document.getElementById('ct-txt-${key}').value=this.value; previewCustomTheme();" style="width:36px; height:36px; padding:0; border:1px solid var(--border); border-radius:6px; cursor:pointer; background:transparent; flex-shrink:0;">
+                <input type="text" id="ct-txt-${key}" value="${startColors[key]}" oninput="syncThemeColorPicker('${key}'); previewCustomTheme();" placeholder="#hex, rgb()..." class="pm-input" style="flex:1; padding:8px; font-size:0.8rem; border-radius:6px; outline:none;">
+            </div>
+        </div>`;
+    });
+    document.getElementById('custom-theme-modal').style.display = 'flex';
+}
+
+window.syncThemeColorPicker = function(key) {
+    const txtVal = document.getElementById('ct-txt-' + key).value;
+    document.getElementById('ct-col-' + key).value = robustColorToHex(txtVal);
+}
+
+window.previewCustomTheme = function() {
+    const tempColors = {};
+    ['bg', 'accent', 'green', 'text', 'border'].forEach(key => tempColors[key] = document.getElementById(`ct-txt-${key}`).value);
+    applyThemeColors(tempColors);
+    setTimeout(() => {
+        updateCachedBgColor();
+        drawGridToImgData();
+    }, 50);
+}
+
+window.saveCustomTheme = function() {
+    const name = document.getElementById('ct-name').value.trim() || 'Custom Theme';
+    const newColors = {};
+    ['bg', 'accent', 'green', 'text', 'border'].forEach(key => newColors[key] = document.getElementById(`ct-txt-${key}`).value);
+
+    if (currentEditId) {
+        const idx = customThemes.findIndex(t => t.id === currentEditId);
+        if(idx !== -1) { customThemes[idx].name = name; customThemes[idx].colors = newColors; }
+    } else {
+        const newId = 'custom-' + Date.now();
+        customThemes.push({ id: newId, name: name, colors: newColors });
+        currentEditId = newId;
+    }
+
+    localStorage.setItem('mustno-custom-themes', JSON.stringify(customThemes));
+    updateThemeDropdowns();
+    changeTheme(currentEditId, true);
+    document.getElementById('custom-theme-modal').style.display = 'none';
+}
+
+window.deleteCustomTheme = function() {
+    if(!currentEditId) return;
+    customThemes = customThemes.filter(t => t.id !== currentEditId);
+    localStorage.setItem('mustno-custom-themes', JSON.stringify(customThemes));
+    updateThemeDropdowns();
+    changeTheme(''); 
+    document.getElementById('custom-theme-modal').style.display = 'none';
+}
+
+window.closeCustomThemeModal = function() {
+    document.getElementById('custom-theme-modal').style.display = 'none';
+    const active = localStorage.getItem('mustno-theme') || '';
+    document.getElementById('theme-dropdown').value = active;
+    if (active.startsWith('custom-')) {
+        const ct = customThemes.find(t => t.id === active);
+        if (ct) applyThemeColors(ct.colors);
+    } else {
+        clearThemeColors();
+    }
+    setTimeout(() => {
+        updateCachedBgColor();
+        drawGridToImgData();
+    }, 50);
 }
 
 // --- AUDIO SYSTEM ---
@@ -978,7 +1616,31 @@ setInterval(() => {
   }
 }, 1000);
 
-playCurrentTrack();
+window.addEventListener('load', () => {
+    updateThemeDropdowns();
+    playCurrentTrack();
+});
 </script>
+
+<!-- Custom Theme Editor Modal HTML -->
+<div id="custom-theme-modal" class="modal-overlay">
+    <div class="pm-box ct-box" style="border-color: var(--accent);">
+        <div class="modal-title" id="ct-modal-title">NEUES THEME ERSTELLEN</div>
+        
+        <div class="ct-row" style="margin-bottom:25px;">
+            <label style="font-family:'Space Mono'; font-size:0.75rem; color:var(--dim); margin-bottom:8px; display:block; text-transform:uppercase; letter-spacing:0.1em;">THEME NAME</label>
+            <input type="text" id="ct-name" class="pm-input" placeholder="Mein Theme" maxlength="15" style="font-size: 1.1rem;">
+        </div>
+        
+        <div id="ct-inputs"></div>
+        
+        <div style="display:flex; gap:15px; margin-top:25px;">
+          <button class="pm-btn btn-ghost" style="flex:1;" onclick="closeCustomThemeModal()">ABBRECHEN</button>
+          <button class="pm-btn btn-danger" id="ct-btn-delete" style="display:none;" onclick="deleteCustomTheme()">LÖSCHEN</button>
+          <button class="pm-btn" style="flex:1; color:#fff;" onclick="saveCustomTheme()">SPEICHERN</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
